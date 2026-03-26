@@ -66,8 +66,19 @@ const Header = forwardRef(function Header(
                   to="/sell"
                   className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#ad93e6] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#9d7ed9]"
                 >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 4.5v15m7.5-7.5h-15"
+                    />
                   </svg>
                   Sell
                 </Link>
@@ -87,16 +98,31 @@ const Header = forwardRef(function Header(
                   {dropdownOpen && (
                     <div className="absolute right-0 top-11 z-50 w-52 overflow-hidden rounded-xl border border-[#e6e6e6] bg-white shadow-lg">
                       <div className="border-b border-[#e6e6e6] px-4 py-3">
-                        <p className="truncate text-sm font-semibold text-[#121212]">{user.fullName}</p>
-                        <p className="truncate text-xs text-[#737373]">{user.email}</p>
+                        <p className="truncate text-sm font-semibold text-[#121212]">
+                          {user.fullName}
+                        </p>
+                        <p className="truncate text-xs text-[#737373]">
+                          {user.email}
+                        </p>
                       </div>
                       <Link
                         to="/my-listings"
                         onClick={() => setDropdownOpen(false)}
                         className="flex w-full items-center gap-2 px-4 py-3 text-sm text-[#121212] transition-colors hover:bg-[rgba(173,147,230,0.06)]"
                       >
-                        <svg className="h-4 w-4 text-[#ad93e6]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                        <svg
+                          className="h-4 w-4 text-[#ad93e6]"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+                          />
                         </svg>
                         My Listings
                       </Link>
@@ -105,19 +131,44 @@ const Header = forwardRef(function Header(
                         onClick={() => setDropdownOpen(false)}
                         className="flex w-full items-center gap-2 px-4 py-3 text-sm text-[#121212] transition-colors hover:bg-[rgba(173,147,230,0.06)]"
                       >
-                        <svg className="h-4 w-4 text-[#ad93e6]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3ZM6 6h.008v.008H6V6Z" />
+                        <svg
+                          className="h-4 w-4 text-[#ad93e6]"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3ZM6 6h.008v.008H6V6Z"
+                          />
                         </svg>
                         List an Item
                       </Link>
                       <button
-                        onClick={() => { logout(); setDropdownOpen(false); }}
+                        onClick={() => {
+                          logout();
+                          setDropdownOpen(false);
+                        }}
                         className="flex w-full items-center gap-2 px-4 py-3 text-sm text-[#ef4343] transition-colors hover:bg-[rgba(239,67,67,0.06)]"
                       >
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"
+                          />
                         </svg>
-                        Đăng xuất
+                        Logout
                       </button>
                     </div>
                   )}
@@ -198,7 +249,9 @@ const Header = forwardRef(function Header(
                 {user.avatar}
               </span>
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-[#121212]">{user.fullName}</p>
+                <p className="truncate text-sm font-semibold text-[#121212]">
+                  {user.fullName}
+                </p>
                 <p className="truncate text-xs text-[#737373]">{user.email}</p>
               </div>
             </div>
@@ -207,16 +260,30 @@ const Header = forwardRef(function Header(
               onClick={() => setIsOpen(false)}
               className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-[#ad93e6] text-sm font-semibold text-white"
             >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4.5v15m7.5-7.5h-15"
+                />
               </svg>
               List an Item for Sale
             </Link>
             <button
-              onClick={() => { logout(); setIsOpen(false); }}
+              onClick={() => {
+                logout();
+                setIsOpen(false);
+              }}
               className="inline-flex h-10 items-center justify-center rounded-full border border-[#ef4343] text-sm font-semibold text-[#ef4343]"
             >
-              Đăng xuất
+              Logout
             </button>
           </div>
         ) : (
