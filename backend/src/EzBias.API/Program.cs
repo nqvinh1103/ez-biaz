@@ -41,7 +41,9 @@ builder.Services.AddSwaggerGen();
 var conn = builder.Configuration.GetConnectionString("DefaultConnection")
            ?? "Host=localhost;Port=5432;Database=EzBiasDb;Username=postgres;Password=your_password";
 
-builder.Services.AddDbContext<EzBiasDbContext>(opt => opt.UseNpgsql(conn));
+builder.Services.AddDbContext<EzBiasDbContext>(opt =>
+    opt.UseNpgsql(conn, b => b.MigrationsAssembly("EzBias.Infrastructure"))
+);
 
 // JWT bearer
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "CHANGE_ME_DEV_SECRET_32CHARS_MIN";
@@ -104,9 +106,10 @@ try
     if (app.Environment.IsDevelopment() || seedOnStart)
         await DataSeeder.SeedAsync(scope.ServiceProvider);
 }
-catch
+catch (Exception ex)
 {
-    // ignore on startup if db is not reachable
+    // Log to stdout so Render logs show migration/seed failures
+    Console.WriteLine("[Startup] Migration/seed failed: " + ex);
 }
 
 if (app.Environment.IsDevelopment())
