@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import ProductCard from "../cards/ProductCard";
 
 function TrendingSection({ products }) {
@@ -14,8 +15,8 @@ function TrendingSection({ products }) {
           >
             Trending Now
           </h2>
-          <a
-            href="#"
+          <Link
+            to="/fandoms"
             className="flex items-center gap-1 text-sm font-semibold text-[#ad93e6]"
           >
             View All
@@ -25,7 +26,7 @@ function TrendingSection({ products }) {
               aria-hidden="true"
               className="h-4 w-4"
             />
-          </a>
+          </Link>
         </div>
 
         <div

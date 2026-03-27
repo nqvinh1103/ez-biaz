@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import AuctionCard from "../cards/AuctionCard";
 
 function AuctionsSection({ auctions }) {
@@ -14,8 +15,8 @@ function AuctionsSection({ auctions }) {
           >
             Live Auctions
           </h2>
-          <a
-            href="#"
+          <Link
+            to="/auction"
             className="flex items-center gap-1 text-sm font-semibold text-[#ad93e6]"
           >
             See All
@@ -25,7 +26,7 @@ function AuctionsSection({ auctions }) {
               aria-hidden="true"
               className="h-4 w-4"
             />
-          </a>
+          </Link>
         </div>
 
         <div
