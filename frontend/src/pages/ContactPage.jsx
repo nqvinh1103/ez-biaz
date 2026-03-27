@@ -1,17 +1,35 @@
+import { useState } from "react";
 import PageLayout from "../components/layout/PageLayout";
 import Button from "../components/ui/Button";
 import FormField from "../components/ui/FormField";
 import { useForm } from "../hooks/useForm";
+import { sendContactMessage } from "../lib/ezbiasApi";
 
 const INITIAL_FORM = { name: "", email: "", message: "" };
 
 function ContactPage() {
   const { values, handleChange, reset } = useForm(INITIAL_FORM);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: wire to API / email service
-    reset();
+    if (submitting) return;
+
+    setSubmitting(true);
+    setError(null);
+    setSuccess(null);
+
+    const res = await sendContactMessage(values.name, values.email, values.message);
+
+    setSubmitting(false);
+    if (res.success) {
+      setSuccess(res.message ?? "Message sent!");
+      reset();
+    } else {
+      setError(res.message ?? "Failed to send message.");
+    }
   };
 
   return (
@@ -61,8 +79,19 @@ function ContactPage() {
             onChange={handleChange}
           />
 
-          <Button type="submit" size="lg" className="w-full">
-            Send Message
+          {error && (
+            <div className="rounded-lg border border-[#fecaca] bg-[#fef2f2] px-4 py-3 text-sm text-[#ef4343]">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="rounded-lg border border-[#bbf7d0] bg-[#f0fdf4] px-4 py-3 text-sm text-[#166534]">
+              {success}
+            </div>
+          )}
+
+          <Button type="submit" size="lg" className="w-full" disabled={submitting}>
+            {submitting ? "Sending…" : "Send Message"}
           </Button>
         </form>
       </div>

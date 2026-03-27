@@ -187,3 +187,10 @@ export async function removeFromCart(userId, productId) {
 export async function clearCart(userId) {
   return request("DELETE", `/api/cart/${encodeURIComponent(userId)}`);
 }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   CONTACT
+────────────────────────────────────────────────────────────────────────── */
+export async function sendContactMessage(name, email, message) {
+  return request("POST", "/api/contact", { name, email, message });
+}
