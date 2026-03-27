@@ -1,4 +1,4 @@
-namespace EzBias.Application.Features.Products.Dtos;
+namespace EzBias.Contracts.Features.Products.Dtos;
 
 public record CreateListingRequest(
     string Name,

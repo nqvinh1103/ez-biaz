@@ -1,4 +1,4 @@
-namespace EzBias.Application.Features.Auctions.Dtos;
+namespace EzBias.Contracts.Features.Auctions.Dtos;
 
 public record AuctionDto(
     string Id,

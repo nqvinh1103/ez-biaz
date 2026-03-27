@@ -1,5 +1,5 @@
 using EzBias.API.Models;
-using EzBias.Application.Features.Contact.Dtos;
+using EzBias.Contracts.Features.Contact.Dtos;
 using EzBias.Application.Common.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 

@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\EzBias.Application\EzBias.Application.csproj" />
     <ProjectReference Include="..\EzBias.Infrastructure\EzBias.Infrastructure.csproj" />
+    <ProjectReference Include="..\EzBias.Contracts\EzBias.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

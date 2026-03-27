@@ -1,6 +1,6 @@
 using EzBias.Application.Common.Interfaces.Repositories;
 using EzBias.Application.Common.Interfaces.Services;
-using EzBias.Application.Features.Auctions.Dtos;
+using EzBias.Contracts.Features.Auctions.Dtos;
 using EzBias.Domain.Entities;
 
 namespace EzBias.Application.Features.Auctions.Services;

@@ -1,4 +1,4 @@
-using EzBias.Application.Features.Auctions.Dtos;
+using EzBias.Contracts.Features.Auctions.Dtos;
 
 namespace EzBias.Application.Common.Interfaces.Services;
 

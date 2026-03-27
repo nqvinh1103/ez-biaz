@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/EzBias.API/EzBias.API.csproj" />
     <Project Path="src/EzBias.Application/EzBias.Application.csproj" />
+    <Project Path="src/EzBias.Contracts/EzBias.Contracts.csproj" />
     <Project Path="src/EzBias.Domain/EzBias.Domain.csproj" />
     <Project Path="src/EzBias.Infrastructure/EzBias.Infrastructure.csproj" />
   </Folder>
