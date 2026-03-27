@@ -1,15 +1,16 @@
 using EzBias.API.Models;
-using EzBias.Contracts.Features.Orders.Dtos;
-using EzBias.Application.Common.Interfaces.Services;
+using EzBias.Application.Features.Orders.Commands.Checkout;
 using EzBias.Application.Features.Orders.Models;
-using EzBias.Domain.Entities;
+using EzBias.Application.Features.Orders.Queries.GetOrders;
+using EzBias.Contracts.Features.Orders.Dtos;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EzBias.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class OrdersController(IOrderService orders) : ControllerBase
+public class OrdersController(IMediator mediator) : ControllerBase
 {
     /// <summary>
     /// Match mock: getOrders(userId)
@@ -17,7 +18,7 @@ public class OrdersController(IOrderService orders) : ControllerBase
     [HttpGet("{userId}")]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<OrderDto>>>> GetOrders([FromRoute] string userId)
     {
-        var dtos = await orders.GetOrdersAsync(userId);
+        var dtos = await mediator.Send(new GetOrdersQuery(userId));
         return ApiResponse<IReadOnlyList<OrderDto>>.Ok(dtos);
     }
 
@@ -52,7 +53,7 @@ public class OrdersController(IOrderService orders) : ControllerBase
                 req.Items?.Select(i => new CheckoutItemModel(i.ProductId, i.Name, i.Price, i.Qty)).ToList()
             );
 
-            var dto = await orders.CheckoutAsync(model);
+            var dto = await mediator.Send(new CheckoutCommand(model));
             return ApiResponse<OrderDto>.Ok(dto, "Order placed successfully! Thank you for your purchase.");
         }
         catch (ArgumentException ex)
