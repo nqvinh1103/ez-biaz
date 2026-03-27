@@ -1,14 +1,10 @@
 using EzBias.Application.Common.Interfaces.Repositories;
-using EzBias.Application.Common.Interfaces.Services;
+// (removed) services moved to CQRS handlers
 using EzBias.Application.Services.Auth;
 using EzBias.Infrastructure.Data;
 using EzBias.Infrastructure.Repositories;
 using EzBias.Infrastructure.Seeding;
-using EzBias.Application.Features.Auctions.Services;
-using EzBias.Application.Features.Cart.Services;
-using EzBias.Application.Features.Contact.Services;
-using EzBias.Application.Features.Orders.Services;
-using EzBias.Application.Features.Products.Services;
+// (removed) Application feature services migrated to MediatR handlers
 using EzBias.Infrastructure.Services.Auth;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -69,26 +65,13 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
-// Contact layering
-builder.Services.AddScoped<IContactRepository, ContactRepository>();
-builder.Services.AddScoped<IContactService, ContactService>();
-
-// Products layering
+// Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<IProductService, ProductService>();
-
-// Auctions layering
 builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
-builder.Services.AddScoped<IAuctionService, AuctionService>();
-
-// Cart layering
 builder.Services.AddScoped<ICartRepository, CartRepository>();
-builder.Services.AddScoped<ICartService, CartService>();
-
-// Orders layering
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IContactRepository, ContactRepository>();
 
 // refresh days from config (optional)
 var refreshDays = int.TryParse(builder.Configuration["Jwt:RefreshTokenDays"], out var d) ? d : 7;
