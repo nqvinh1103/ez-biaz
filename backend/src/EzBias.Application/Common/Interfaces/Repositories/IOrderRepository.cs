@@ -8,7 +8,7 @@ public interface IOrderRepository
     // READ (query): projection to DTO
     Task<IReadOnlyList<OrderDto>> GetOrdersDtoAsync(string userId, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<Order>> GetOrdersAsync(string userId, CancellationToken cancellationToken = default);
+    // (removed) entity-returning query method; use GetOrdersDtoAsync for reads
 
     Task<string> NextOrderIdAsync(CancellationToken cancellationToken = default);
 

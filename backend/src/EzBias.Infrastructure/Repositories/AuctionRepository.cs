@@ -78,26 +78,7 @@ public class AuctionRepository(EzBiasDbContext db) : IAuctionRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<Auction>> GetAuctionsAsync(string? fandom, bool? isLive, bool? isUrgent, CancellationToken cancellationToken = default)
-    {
-        var q = db.Auctions.AsNoTracking().AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(fandom))
-            q = q.Where(a => a.Fandom.ToLower() == fandom.ToLower());
-
-        if (isLive is not null)
-            q = q.Where(a => a.IsLive == isLive.Value);
-
-        if (isUrgent == true)
-            q = q.Where(a => a.IsUrgent);
-
-        return await q.OrderBy(a => a.EndsAt).ToListAsync(cancellationToken);
-    }
-
-    public Task<Auction?> GetAuctionDetailAsync(string id, CancellationToken cancellationToken = default)
-        => db.Auctions.AsNoTracking()
-            .Include(a => a.Bids)
-            .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
+    // (removed) entity-returning query methods; use *DtoAsync for reads
 
     public Task<Auction?> GetAuctionForBiddingAsync(string id, CancellationToken cancellationToken = default)
         => db.Auctions

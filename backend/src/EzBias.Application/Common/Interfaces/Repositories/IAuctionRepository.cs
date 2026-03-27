@@ -10,9 +10,7 @@ public interface IAuctionRepository
 
     Task<AuctionDetailDto?> GetAuctionDetailDtoAsync(string id, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<Auction>> GetAuctionsAsync(string? fandom, bool? isLive, bool? isUrgent, CancellationToken cancellationToken = default);
-
-    Task<Auction?> GetAuctionDetailAsync(string id, CancellationToken cancellationToken = default);
+    // (removed) entity-returning query methods; use *DtoAsync for reads
 
     // tracked for bidding
     Task<Auction?> GetAuctionForBiddingAsync(string id, CancellationToken cancellationToken = default);

@@ -18,17 +18,7 @@ public interface IProductRepository
 
     Task<IReadOnlyList<ProductDto>> GetBySellerDtoAsync(string sellerId, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<Product>> GetProductsAsync(
-        string? fandom,
-        string? type,
-        decimal? minPrice,
-        decimal? maxPrice,
-        bool? inStockOnly,
-        CancellationToken cancellationToken = default);
-
     Task<Product?> GetByIdAsync(string id, CancellationToken cancellationToken = default);
-
-    Task<IReadOnlyList<Product>> GetBySellerAsync(string sellerId, CancellationToken cancellationToken = default);
 
     Task<string> NextIdAsync(CancellationToken cancellationToken = default);
 

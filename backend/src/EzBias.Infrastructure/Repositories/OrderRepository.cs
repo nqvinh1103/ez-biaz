@@ -29,12 +29,7 @@ public class OrderRepository(EzBiasDbContext db) : IOrderRepository
             ))
             .ToListAsync(cancellationToken);
 
-    public async Task<IReadOnlyList<Order>> GetOrdersAsync(string userId, CancellationToken cancellationToken = default)
-        => await db.Orders.AsNoTracking()
-            .Include(o => o.Items)
-            .Where(o => o.UserId == userId)
-            .OrderByDescending(o => o.CreatedAt)
-            .ToListAsync(cancellationToken);
+    // (removed) entity-returning query method; use GetOrdersDtoAsync for reads
 
     public async Task<string> NextOrderIdAsync(CancellationToken cancellationToken = default)
     {
