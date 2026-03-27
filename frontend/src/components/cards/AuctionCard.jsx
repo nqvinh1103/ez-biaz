@@ -26,6 +26,8 @@ const AuctionCard = memo(function AuctionCard({
   containImage = false,
   id = "detail",
 }) {
+  const displayBid = typeof currentBid === "number" ? `$${currentBid.toFixed(2)}` : currentBid;
+
   return (
     <article
       className="relative overflow-hidden rounded-xl border border-[rgba(230,230,230,0.5)] bg-white p-px shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]"
@@ -84,7 +86,7 @@ const AuctionCard = memo(function AuctionCard({
           {/* Bid amount */}
           <div>
             <p className="text-xs text-[#737373]">Current Bid</p>
-            <p className="text-lg font-bold text-[#121212]">{currentBid}</p>
+            <p className="text-lg font-bold text-[#121212]">{displayBid}</p>
           </div>
 
           {/*

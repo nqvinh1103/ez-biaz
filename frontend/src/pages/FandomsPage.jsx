@@ -1,7 +1,7 @@
-import { memo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import ProductCard from "../components/cards/ProductCard";
 import PageLayout from "../components/layout/PageLayout";
-import { fandomProducts, fandomTabs } from "../data/landingData";
+import { getProducts } from "../lib/ezbiasApi";
 import { cn } from "../utils/cn";
 
 /* ─── FandomTabs ──────────────────────────────────────────────────────────── */
@@ -34,9 +34,58 @@ const FandomTabs = memo(function FandomTabs({ tabs, active, onSelect }) {
 
 /* ─── Page ────────────────────────────────────────────────────────────────── */
 function FandomsPage() {
-  const [activeTab, setActiveTab] = useState(fandomTabs[0]);
+  const [tabs, setTabs] = useState([]);
+  const [activeTab, setActiveTab] = useState("");
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const filtered = fandomProducts.filter((p) => p.fandom === activeTab);
+  // load tabs once
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      const res = await getProducts();
+      if (!mounted) return;
+      if (!res.success) {
+        setError(res.message ?? "Failed to load products.");
+        setLoading(false);
+        return;
+      }
+
+      const list = res.data ?? [];
+      const fandoms = Array.from(new Set(list.map((p) => p.fandom))).sort();
+      setTabs(fandoms);
+      setActiveTab((prev) => prev || fandoms[0] || "");
+      setLoading(false);
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // load products per tab
+  useEffect(() => {
+    if (!activeTab) return;
+    let mounted = true;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      const res = await getProducts({ fandom: activeTab });
+      if (!mounted) return;
+      if (res.success) setProducts(res.data ?? []);
+      else setError(res.message ?? "Failed to load products.");
+      setLoading(false);
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [activeTab]);
+
+  const filtered = useMemo(() => products, [products]);
 
   return (
     <PageLayout>
@@ -51,23 +100,25 @@ function FandomsPage() {
           </p>
         </div>
 
-        <FandomTabs
-          tabs={fandomTabs}
-          active={activeTab}
-          onSelect={setActiveTab}
-        />
+        {tabs.length > 0 && (
+          <FandomTabs tabs={tabs} active={activeTab} onSelect={setActiveTab} />
+        )}
 
-        {/* Product grid */}
-        {filtered.length > 0 ? (
+        {error && (
+          <p className="py-4 text-center text-sm text-[#ef4343]">{error}</p>
+        )}
+
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <span className="h-8 w-8 animate-spin rounded-full border-2 border-[#e6e6e6] border-t-[#ad93e6]" />
+          </div>
+        ) : filtered.length > 0 ? (
           <div
             className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4"
             role="list"
           >
             {filtered.map((product) => (
-              <ProductCard
-                key={`${product.fandom}-${product.name}`}
-                {...product}
-              />
+              <ProductCard key={product.id} {...product} />
             ))}
           </div>
         ) : (

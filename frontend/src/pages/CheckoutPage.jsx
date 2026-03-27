@@ -9,7 +9,7 @@ import FormField from "../components/ui/FormField";
 import { useAuth } from "../hooks/useAuth";
 import { useCart } from "../hooks/useCart";
 import { useForm } from "../hooks/useForm";
-import { checkout } from "../mock/mockApi";
+import { checkout } from "../lib/ezbiasApi";
 
 const INITIAL_SHIPPING = {
   fullName: "",

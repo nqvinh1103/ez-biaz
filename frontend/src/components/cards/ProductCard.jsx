@@ -9,8 +9,14 @@ function ProductCard({ id, artist, name, price, image }) {
   const itemKey = id ?? name;
   const inCart = items.some((i) => (i.id ?? i.name) === itemKey);
 
+  const numericPrice = typeof price === "number"
+    ? price
+    : parseFloat(String(price).replace("$", ""));
+
+  const displayPrice = typeof price === "number" ? `$${price.toFixed(2)}` : price;
+
   const handleAdd = () => {
-    addItem({ id: itemKey, artist, name, price: parseFloat(String(price).replace("$", "")), image, qty: 1 });
+    addItem({ id: itemKey, artist, name, price: numericPrice, image, qty: 1 });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
@@ -40,7 +46,7 @@ function ProductCard({ id, artist, name, price, image }) {
         </h3>
         <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center sm:justify-between xl:pt-0.5">
           <span className="text-[30px] font-bold leading-none text-[#121212] sm:text-lg sm:leading-7 xl:text-[13px]">
-            {price}
+            {displayPrice}
           </span>
           <button
             onClick={handleAdd}

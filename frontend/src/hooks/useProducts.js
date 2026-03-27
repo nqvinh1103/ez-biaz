@@ -6,7 +6,7 @@
  *   const { products, loading, error, refetch } = useProducts({ fandom: "BTS" });
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getProducts } from "../mock/mockApi";
+import { getProducts } from "../lib/ezbiasApi";
 
 export function useProducts(filters = {}) {
   const [products, setProducts] = useState([]);
