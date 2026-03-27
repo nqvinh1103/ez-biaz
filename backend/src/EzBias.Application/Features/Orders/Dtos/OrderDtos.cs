@@ -1,4 +1,4 @@
-namespace EzBias.API.Models.Dtos;
+namespace EzBias.Application.Features.Orders.Dtos;
 
 public record CheckoutRequest(
     string UserId,

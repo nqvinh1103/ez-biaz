@@ -1,5 +1,5 @@
 using EzBias.API.Models;
-using EzBias.API.Models.Dtos;
+using EzBias.Application.Features.Auctions.Dtos;
 using EzBias.Application.Common.Interfaces.Services;
 using EzBias.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;

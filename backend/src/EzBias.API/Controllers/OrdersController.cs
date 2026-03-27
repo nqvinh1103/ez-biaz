@@ -1,5 +1,5 @@
 using EzBias.API.Models;
-using EzBias.API.Models.Dtos;
+using EzBias.Application.Features.Orders.Dtos;
 using EzBias.Application.Common.Interfaces.Services;
 using EzBias.Application.Features.Orders.Models;
 using EzBias.Domain.Entities;
