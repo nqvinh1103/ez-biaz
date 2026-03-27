@@ -1,6 +1,10 @@
+using EzBias.Application.Common.Interfaces.Repositories;
+using EzBias.Application.Common.Interfaces.Services;
 using EzBias.Application.Services.Auth;
 using EzBias.Infrastructure.Data;
+using EzBias.Infrastructure.Repositories;
 using EzBias.Infrastructure.Seeding;
+using EzBias.Infrastructure.Services;
 using EzBias.Infrastructure.Services.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -56,6 +60,10 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+
+// Contact layering
+builder.Services.AddScoped<IContactRepository, ContactRepository>();
+builder.Services.AddScoped<IContactService, ContactService>();
 
 // refresh days from config (optional)
 var refreshDays = int.TryParse(builder.Configuration["Jwt:RefreshTokenDays"], out var d) ? d : 7;
