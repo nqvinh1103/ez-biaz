@@ -1,4 +1,4 @@
-namespace EzBias.Application.Orders.Models;
+namespace EzBias.Application.Features.Orders.Models;
 
 public record ShippingInfoModel(
     string FullName,

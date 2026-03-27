@@ -1,9 +1,9 @@
 using EzBias.Application.Common.Interfaces.Repositories;
 using EzBias.Application.Common.Interfaces.Services;
-using EzBias.Application.Products.Models;
+using EzBias.Application.Features.Products.Models;
 using EzBias.Domain.Entities;
 
-namespace EzBias.Infrastructure.Services;
+namespace EzBias.Application.Features.Products.Services;
 
 public class ProductService(IProductRepository repo, IUserRepository users) : IProductService
 {
@@ -24,7 +24,6 @@ public class ProductService(IProductRepository repo, IUserRepository users) : IP
 
     public async Task<Product> CreateListingAsync(string sellerId, CreateListingModel req, CancellationToken cancellationToken = default)
     {
-        // Validate like mock
         if (string.IsNullOrWhiteSpace(req.Name))
             throw new ArgumentException("Product name is required.");
         if (string.IsNullOrWhiteSpace(req.Condition))

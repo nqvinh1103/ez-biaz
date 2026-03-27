@@ -1,9 +1,9 @@
 using EzBias.Application.Common.Interfaces.Repositories;
 using EzBias.Application.Common.Interfaces.Services;
-using EzBias.Application.Orders.Models;
+using EzBias.Application.Features.Orders.Models;
 using EzBias.Domain.Entities;
 
-namespace EzBias.Infrastructure.Services;
+namespace EzBias.Application.Features.Orders.Services;
 
 public class OrderService(IOrderRepository repo) : IOrderService
 {
@@ -47,7 +47,6 @@ public class OrderService(IOrderRepository repo) : IOrderService
         if (orderItems.Count == 0)
             throw new ArgumentException("Your cart is empty. Add items before checking out.");
 
-        // Validate stock and deduct
         var productIds = orderItems.Select(i => i.productId).Distinct().ToList();
         var products = await repo.GetProductsForUpdateAsync(productIds, cancellationToken);
 
@@ -92,7 +91,6 @@ public class OrderService(IOrderRepository repo) : IOrderService
         if (model.Items is null || model.Items.Count == 0)
             await repo.ClearCartAsync(model.UserId, cancellationToken);
 
-        // products stock changes were tracked via GetProductsForUpdateAsync
         await repo.SaveChangesAsync(cancellationToken);
 
         return order;

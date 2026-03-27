@@ -1,4 +1,4 @@
-using EzBias.Application.Orders.Models;
+using EzBias.Application.Features.Orders.Models;
 using EzBias.Domain.Entities;
 
 namespace EzBias.Application.Common.Interfaces.Services;

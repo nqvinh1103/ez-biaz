@@ -2,7 +2,7 @@ using EzBias.Application.Common.Interfaces.Repositories;
 using EzBias.Application.Common.Interfaces.Services;
 using EzBias.Domain.Entities;
 
-namespace EzBias.Infrastructure.Services;
+namespace EzBias.Application.Features.Contact.Services;
 
 public class ContactService(IContactRepository repo) : IContactService
 {

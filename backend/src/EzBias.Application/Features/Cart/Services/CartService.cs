@@ -2,7 +2,7 @@ using EzBias.Application.Common.Interfaces.Repositories;
 using EzBias.Application.Common.Interfaces.Services;
 using EzBias.Domain.Entities;
 
-namespace EzBias.Infrastructure.Services;
+namespace EzBias.Application.Features.Cart.Services;
 
 public class CartService(ICartRepository cartRepo, IProductRepository products) : ICartService
 {
@@ -19,7 +19,6 @@ public class CartService(ICartRepository cartRepo, IProductRepository products) 
         if (qty < 1)
             throw new ArgumentException("Quantity must be at least 1.");
 
-        // Need product for stock checks
         var product = await products.GetByIdAsync(productId, cancellationToken);
         if (product is null)
             throw new KeyNotFoundException("Product not found.");
@@ -94,8 +93,6 @@ public class CartService(ICartRepository cartRepo, IProductRepository products) 
         var items = await cartRepo.GetCartItemsAsync(ownerId, cancellationToken);
         if (items.Count == 0) return;
 
-        // Note: items are no-tracking due to include; remove needs tracked.
-        // Re-query tracked items quickly.
         var tracked = new List<CartItem>();
         foreach (var it in items)
         {

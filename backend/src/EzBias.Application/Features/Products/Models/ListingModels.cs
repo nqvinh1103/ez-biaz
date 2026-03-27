@@ -1,4 +1,4 @@
-namespace EzBias.Application.Products.Models;
+namespace EzBias.Application.Features.Products.Models;
 
 public record CreateListingModel(
     string Name,

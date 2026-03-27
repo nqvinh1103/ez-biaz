@@ -2,7 +2,7 @@ using EzBias.Application.Common.Interfaces.Repositories;
 using EzBias.Application.Common.Interfaces.Services;
 using EzBias.Domain.Entities;
 
-namespace EzBias.Infrastructure.Services;
+namespace EzBias.Application.Features.Auctions.Services;
 
 public class AuctionService(IAuctionRepository repo, IUserRepository users) : IAuctionService
 {

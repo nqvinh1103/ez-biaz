@@ -74,7 +74,7 @@ public class ProductsController(IProductService products) : ControllerBase
     {
         try
         {
-            var entity = await products.CreateListingAsync(userId, new EzBias.Application.Products.Models.CreateListingModel(
+            var entity = await products.CreateListingAsync(userId, new EzBias.Application.Features.Products.Models.CreateListingModel(
                 req.Name,
                 req.Condition,
                 req.Price,
@@ -98,7 +98,7 @@ public class ProductsController(IProductService products) : ControllerBase
     {
         try
         {
-            var entity = await products.UpdateListingAsync(userId, productId, new EzBias.Application.Products.Models.UpdateListingModel(
+            var entity = await products.UpdateListingAsync(userId, productId, new EzBias.Application.Features.Products.Models.UpdateListingModel(
                 req.Name,
                 req.Description,
                 req.Condition,
