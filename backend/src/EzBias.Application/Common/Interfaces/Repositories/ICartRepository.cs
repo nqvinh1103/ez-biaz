@@ -2,9 +2,14 @@ using EzBias.Domain.Entities;
 
 namespace EzBias.Application.Common.Interfaces.Repositories;
 
+using EzBias.Contracts.Features.Products.Dtos;
+
 public interface ICartRepository
 {
     Task EnsureOwnerExistsAsync(string ownerId, CancellationToken cancellationToken = default);
+
+    // READ (query): projection to DTO to avoid N+1
+    Task<IReadOnlyList<CartItemDto>> GetCartDtoAsync(string ownerId, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<CartItem>> GetCartItemsAsync(string ownerId, CancellationToken cancellationToken = default);
 

@@ -61,6 +61,7 @@ public class EzBiasDbContext : DbContext
         {
             b.HasKey(x => x.Id);
             b.Property(x => x.Id).ValueGeneratedNever();
+            b.HasIndex(x => x.UserId);
             b.HasOne(x => x.User)
                 .WithMany(u => u.Orders)
                 .HasForeignKey(x => x.UserId)
@@ -70,6 +71,7 @@ public class EzBiasDbContext : DbContext
         modelBuilder.Entity<OrderItem>(b =>
         {
             b.HasKey(x => x.Id);
+            b.HasIndex(x => x.OrderId);
             b.HasOne(x => x.Order)
                 .WithMany(o => o.Items)
                 .HasForeignKey(x => x.OrderId)

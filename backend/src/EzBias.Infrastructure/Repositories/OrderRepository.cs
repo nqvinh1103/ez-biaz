@@ -1,4 +1,5 @@
 using EzBias.Application.Common.Interfaces.Repositories;
+using EzBias.Contracts.Features.Orders.Dtos;
 using EzBias.Domain.Entities;
 using EzBias.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,27 @@ namespace EzBias.Infrastructure.Repositories;
 
 public class OrderRepository(EzBiasDbContext db) : IOrderRepository
 {
+    public async Task<IReadOnlyList<OrderDto>> GetOrdersDtoAsync(string userId, CancellationToken cancellationToken = default)
+        => await db.Orders
+            .AsNoTracking()
+            .Where(o => o.UserId == userId)
+            .OrderByDescending(o => o.CreatedAt)
+            .Select(o => new OrderDto(
+                o.Id,
+                o.UserId,
+                o.Items
+                    .OrderBy(i => i.Id)
+                    .Select(i => new OrderItemDto(i.ProductId, i.Name, i.Quantity, i.Price))
+                    .ToList(),
+                o.ShippingFee,
+                o.Total,
+                o.Status,
+                o.Payment,
+                o.Address,
+                o.CreatedAt.ToString("yyyy-MM-dd")
+            ))
+            .ToListAsync(cancellationToken);
+
     public async Task<IReadOnlyList<Order>> GetOrdersAsync(string userId, CancellationToken cancellationToken = default)
         => await db.Orders.AsNoTracking()
             .Include(o => o.Items)

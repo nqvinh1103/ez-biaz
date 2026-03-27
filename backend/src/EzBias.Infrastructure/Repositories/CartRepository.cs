@@ -1,4 +1,5 @@
 using EzBias.Application.Common.Interfaces.Repositories;
+using EzBias.Contracts.Features.Products.Dtos;
 using EzBias.Domain.Entities;
 using EzBias.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,28 @@ namespace EzBias.Infrastructure.Repositories;
 
 public class CartRepository(EzBiasDbContext db) : ICartRepository
 {
+    public async Task<IReadOnlyList<CartItemDto>> GetCartDtoAsync(string ownerId, CancellationToken cancellationToken = default)
+        => await db.CartItems
+            .AsNoTracking()
+            .Where(ci => ci.UserId == ownerId)
+            .OrderByDescending(ci => ci.AddedAt)
+            .Join(
+                db.Products.AsNoTracking(),
+                ci => ci.ProductId,
+                p => p.Id,
+                (ci, p) => new CartItemDto(
+                    ci.ProductId,
+                    ci.Quantity,
+                    p.Name,
+                    p.Artist,
+                    p.Fandom,
+                    p.Price,
+                    p.Image,
+                    p.Stock
+                )
+            )
+            .ToListAsync(cancellationToken);
+
     public async Task EnsureOwnerExistsAsync(string ownerId, CancellationToken cancellationToken = default)
     {
         var exists = await db.Users.AsNoTracking().AnyAsync(u => u.Id == ownerId, cancellationToken);

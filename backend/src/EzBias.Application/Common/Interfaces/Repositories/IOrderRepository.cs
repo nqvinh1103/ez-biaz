@@ -1,9 +1,13 @@
+using EzBias.Contracts.Features.Orders.Dtos;
 using EzBias.Domain.Entities;
 
 namespace EzBias.Application.Common.Interfaces.Repositories;
 
 public interface IOrderRepository
 {
+    // READ (query): projection to DTO
+    Task<IReadOnlyList<OrderDto>> GetOrdersDtoAsync(string userId, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<Order>> GetOrdersAsync(string userId, CancellationToken cancellationToken = default);
 
     Task<string> NextOrderIdAsync(CancellationToken cancellationToken = default);
