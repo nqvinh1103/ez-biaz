@@ -1,13 +1,20 @@
 using EzBias.API.Models;
+using EzBias.Application.Features.Products.Commands.CreateListing;
+using EzBias.Application.Features.Products.Commands.DeleteListing;
+using EzBias.Application.Features.Products.Commands.UpdateListing;
+using EzBias.Application.Features.Products.Models;
+using EzBias.Application.Features.Products.Queries.GetProductById;
+using EzBias.Application.Features.Products.Queries.GetProducts;
+using EzBias.Application.Features.Products.Queries.GetSellerListings;
 using EzBias.Contracts.Features.Products.Dtos;
-using EzBias.Application.Common.Interfaces.Services;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EzBias.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ProductsController(IProductService products) : ControllerBase
+public class ProductsController(IMediator mediator) : ControllerBase
 {
     /// <summary>
     /// Match mock: getProducts(filters?)
@@ -21,7 +28,7 @@ public class ProductsController(IProductService products) : ControllerBase
         [FromQuery] decimal? maxPrice,
         [FromQuery] bool? inStockOnly)
     {
-        var results = await products.GetProductsAsync(fandom, type, minPrice, maxPrice, inStockOnly);
+        var results = await mediator.Send(new GetProductsQuery(fandom, type, minPrice, maxPrice, inStockOnly));
 
         if (results.Count == 0)
             return ApiResponse<IReadOnlyList<ProductDto>>.Ok(results, "No products found for the selected filters.");
@@ -32,7 +39,7 @@ public class ProductsController(IProductService products) : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ApiResponse<ProductDto>>> GetProductById([FromRoute] string id)
     {
-        var dto = await products.GetByIdAsync(id);
+        var dto = await mediator.Send(new GetProductByIdQuery(id));
         if (dto is null)
             return NotFound(ApiResponse<ProductDto>.Fail("Product not found."));
 
@@ -45,7 +52,7 @@ public class ProductsController(IProductService products) : ControllerBase
     [HttpGet("seller/{userId}")]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<ProductDto>>>> GetSellerListings([FromRoute] string userId)
     {
-        var results = await products.GetBySellerAsync(userId);
+        var results = await mediator.Send(new GetSellerListingsQuery(userId));
         return ApiResponse<IReadOnlyList<ProductDto>>.Ok(results);
     }
 
@@ -57,14 +64,14 @@ public class ProductsController(IProductService products) : ControllerBase
     {
         try
         {
-            var dto = await products.CreateListingAsync(userId, new EzBias.Application.Features.Products.Models.CreateListingModel(
+            var dto = await mediator.Send(new CreateListingCommand(userId, new CreateListingModel(
                 req.Name,
                 req.Condition,
                 req.Price,
                 req.Fandom,
                 req.ItemTypes,
                 req.Description
-            ));
+            )));
             return ApiResponse<ProductDto>.Ok(dto, "Your listing has been posted successfully!");
         }
         catch (ArgumentException ex)
@@ -81,13 +88,13 @@ public class ProductsController(IProductService products) : ControllerBase
     {
         try
         {
-            var dto = await products.UpdateListingAsync(userId, productId, new EzBias.Application.Features.Products.Models.UpdateListingModel(
+            var dto = await mediator.Send(new UpdateListingCommand(userId, productId, new UpdateListingModel(
                 req.Name,
                 req.Description,
                 req.Condition,
                 req.Price,
                 req.Stock
-            ));
+            )));
             if (dto is null)
                 return NotFound(ApiResponse<ProductDto>.Fail("Listing not found."));
 
@@ -111,7 +118,7 @@ public class ProductsController(IProductService products) : ControllerBase
     {
         try
         {
-            var ok = await products.DeleteListingAsync(userId, productId);
+            var ok = await mediator.Send(new DeleteListingCommand(userId, productId));
             if (!ok)
                 return NotFound(ApiResponse<object>.Fail("Listing not found."));
 

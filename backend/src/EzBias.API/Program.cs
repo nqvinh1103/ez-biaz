@@ -10,6 +10,7 @@ using EzBias.Application.Features.Contact.Services;
 using EzBias.Application.Features.Orders.Services;
 using EzBias.Application.Features.Products.Services;
 using EzBias.Infrastructure.Services.Auth;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -18,6 +19,9 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+
+// MediatR (CQRS)
+builder.Services.AddMediatR(typeof(EzBias.Application.Features.Products.Queries.GetProducts.GetProductsQuery).Assembly);
 
 builder.Services.AddCors(options =>
 {
