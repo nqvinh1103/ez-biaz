@@ -11,12 +11,43 @@ namespace EzBias.API.Controllers;
 [Route("api/[controller]")]
 public class CartController(EzBiasDbContext db) : ControllerBase
 {
+    private static async Task EnsureUserExistsAsync(EzBiasDbContext db, string userId)
+    {
+        // For guest carts, we allow using an arbitrary userId (e.g. g_<guid>)
+        // and auto-create a lightweight user row so CartItems FK stays valid.
+        var exists = await db.Users.AsNoTracking().AnyAsync(u => u.Id == userId);
+        if (exists) return;
+
+        db.Users.Add(new Domain.Entities.User
+        {
+            Id = userId,
+            FullName = "Guest",
+            Username = userId,
+            Email = $"{userId}@guest.local",
+            Role = "guest",
+            PasswordHash = string.Empty,
+            Phone = string.Empty,
+            Address = string.Empty,
+            City = string.Empty,
+            Zip = string.Empty,
+            Avatar = "G",
+            AvatarBg = "#ad93e6",
+            JoinedAt = DateOnly.FromDateTime(DateTime.UtcNow),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+
+        await db.SaveChangesAsync();
+    }
+
     /// <summary>
     /// Match mock: getCart(userId)
     /// </summary>
     [HttpGet("{userId}")]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<CartItemDto>>>> GetCart([FromRoute] string userId)
     {
+        await EnsureUserExistsAsync(db, userId);
+
         var items = await db.CartItems.AsNoTracking()
             .Include(ci => ci.Product)
             .Where(ci => ci.UserId == userId)
@@ -48,6 +79,8 @@ public class CartController(EzBiasDbContext db) : ControllerBase
     [HttpPost("{userId}/items")]
     public async Task<ActionResult<ApiResponse<object>>> AddToCart([FromRoute] string userId, [FromBody] AddToCartRequest req)
     {
+        await EnsureUserExistsAsync(db, userId);
+
         if (req.Qty < 1)
             return BadRequest(ApiResponse<object>.Fail("Quantity must be at least 1."));
 
@@ -95,6 +128,8 @@ public class CartController(EzBiasDbContext db) : ControllerBase
     [HttpPut("{userId}/items/{productId}")]
     public async Task<ActionResult<ApiResponse<object>>> UpdateQty([FromRoute] string userId, [FromRoute] string productId, [FromBody] UpdateQtyRequest req)
     {
+        await EnsureUserExistsAsync(db, userId);
+
         if (req.Qty < 1)
             return BadRequest(ApiResponse<object>.Fail("Quantity must be at least 1."));
 
@@ -121,6 +156,8 @@ public class CartController(EzBiasDbContext db) : ControllerBase
     [HttpDelete("{userId}/items/{productId}")]
     public async Task<ActionResult<ApiResponse<object?>>> Remove([FromRoute] string userId, [FromRoute] string productId)
     {
+        await EnsureUserExistsAsync(db, userId);
+
         var item = await db.CartItems.FirstOrDefaultAsync(c => c.UserId == userId && c.ProductId == productId);
         if (item is null)
             return NotFound(ApiResponse<object?>.Fail("Item not found in cart."));
@@ -137,6 +174,8 @@ public class CartController(EzBiasDbContext db) : ControllerBase
     [HttpDelete("{userId}")]
     public async Task<ActionResult<ApiResponse<object?>>> Clear([FromRoute] string userId)
     {
+        await EnsureUserExistsAsync(db, userId);
+
         var items = await db.CartItems.Where(c => c.UserId == userId).ToListAsync();
         if (items.Count == 0)
             return ApiResponse<object?>.Ok(null, "Cart cleared.");
