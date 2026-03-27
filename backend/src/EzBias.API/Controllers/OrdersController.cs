@@ -17,19 +17,7 @@ public class OrdersController(IOrderService orders) : ControllerBase
     [HttpGet("{userId}")]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<OrderDto>>>> GetOrders([FromRoute] string userId)
     {
-        var list = await orders.GetOrdersAsync(userId);
-        var dtos = list.Select(o => new OrderDto(
-            o.Id,
-            o.UserId,
-            o.Items.Select(i => new OrderItemDto(i.ProductId, i.Name, i.Quantity, i.Price)).ToList(),
-            o.ShippingFee,
-            o.Total,
-            o.Status,
-            o.Payment,
-            o.Address,
-            o.CreatedAt.ToString("yyyy-MM-dd")
-        )).ToList();
-
+        var dtos = await orders.GetOrdersAsync(userId);
         return ApiResponse<IReadOnlyList<OrderDto>>.Ok(dtos);
     }
 
@@ -64,20 +52,7 @@ public class OrdersController(IOrderService orders) : ControllerBase
                 req.Items?.Select(i => new CheckoutItemModel(i.ProductId, i.Name, i.Price, i.Qty)).ToList()
             );
 
-            var order = await orders.CheckoutAsync(model);
-
-            var dto = new OrderDto(
-                order.Id,
-                order.UserId,
-                order.Items.Select(i => new OrderItemDto(i.ProductId, i.Name, i.Quantity, i.Price)).ToList(),
-                order.ShippingFee,
-                order.Total,
-                order.Status,
-                order.Payment,
-                order.Address,
-                order.CreatedAt.ToString("yyyy-MM-dd")
-            );
-
+            var dto = await orders.CheckoutAsync(model);
             return ApiResponse<OrderDto>.Ok(dto, "Order placed successfully! Thank you for your purchase.");
         }
         catch (ArgumentException ex)

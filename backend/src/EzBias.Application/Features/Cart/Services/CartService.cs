@@ -1,15 +1,30 @@
 using EzBias.Application.Common.Interfaces.Repositories;
 using EzBias.Application.Common.Interfaces.Services;
+using EzBias.Application.Features.Products.Dtos;
 using EzBias.Domain.Entities;
 
 namespace EzBias.Application.Features.Cart.Services;
 
 public class CartService(ICartRepository cartRepo, IProductRepository products) : ICartService
 {
-    public async Task<IReadOnlyList<CartItem>> GetCartAsync(string ownerId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<CartItemDto>> GetCartAsync(string ownerId, CancellationToken cancellationToken = default)
     {
         await cartRepo.EnsureOwnerExistsAsync(ownerId, cancellationToken);
-        return await cartRepo.GetCartItemsAsync(ownerId, cancellationToken);
+        var items = await cartRepo.GetCartItemsAsync(ownerId, cancellationToken);
+
+        return items
+            .Where(i => i.Product is not null)
+            .Select(i => new CartItemDto(
+                i.ProductId,
+                i.Quantity,
+                i.Product!.Name,
+                i.Product.Artist,
+                i.Product.Fandom,
+                i.Product.Price,
+                i.Product.Image,
+                i.Product.Stock
+            ))
+            .ToList();
     }
 
     public async Task<(string productId, int qty)> AddToCartAsync(string ownerId, string productId, int qty, CancellationToken cancellationToken = default)

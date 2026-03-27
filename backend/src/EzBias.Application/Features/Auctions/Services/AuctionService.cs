@@ -1,18 +1,71 @@
 using EzBias.Application.Common.Interfaces.Repositories;
 using EzBias.Application.Common.Interfaces.Services;
+using EzBias.Application.Features.Auctions.Dtos;
 using EzBias.Domain.Entities;
 
 namespace EzBias.Application.Features.Auctions.Services;
 
 public class AuctionService(IAuctionRepository repo, IUserRepository users) : IAuctionService
 {
-    public Task<IReadOnlyList<Auction>> GetAuctionsAsync(string? fandom, bool? isLive, bool? isUrgent, CancellationToken cancellationToken = default)
-        => repo.GetAuctionsAsync(fandom, isLive, isUrgent, cancellationToken);
+    public async Task<IReadOnlyList<AuctionDto>> GetAuctionsAsync(string? fandom, bool? isLive, bool? isUrgent, CancellationToken cancellationToken = default)
+    {
+        var list = await repo.GetAuctionsAsync(fandom, isLive, isUrgent, cancellationToken);
+        return list.Select(a => new AuctionDto(
+            a.Id,
+            a.Fandom,
+            a.Artist,
+            a.Name,
+            a.Description,
+            a.FloorPrice,
+            a.CurrentBid,
+            a.SellerId,
+            a.EndsAt,
+            a.Image,
+            a.IsUrgent,
+            a.IsLive,
+            a.ContainImage
+        )).ToList();
+    }
 
-    public Task<Auction?> GetAuctionDetailAsync(string id, CancellationToken cancellationToken = default)
-        => repo.GetAuctionDetailAsync(id, cancellationToken);
+    public async Task<AuctionDetailDto?> GetAuctionDetailAsync(string id, CancellationToken cancellationToken = default)
+    {
+        var auction = await repo.GetAuctionDetailAsync(id, cancellationToken);
+        if (auction is null) return null;
 
-    public async Task<Bid> PlaceBidAsync(string auctionId, string userId, decimal amount, CancellationToken cancellationToken = default)
+        var bids = auction.Bids
+            .OrderByDescending(b => b.PlacedAt)
+            .Select(b => new BidDto(
+                b.Id,
+                b.AuctionId,
+                b.UserId,
+                b.Username,
+                b.Avatar,
+                b.AvatarBg,
+                b.Amount,
+                b.PlacedAt,
+                b.IsWinning
+            ))
+            .ToList();
+
+        return new AuctionDetailDto(
+            auction.Id,
+            auction.Fandom,
+            auction.Artist,
+            auction.Name,
+            auction.Description,
+            auction.FloorPrice,
+            auction.CurrentBid,
+            auction.SellerId,
+            auction.EndsAt,
+            auction.Image,
+            auction.IsUrgent,
+            auction.IsLive,
+            auction.ContainImage,
+            bids
+        );
+    }
+
+    public async Task<BidDto> PlaceBidAsync(string auctionId, string userId, decimal amount, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(userId))
             throw new ArgumentException("User not found. Please log in.");
@@ -57,6 +110,17 @@ public class AuctionService(IAuctionRepository repo, IUserRepository users) : IA
         auction.CurrentBid = amount;
 
         await repo.SaveChangesAsync(cancellationToken);
-        return bid;
+
+        return new BidDto(
+            bid.Id,
+            bid.AuctionId,
+            bid.UserId,
+            bid.Username,
+            bid.Avatar,
+            bid.AvatarBg,
+            bid.Amount,
+            bid.PlacedAt,
+            bid.IsWinning
+        );
     }
 }

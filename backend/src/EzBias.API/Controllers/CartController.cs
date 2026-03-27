@@ -16,22 +16,7 @@ public class CartController(ICartService cart) : ControllerBase
     [HttpGet("{userId}")]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<CartItemDto>>>> GetCart([FromRoute] string userId)
     {
-        var items = await cart.GetCartAsync(userId);
-
-        var enriched = items
-            .Where(i => i.Product is not null)
-            .Select(i => new CartItemDto(
-                i.ProductId,
-                i.Quantity,
-                i.Product!.Name,
-                i.Product.Artist,
-                i.Product.Fandom,
-                i.Product.Price,
-                i.Product.Image,
-                i.Product.Stock
-            ))
-            .ToList();
-
+        var enriched = await cart.GetCartAsync(userId);
         return ApiResponse<IReadOnlyList<CartItemDto>>.Ok(enriched);
     }
 

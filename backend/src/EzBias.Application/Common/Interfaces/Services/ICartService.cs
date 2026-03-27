@@ -1,10 +1,10 @@
-using EzBias.Domain.Entities;
+using EzBias.Application.Features.Products.Dtos;
 
 namespace EzBias.Application.Common.Interfaces.Services;
 
 public interface ICartService
 {
-    Task<IReadOnlyList<CartItem>> GetCartAsync(string ownerId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<CartItemDto>> GetCartAsync(string ownerId, CancellationToken cancellationToken = default);
 
     Task<(string productId, int qty)> AddToCartAsync(string ownerId, string productId, int qty, CancellationToken cancellationToken = default);
 

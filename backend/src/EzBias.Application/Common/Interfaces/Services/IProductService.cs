@@ -1,11 +1,11 @@
+using EzBias.Application.Features.Products.Dtos;
 using EzBias.Application.Features.Products.Models;
-using EzBias.Domain.Entities;
 
 namespace EzBias.Application.Common.Interfaces.Services;
 
 public interface IProductService
 {
-    Task<IReadOnlyList<Product>> GetProductsAsync(
+    Task<IReadOnlyList<ProductDto>> GetProductsAsync(
         string? fandom,
         string? type,
         decimal? minPrice,
@@ -13,13 +13,13 @@ public interface IProductService
         bool? inStockOnly,
         CancellationToken cancellationToken = default);
 
-    Task<Product?> GetByIdAsync(string id, CancellationToken cancellationToken = default);
+    Task<ProductDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<Product>> GetBySellerAsync(string sellerId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ProductDto>> GetBySellerAsync(string sellerId, CancellationToken cancellationToken = default);
 
-    Task<Product> CreateListingAsync(string sellerId, CreateListingModel req, CancellationToken cancellationToken = default);
+    Task<ProductDto> CreateListingAsync(string sellerId, CreateListingModel req, CancellationToken cancellationToken = default);
 
-    Task<Product?> UpdateListingAsync(string sellerId, string productId, UpdateListingModel req, CancellationToken cancellationToken = default);
+    Task<ProductDto?> UpdateListingAsync(string sellerId, string productId, UpdateListingModel req, CancellationToken cancellationToken = default);
 
     Task<bool> DeleteListingAsync(string sellerId, string productId, CancellationToken cancellationToken = default);
 }

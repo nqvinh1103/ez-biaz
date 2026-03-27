@@ -1,5 +1,6 @@
 using EzBias.Application.Common.Interfaces.Repositories;
 using EzBias.Application.Common.Interfaces.Services;
+using EzBias.Application.Features.Orders.Dtos;
 using EzBias.Application.Features.Orders.Models;
 using EzBias.Domain.Entities;
 
@@ -7,10 +8,13 @@ namespace EzBias.Application.Features.Orders.Services;
 
 public class OrderService(IOrderRepository repo) : IOrderService
 {
-    public Task<IReadOnlyList<Order>> GetOrdersAsync(string userId, CancellationToken cancellationToken = default)
-        => repo.GetOrdersAsync(userId, cancellationToken);
+    public async Task<IReadOnlyList<OrderDto>> GetOrdersAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        var list = await repo.GetOrdersAsync(userId, cancellationToken);
+        return list.Select(ToDto).ToList();
+    }
 
-    public async Task<Order> CheckoutAsync(CheckoutModel model, CancellationToken cancellationToken = default)
+    public async Task<OrderDto> CheckoutAsync(CheckoutModel model, CancellationToken cancellationToken = default)
     {
         var missing = MissingShippingFields(model.ShippingInfo);
         if (missing.Count > 0)
@@ -93,8 +97,20 @@ public class OrderService(IOrderRepository repo) : IOrderService
 
         await repo.SaveChangesAsync(cancellationToken);
 
-        return order;
+        return ToDto(order);
     }
+
+    private static OrderDto ToDto(Order o) => new(
+        o.Id,
+        o.UserId,
+        o.Items.Select(i => new OrderItemDto(i.ProductId, i.Name, i.Quantity, i.Price)).ToList(),
+        o.ShippingFee,
+        o.Total,
+        o.Status,
+        o.Payment,
+        o.Address,
+        o.CreatedAt.ToString("yyyy-MM-dd")
+    );
 
     private static List<string> MissingShippingFields(ShippingInfoModel info)
     {

@@ -1,5 +1,6 @@
 using EzBias.Application.Common.Interfaces.Repositories;
 using EzBias.Application.Common.Interfaces.Services;
+using EzBias.Application.Features.Products.Dtos;
 using EzBias.Application.Features.Products.Models;
 using EzBias.Domain.Entities;
 
@@ -7,22 +8,31 @@ namespace EzBias.Application.Features.Products.Services;
 
 public class ProductService(IProductRepository repo, IUserRepository users) : IProductService
 {
-    public Task<IReadOnlyList<Product>> GetProductsAsync(
+    public async Task<IReadOnlyList<ProductDto>> GetProductsAsync(
         string? fandom,
         string? type,
         decimal? minPrice,
         decimal? maxPrice,
         bool? inStockOnly,
         CancellationToken cancellationToken = default)
-        => repo.GetProductsAsync(fandom, type, minPrice, maxPrice, inStockOnly, cancellationToken);
+    {
+        var list = await repo.GetProductsAsync(fandom, type, minPrice, maxPrice, inStockOnly, cancellationToken);
+        return list.Select(ToDto).ToList();
+    }
 
-    public Task<Product?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
-        => repo.GetByIdAsync(id, cancellationToken);
+    public async Task<ProductDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
+    {
+        var p = await repo.GetByIdAsync(id, cancellationToken);
+        return p is null ? null : ToDto(p);
+    }
 
-    public Task<IReadOnlyList<Product>> GetBySellerAsync(string sellerId, CancellationToken cancellationToken = default)
-        => repo.GetBySellerAsync(sellerId, cancellationToken);
+    public async Task<IReadOnlyList<ProductDto>> GetBySellerAsync(string sellerId, CancellationToken cancellationToken = default)
+    {
+        var list = await repo.GetBySellerAsync(sellerId, cancellationToken);
+        return list.Select(ToDto).ToList();
+    }
 
-    public async Task<Product> CreateListingAsync(string sellerId, CreateListingModel req, CancellationToken cancellationToken = default)
+    public async Task<ProductDto> CreateListingAsync(string sellerId, CreateListingModel req, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(req.Name))
             throw new ArgumentException("Product name is required.");
@@ -60,10 +70,10 @@ public class ProductService(IProductRepository repo, IUserRepository users) : IP
         };
 
         await repo.AddAsync(product, cancellationToken);
-        return product;
+        return ToDto(product);
     }
 
-    public async Task<Product?> UpdateListingAsync(string sellerId, string productId, UpdateListingModel req, CancellationToken cancellationToken = default)
+    public async Task<ProductDto?> UpdateListingAsync(string sellerId, string productId, UpdateListingModel req, CancellationToken cancellationToken = default)
     {
         var existing = await repo.GetTrackedByIdAsync(productId, cancellationToken);
         if (existing is null) return null;
@@ -77,7 +87,7 @@ public class ProductService(IProductRepository repo, IUserRepository users) : IP
         existing.UpdatedAt = DateTime.UtcNow;
 
         await repo.SaveChangesAsync(cancellationToken);
-        return existing;
+        return ToDto(existing);
     }
 
     public async Task<bool> DeleteListingAsync(string sellerId, string productId, CancellationToken cancellationToken = default)
@@ -89,4 +99,19 @@ public class ProductService(IProductRepository repo, IUserRepository users) : IP
         await repo.DeleteAsync(existing, cancellationToken);
         return true;
     }
+
+    private static ProductDto ToDto(Product p) => new(
+        p.Id,
+        p.Fandom,
+        p.Artist,
+        p.Name,
+        p.Type,
+        p.Condition,
+        p.Price,
+        p.Stock,
+        p.SellerId,
+        p.Image,
+        p.Description,
+        p.CreatedAt.ToString("yyyy-MM-dd")
+    );
 }

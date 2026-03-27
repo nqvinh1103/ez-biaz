@@ -9,21 +9,6 @@ namespace EzBias.API.Controllers;
 [Route("api/[controller]")]
 public class ProductsController(IProductService products) : ControllerBase
 {
-    private static ProductDto ToDto(EzBias.Domain.Entities.Product p) => new(
-        p.Id,
-        p.Fandom,
-        p.Artist,
-        p.Name,
-        p.Type,
-        p.Condition,
-        p.Price,
-        p.Stock,
-        p.SellerId,
-        p.Image,
-        p.Description,
-        p.CreatedAt.ToString("yyyy-MM-dd")
-    );
-
     /// <summary>
     /// Match mock: getProducts(filters?)
     /// Optional filters: fandom, type, minPrice, maxPrice, inStockOnly
@@ -36,8 +21,7 @@ public class ProductsController(IProductService products) : ControllerBase
         [FromQuery] decimal? maxPrice,
         [FromQuery] bool? inStockOnly)
     {
-        var entities = await products.GetProductsAsync(fandom, type, minPrice, maxPrice, inStockOnly);
-        var results = entities.Select(ToDto).ToList();
+        var results = await products.GetProductsAsync(fandom, type, minPrice, maxPrice, inStockOnly);
 
         if (results.Count == 0)
             return ApiResponse<IReadOnlyList<ProductDto>>.Ok(results, "No products found for the selected filters.");
@@ -48,11 +32,11 @@ public class ProductsController(IProductService products) : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ApiResponse<ProductDto>>> GetProductById([FromRoute] string id)
     {
-        var entity = await products.GetByIdAsync(id);
-        if (entity is null)
+        var dto = await products.GetByIdAsync(id);
+        if (dto is null)
             return NotFound(ApiResponse<ProductDto>.Fail("Product not found."));
 
-        return ApiResponse<ProductDto>.Ok(ToDto(entity));
+        return ApiResponse<ProductDto>.Ok(dto);
     }
 
     /// <summary>
@@ -61,8 +45,7 @@ public class ProductsController(IProductService products) : ControllerBase
     [HttpGet("seller/{userId}")]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<ProductDto>>>> GetSellerListings([FromRoute] string userId)
     {
-        var entities = await products.GetBySellerAsync(userId);
-        var results = entities.Select(ToDto).ToList();
+        var results = await products.GetBySellerAsync(userId);
         return ApiResponse<IReadOnlyList<ProductDto>>.Ok(results);
     }
 
@@ -74,7 +57,7 @@ public class ProductsController(IProductService products) : ControllerBase
     {
         try
         {
-            var entity = await products.CreateListingAsync(userId, new EzBias.Application.Features.Products.Models.CreateListingModel(
+            var dto = await products.CreateListingAsync(userId, new EzBias.Application.Features.Products.Models.CreateListingModel(
                 req.Name,
                 req.Condition,
                 req.Price,
@@ -82,7 +65,7 @@ public class ProductsController(IProductService products) : ControllerBase
                 req.ItemTypes,
                 req.Description
             ));
-            return ApiResponse<ProductDto>.Ok(ToDto(entity), "Your listing has been posted successfully!");
+            return ApiResponse<ProductDto>.Ok(dto, "Your listing has been posted successfully!");
         }
         catch (ArgumentException ex)
         {
@@ -98,17 +81,17 @@ public class ProductsController(IProductService products) : ControllerBase
     {
         try
         {
-            var entity = await products.UpdateListingAsync(userId, productId, new EzBias.Application.Features.Products.Models.UpdateListingModel(
+            var dto = await products.UpdateListingAsync(userId, productId, new EzBias.Application.Features.Products.Models.UpdateListingModel(
                 req.Name,
                 req.Description,
                 req.Condition,
                 req.Price,
                 req.Stock
             ));
-            if (entity is null)
+            if (dto is null)
                 return NotFound(ApiResponse<ProductDto>.Fail("Listing not found."));
 
-            return ApiResponse<ProductDto>.Ok(ToDto(entity), "Listing updated successfully.");
+            return ApiResponse<ProductDto>.Ok(dto, "Listing updated successfully.");
         }
         catch (UnauthorizedAccessException)
         {
