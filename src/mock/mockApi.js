@@ -338,7 +338,7 @@ export async function checkout(userId, shippingInfo, paymentMethod, reactCartIte
         // Optionally deduct stock if the product exists in mock DB
         const product = _products.find((p) => p.id === item.id);
         if (product && product.stock > 0) product.stock -= item.qty ?? 1;
-        return { productId: item.id, name: item.name, qty: item.qty ?? 1, price: item.price };
+        return { productId: item.id, name: item.name, qty: item.qty ?? 1, price: item.price, image: item.image ?? product?.image ?? null, artist: item.artist ?? product?.artist ?? "" };
       })
     : (() => {
         // Legacy path: look up products from mock DB
@@ -386,6 +386,56 @@ export async function getOrders(userId) {
   await delay();
   const userOrders = _orders.filter((o) => o.userId === userId);
   return ok(userOrders);
+}
+
+/**
+ * getOrderHistory(userId)
+ * Returns { purchases, sales } — both enriched with product name/image.
+ * purchases: orders placed by this user.
+ * sales: orders that contain products listed by this user.
+ */
+export async function getOrderHistory(userId) {
+  await delay();
+
+  function enrichItems(items) {
+    return items.map((item) => {
+      const pid = item.productId ?? item.id;
+      const product = _products.find((p) => p.id === pid);
+      return {
+        ...item,
+        name: item.name ?? product?.name ?? "Unknown Product",
+        image: item.image ?? product?.image ?? null,
+        artist: item.artist ?? product?.artist ?? "",
+      };
+    });
+  }
+
+  const purchases = _orders
+    .filter((o) => o.userId === userId)
+    .map((o) => ({ ...o, type: "purchase", items: enrichItems(o.items) }));
+
+  const sales = _orders
+    .filter((o) =>
+      o.items.some((item) => {
+        const pid = item.productId ?? item.id;
+        return _products.find((p) => p.id === pid)?.sellerId === userId;
+      }),
+    )
+    .map((o) => {
+      const soldItems = o.items.filter((item) => {
+        const pid = item.productId ?? item.id;
+        return _products.find((p) => p.id === pid)?.sellerId === userId;
+      });
+      const revenue = soldItems.reduce((s, i) => s + i.price * (i.qty ?? 1), 0);
+      return {
+        ...o,
+        type: "sale",
+        items: enrichItems(soldItems),
+        total: parseFloat(revenue.toFixed(2)),
+      };
+    });
+
+  return ok({ purchases, sales });
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────

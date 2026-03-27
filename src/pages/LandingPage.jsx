@@ -5,7 +5,7 @@ import RegisterModal from "../components/modals/RegisterModal";
 import AuctionsSection from "../components/sections/AuctionsSection";
 import HeroSection from "../components/sections/HeroSection";
 import TrendingSection from "../components/sections/TrendingSection";
-import { liveAuctions, trendingProducts } from "../data/landingData";
+import { trendingProducts } from "../data/landingData";
 import { useModal } from "../hooks/useModal";
 
 function LandingPage() {
@@ -32,7 +32,7 @@ function LandingPage() {
     >
       <HeroSection />
       <TrendingSection products={trendingProducts} />
-      <AuctionsSection auctions={liveAuctions} />
+      <AuctionsSection />
 
       <LoginModal
         isOpen={login.isOpen}

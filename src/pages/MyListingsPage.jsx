@@ -362,8 +362,9 @@ export default function MyListingsPage() {
   }, [user]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    load().catch(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const handleSaved = (updated) => {
     setListings((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));

@@ -1,13 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 import BidHistory from "../components/auction/BidHistory";
 import CountdownTimer from "../components/auction/CountdownTimer";
 import PageLayout from "../components/layout/PageLayout";
 import BackLink from "../components/ui/BackLink";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
-import { BID_HISTORY, INITIAL_AUCTION_SECONDS } from "../data/auctionData";
+import { INITIAL_AUCTION_SECONDS } from "../data/auctionData";
 import { useCountdown } from "../hooks/useCountdown";
+import { getAuctionById, placeBid as apiPlaceBid } from "../mock/mockApi";
 
+/* ── helpers ──────────────────────────────────────────────────── */
+function formatTimeAgo(isoString) {
+  const diff = Math.floor((Date.now() - new Date(isoString)) / 1000);
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)} mins ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} hrs ago`;
+  return `${Math.floor(diff / 86400)} days ago`;
+}
+
+/** Normalise a raw bid object from the mock API to the shape BidHistory expects. */
+function normalizeBid(bid) {
+  return {
+    ...bid,
+    amount: typeof bid.amount === "number" ? `$${bid.amount.toFixed(2)}` : bid.amount,
+    timeAgo: bid.placedAt ? formatTimeAgo(bid.placedAt) : (bid.timeAgo ?? ""),
+  };
+}
+
+/* ── icons ────────────────────────────────────────────────────── */
 const TrendIcon = () => (
   <svg
     className="h-4 w-4 text-[#ad93e6]"
@@ -42,42 +64,127 @@ const RocketIcon = () => (
   </svg>
 );
 
-const MIN_BID = 315.0;
-
+/* ── page ─────────────────────────────────────────────────────── */
 function AuctionDetailPage() {
+  const { id } = useParams();
+  const { user, isLoggedIn } = useAuth();
   const timer = useCountdown(INITIAL_AUCTION_SECONDS);
-  const [bidInput, setBidInput] = useState(String(MIN_BID.toFixed(2)));
 
+  const [auction, setAuction] = useState(null);
+  const [bids, setBids] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const [bidInput, setBidInput] = useState("");
+  const [bidding, setBidding] = useState(false);
+  const [bidError, setBidError] = useState("");
+  const [bidSuccess, setBidSuccess] = useState("");
+
+  /* load auction on mount */
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+    getAuctionById(id).then((res) => {
+      if (res.success) {
+        setAuction(res.data);
+        setBids((res.data.bids ?? []).map(normalizeBid));
+        setBidInput((res.data.currentBid + 5).toFixed(2));
+      }
+      setLoading(false);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  const minBid = auction ? auction.currentBid + 5 : 0;
+
+  const handlePlaceBid = async () => {
+    setBidError("");
+    setBidSuccess("");
+
+    if (!isLoggedIn) {
+      setBidError("Bạn cần đăng nhập để đặt bid.");
+      return;
+    }
+
+    const amount = parseFloat(bidInput);
+    if (isNaN(amount) || amount < minBid) {
+      setBidError(`Bid phải ít nhất $${minBid.toFixed(2)} (giá hiện tại + $5.00).`);
+      return;
+    }
+
+    setBidding(true);
+    const res = await apiPlaceBid(user.id, id, amount);
+    setBidding(false);
+
+    if (res.success) {
+      /* update highest bid display */
+      setAuction((prev) => ({ ...prev, currentBid: amount }));
+
+      /* prepend new bid, clear previous winning flags */
+      const newBid = normalizeBid(res.data);
+      setBids((prev) => [
+        newBid,
+        ...prev.map((b) => ({ ...b, isWinning: false })),
+      ]);
+
+      /* advance minimum bid input */
+      setBidInput((amount + 5).toFixed(2));
+      setBidSuccess(`Bid $${amount.toFixed(2)} đặt thành công!`);
+    } else {
+      setBidError(res.message);
+    }
+  };
+
+  /* ── loading / not-found states ───────────────────────────── */
+  if (loading) {
+    return (
+      <PageLayout>
+        <div className="flex h-64 items-center justify-center">
+          <p className="text-[#737373]">Đang tải...</p>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  if (!auction) {
+    return (
+      <PageLayout>
+        <div className="flex h-64 items-center justify-center">
+          <p className="text-[#737373]">Không tìm thấy auction này.</p>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  const isEnded = !auction.isLive;
+
+  /* ── render ───────────────────────────────────────────────── */
   return (
     <PageLayout>
       <div className="mx-auto w-full max-w-[1000px] px-4 py-10 md:py-14">
         <BackLink to="/auction" label="Back to Auctions" />
 
-        {/* ── Product + Info ──────────────────────────────────────── */}
+        {/* ── Product + Info ──────────────────────────────── */}
         <div className="mb-10 flex flex-col gap-8 md:flex-row md:gap-12">
           {/* Image */}
           <div className="h-64 w-full shrink-0 overflow-hidden rounded-2xl border border-[#e6e6e6] bg-[#f4f3f7] md:h-72 md:w-80">
             <img
-              src="https://www.figma.com/api/mcp/asset/6e9f9a2d-96ef-49a8-84b5-33e0218c2f8d"
-              alt="BTS Holographic Photocard Limited Edition"
+              src={auction.image}
+              alt={auction.name}
               className="h-full w-full object-contain"
             />
           </div>
 
           {/* Info */}
           <div className="flex flex-1 flex-col gap-4">
-            <Badge variant="live" dot>LIVE AUCTION</Badge>
+            <Badge variant={isEnded ? "default" : "live"} dot={!isEnded}>
+              {isEnded ? "AUCTION ENDED" : "LIVE AUCTION"}
+            </Badge>
 
             <h1 className="text-2xl font-bold leading-8 text-[#121212] md:text-3xl">
-              BTS Holographic Photocard — Limited Edition
+              {auction.name}
             </h1>
 
-            <p className="text-sm leading-6 text-[#737373]">
-              Ultra-rare holographic BTS group photocard from the 2023 Proof
-              Collector&apos;s Edition. Sealed in original acrylic display case.
-              One of only 500 produced worldwide — a must-have for any serious
-              collector.
-            </p>
+            <p className="text-sm leading-6 text-[#737373]">{auction.description}</p>
 
             <CountdownTimer
               hours={timer.hours}
@@ -91,7 +198,9 @@ function AuctionDetailPage() {
                 <p className="text-xs font-medium uppercase tracking-wider text-[#737373]">
                   Floor Price
                 </p>
-                <p className="text-lg font-bold text-[#121212]">$150.00</p>
+                <p className="text-lg font-bold text-[#121212]">
+                  ${auction.floorPrice.toFixed(2)}
+                </p>
               </div>
               <div>
                 <p className="text-xs font-medium uppercase tracking-wider text-[#737373]">
@@ -99,38 +208,67 @@ function AuctionDetailPage() {
                 </p>
                 <div className="flex items-center gap-1.5">
                   <TrendIcon />
-                  <p className="text-2xl font-bold text-[#ad93e6]">$310.00</p>
+                  <p className="text-2xl font-bold text-[#ad93e6]">
+                    ${auction.currentBid.toFixed(2)}
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Bid input */}
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#737373]">
-                  $
-                </span>
-                <input
-                  type="number"
-                  min={MIN_BID}
-                  step="0.01"
-                  value={bidInput}
-                  onChange={(e) => setBidInput(e.target.value)}
-                  placeholder={`${MIN_BID.toFixed(2)} or higher`}
-                  aria-label="Your bid amount"
-                  className="h-10 w-full rounded-lg border border-[#e6e6e6] pl-7 pr-4 text-sm text-[#121212] placeholder-[#b3b3b3] outline-none focus:border-[#ad93e6] focus:ring-2 focus:ring-[rgba(173,147,230,0.2)]"
-                />
+            {!isEnded && (
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#737373]">
+                      $
+                    </span>
+                    <input
+                      type="number"
+                      min={minBid}
+                      step="0.01"
+                      value={bidInput}
+                      onChange={(e) => {
+                        setBidInput(e.target.value);
+                        setBidError("");
+                        setBidSuccess("");
+                      }}
+                      placeholder={`${minBid.toFixed(2)} or higher`}
+                      aria-label="Your bid amount"
+                      className="h-10 w-full rounded-lg border border-[#e6e6e6] pl-7 pr-4 text-sm text-[#121212] placeholder-[#b3b3b3] outline-none focus:border-[#ad93e6] focus:ring-2 focus:ring-[rgba(173,147,230,0.2)]"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handlePlaceBid}
+                    disabled={bidding}
+                  >
+                    <RocketIcon />
+                    {bidding ? "Đang đặt..." : "Place Bid"}
+                  </Button>
+                </div>
+
+                {/* Hint */}
+                {!isLoggedIn && !bidError && (
+                  <p className="text-xs text-[#737373]">
+                    Đăng nhập để đặt bid.
+                  </p>
+                )}
+
+                {/* Error / success feedback */}
+                {bidError && (
+                  <p className="text-xs font-medium text-red-500">{bidError}</p>
+                )}
+                {bidSuccess && (
+                  <p className="text-xs font-medium text-green-600">{bidSuccess}</p>
+                )}
               </div>
-              <Button type="button">
-                <RocketIcon />
-                Place Bid
-              </Button>
-            </div>
+            )}
           </div>
         </div>
 
-        {/* ── Bid History ──────────────────────────────────────────── */}
-        <BidHistory bids={BID_HISTORY} />
+        {/* ── Bid History ─────────────────────────────────── */}
+        <BidHistory bids={bids} />
       </div>
     </PageLayout>
   );

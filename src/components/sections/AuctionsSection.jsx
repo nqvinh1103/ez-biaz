@@ -1,6 +1,17 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import AuctionCard from "../cards/AuctionCard";
+import { getAuctions } from "../../mock/mockApi";
 
-function AuctionsSection({ auctions }) {
+function AuctionsSection() {
+  const [auctions, setAuctions] = useState([]);
+
+  useEffect(() => {
+    getAuctions({ isLive: true }).then((res) => {
+      if (res.success) setAuctions(res.data.slice(0, 3));
+    });
+  }, []);
+
   return (
     <section
       className="bg-[rgba(244,243,247,0.4)] px-4 md:px-6 lg:px-24 xl:px-65"
@@ -14,8 +25,8 @@ function AuctionsSection({ auctions }) {
           >
             Live Auctions
           </h2>
-          <a
-            href="#"
+          <Link
+            to="/auction"
             className="flex items-center gap-1 text-sm font-semibold text-[#ad93e6]"
           >
             See All
@@ -25,7 +36,7 @@ function AuctionsSection({ auctions }) {
               aria-hidden="true"
               className="h-4 w-4"
             />
-          </a>
+          </Link>
         </div>
 
         <div
@@ -34,8 +45,15 @@ function AuctionsSection({ auctions }) {
         >
           {auctions.map((auction) => (
             <AuctionCard
-              key={`${auction.artist}-${auction.name}`}
-              {...auction}
+              key={auction.id}
+              id={auction.id}
+              artist={auction.artist}
+              name={auction.name}
+              currentBid={`$${auction.currentBid.toFixed(2)}`}
+              timer="Live"
+              isUrgent={auction.isUrgent}
+              image={auction.image}
+              containImage={auction.containImage ?? false}
             />
           ))}
         </div>
