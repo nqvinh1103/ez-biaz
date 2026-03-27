@@ -9,7 +9,7 @@ import FormField from "../components/ui/FormField";
 import { useAuth } from "../hooks/useAuth";
 import { useFileUpload } from "../hooks/useFileUpload";
 import { useForm } from "../hooks/useForm";
-import { createListing } from "../mock/mockApi";
+import { createListing } from "../lib/ezbiasApi";
 
 const CONDITIONS = ["Brand New", "Like New", "Good", "Fair", "Poor"];
 

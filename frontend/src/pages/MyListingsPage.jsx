@@ -10,7 +10,7 @@ import {
   deleteListing,
   getListingsByUser,
   updateListing,
-} from "../mock/mockApi";
+} from "../lib/ezbiasApi";
 
 const CONDITIONS = ["Brand New", "Like New", "Good", "Fair", "Poor"];
 

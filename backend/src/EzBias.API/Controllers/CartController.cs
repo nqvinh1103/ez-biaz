@@ -119,15 +119,31 @@ public class CartController(EzBiasDbContext db) : ControllerBase
     /// Match mock: removeFromCart(userId, productId)
     /// </summary>
     [HttpDelete("{userId}/items/{productId}")]
-    public async Task<ActionResult<ApiResponse<object>>> Remove([FromRoute] string userId, [FromRoute] string productId)
+    public async Task<ActionResult<ApiResponse<object?>>> Remove([FromRoute] string userId, [FromRoute] string productId)
     {
         var item = await db.CartItems.FirstOrDefaultAsync(c => c.UserId == userId && c.ProductId == productId);
         if (item is null)
-            return NotFound(ApiResponse<object>.Fail("Item not found in cart."));
+            return NotFound(ApiResponse<object?>.Fail("Item not found in cart."));
 
         db.CartItems.Remove(item);
         await db.SaveChangesAsync();
 
-        return ApiResponse<object>.Ok(null, "Item removed from cart.");
+        return ApiResponse<object?>.Ok(null, "Item removed from cart.");
+    }
+
+    /// <summary>
+    /// Convenience: clear entire cart for a user.
+    /// </summary>
+    [HttpDelete("{userId}")]
+    public async Task<ActionResult<ApiResponse<object?>>> Clear([FromRoute] string userId)
+    {
+        var items = await db.CartItems.Where(c => c.UserId == userId).ToListAsync();
+        if (items.Count == 0)
+            return ApiResponse<object?>.Ok(null, "Cart cleared.");
+
+        db.CartItems.RemoveRange(items);
+        await db.SaveChangesAsync();
+
+        return ApiResponse<object?>.Ok(null, "Cart cleared.");
     }
 }

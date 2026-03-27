@@ -133,3 +133,57 @@ export async function checkout(userId, shippingInfo, paymentMethod, reactCartIte
 export async function getOrders(userId) {
   return request("GET", `/api/orders/${encodeURIComponent(userId)}`);
 }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   LISTINGS (Sell / My Listings)
+────────────────────────────────────────────────────────────────────────── */
+export async function getListingsByUser(userId) {
+  return request("GET", `/api/products/seller/${encodeURIComponent(userId)}`);
+}
+
+export async function createListing(userId, listingData) {
+  return request("POST", `/api/products/seller/${encodeURIComponent(userId)}`, listingData);
+}
+
+export async function updateListing(userId, productId, updates) {
+  return request(
+    "PUT",
+    `/api/products/seller/${encodeURIComponent(userId)}/${encodeURIComponent(productId)}`,
+    updates,
+  );
+}
+
+export async function deleteListing(userId, productId) {
+  return request(
+    "DELETE",
+    `/api/products/seller/${encodeURIComponent(userId)}/${encodeURIComponent(productId)}`,
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   CART (server-side)
+────────────────────────────────────────────────────────────────────────── */
+export async function getCart(userId) {
+  return request("GET", `/api/cart/${encodeURIComponent(userId)}`);
+}
+
+export async function addToCart(userId, productId, qty = 1) {
+  return request("POST", `/api/cart/${encodeURIComponent(userId)}/items`, {
+    productId,
+    qty,
+  });
+}
+
+export async function updateCartQty(userId, productId, qty) {
+  return request("PUT", `/api/cart/${encodeURIComponent(userId)}/items/${encodeURIComponent(productId)}`, {
+    qty,
+  });
+}
+
+export async function removeFromCart(userId, productId) {
+  return request("DELETE", `/api/cart/${encodeURIComponent(userId)}/items/${encodeURIComponent(productId)}`);
+}
+
+export async function clearCart(userId) {
+  return request("DELETE", `/api/cart/${encodeURIComponent(userId)}`);
+}
