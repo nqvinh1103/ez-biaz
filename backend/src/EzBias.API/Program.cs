@@ -78,6 +78,10 @@ builder.Services.AddScoped<IAuctionService, AuctionService>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<ICartService, CartService>();
 
+// Orders layering
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+
 // refresh days from config (optional)
 var refreshDays = int.TryParse(builder.Configuration["Jwt:RefreshTokenDays"], out var d) ? d : 7;
 builder.Services.AddScoped<IAuthService>(sp =>
