@@ -91,20 +91,26 @@ builder.Services.AddScoped<IAuthService>(sp =>
 var app = builder.Build();
 
 // Apply migrations + seed (best-effort)
+// - In Development: always migrate + seed.
+// - In Production: migrate only. Seed is opt-in via env var SEED_ON_START=true
+var seedOnStart = string.Equals(builder.Configuration["SEED_ON_START"], "true", StringComparison.OrdinalIgnoreCase);
+
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<EzBiasDbContext>();
+    await db.Database.MigrateAsync();
+
+    if (app.Environment.IsDevelopment() || seedOnStart)
+        await DataSeeder.SeedAsync(scope.ServiceProvider);
+}
+catch
+{
+    // ignore on startup if db is not reachable
+}
+
 if (app.Environment.IsDevelopment())
 {
-    try
-    {
-        using var scope = app.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<EzBiasDbContext>();
-        await db.Database.MigrateAsync();
-        await DataSeeder.SeedAsync(scope.ServiceProvider);
-    }
-    catch
-    {
-        // ignore on dev if db is not reachable (e.g., Docker not running)
-    }
-
     app.UseSwagger();
     app.UseSwaggerUI();
 }
