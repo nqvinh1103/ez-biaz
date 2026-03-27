@@ -1,4 +1,5 @@
 using EzBias.Application.Common.Interfaces.Repositories;
+using EzBias.Contracts.Features.Auctions.Dtos;
 using EzBias.Domain.Entities;
 using EzBias.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,76 @@ namespace EzBias.Infrastructure.Repositories;
 
 public class AuctionRepository(EzBiasDbContext db) : IAuctionRepository
 {
+    public async Task<IReadOnlyList<AuctionDto>> GetAuctionsDtoAsync(string? fandom, bool? isLive, bool? isUrgent, CancellationToken cancellationToken = default)
+    {
+        var q = db.Auctions.AsNoTracking().AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(fandom))
+            q = q.Where(a => a.Fandom.ToLower() == fandom.ToLower());
+
+        if (isLive is not null)
+            q = q.Where(a => a.IsLive == isLive.Value);
+
+        if (isUrgent == true)
+            q = q.Where(a => a.IsUrgent);
+
+        return await q
+            .OrderBy(a => a.EndsAt)
+            .Select(a => new AuctionDto(
+                a.Id,
+                a.Fandom,
+                a.Artist,
+                a.Name,
+                a.Description,
+                a.FloorPrice,
+                a.CurrentBid,
+                a.SellerId,
+                a.EndsAt,
+                a.Image,
+                a.IsUrgent,
+                a.IsLive,
+                a.ContainImage
+            ))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<AuctionDetailDto?> GetAuctionDetailDtoAsync(string id, CancellationToken cancellationToken = default)
+    {
+        // Project auction + bids snapshots (no tracking)
+        return await db.Auctions.AsNoTracking()
+            .Where(a => a.Id == id)
+            .Select(a => new AuctionDetailDto(
+                a.Id,
+                a.Fandom,
+                a.Artist,
+                a.Name,
+                a.Description,
+                a.FloorPrice,
+                a.CurrentBid,
+                a.SellerId,
+                a.EndsAt,
+                a.Image,
+                a.IsUrgent,
+                a.IsLive,
+                a.ContainImage,
+                a.Bids
+                    .OrderByDescending(b => b.Amount)
+                    .Select(b => new BidDto(
+                        b.Id,
+                        b.AuctionId,
+                        b.UserId,
+                        b.Username,
+                        b.Avatar,
+                        b.AvatarBg,
+                        b.Amount,
+                        b.PlacedAt,
+                        b.IsWinning
+                    ))
+                    .ToList()
+            ))
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<Auction>> GetAuctionsAsync(string? fandom, bool? isLive, bool? isUrgent, CancellationToken cancellationToken = default)
     {
         var q = db.Auctions.AsNoTracking().AsQueryable();
