@@ -1,14 +1,16 @@
 using EzBias.API.Models;
+using EzBias.Application.Features.Auctions.Commands.PlaceBid;
+using EzBias.Application.Features.Auctions.Queries.GetAuctionById;
+using EzBias.Application.Features.Auctions.Queries.GetAuctions;
 using EzBias.Contracts.Features.Auctions.Dtos;
-using EzBias.Application.Common.Interfaces.Services;
-using EzBias.Domain.Entities;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EzBias.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuctionsController(IAuctionService auctions) : ControllerBase
+public class AuctionsController(IMediator mediator) : ControllerBase
 {
     /// <summary>
     /// Match mock: getAuctions(filters?)
@@ -20,14 +22,14 @@ public class AuctionsController(IAuctionService auctions) : ControllerBase
         [FromQuery] bool? isLive,
         [FromQuery] bool? isUrgent)
     {
-        var results = await auctions.GetAuctionsAsync(fandom, isLive, isUrgent);
+        var results = await mediator.Send(new GetAuctionsQuery(fandom, isLive, isUrgent));
         return ApiResponse<IReadOnlyList<AuctionDto>>.Ok(results);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<ApiResponse<AuctionDetailDto>>> GetAuctionById([FromRoute] string id)
     {
-        var dto = await auctions.GetAuctionDetailAsync(id);
+        var dto = await mediator.Send(new GetAuctionByIdQuery(id));
 
         if (dto is null)
             return NotFound(ApiResponse<AuctionDetailDto>.Fail("Auction not found."));
@@ -45,12 +47,12 @@ public class AuctionsController(IAuctionService auctions) : ControllerBase
     {
         try
         {
-            var dto = await auctions.PlaceBidAsync(auctionId, req.UserId, req.Amount);
+            var dto = await mediator.Send(new PlaceBidCommand(auctionId, req.UserId, req.Amount));
             return ApiResponse<BidDto>.Ok(dto, $"Bid of ${req.Amount:0.00} placed successfully!");
         }
-        catch (KeyNotFoundException ex)
+        catch (UnauthorizedAccessException)
         {
-            return NotFound(ApiResponse<BidDto>.Fail(ex.Message));
+            return Forbid();
         }
         catch (ArgumentException ex)
         {
