@@ -14,6 +14,7 @@ const ContactPage       = lazy(() => import("./pages/ContactPage"));
 const SellPage          = lazy(() => import("./pages/SellPage"));
 const CheckoutPage      = lazy(() => import("./pages/CheckoutPage"));
 const MyListingsPage    = lazy(() => import("./pages/MyListingsPage"));
+const OrderHistoryPage  = lazy(() => import("./pages/OrderHistoryPage"));
 
 /* ─── Full-screen spinner shown while a page chunk loads ─────────────────── */
 function PageLoader() {
@@ -45,7 +46,8 @@ function App() {
             <Route path="/contact"     element={<ContactPage />} />
             <Route path="/sell"        element={<SellPage />} />
             <Route path="/checkout"    element={<CheckoutPage />} />
-            <Route path="/my-listings" element={<MyListingsPage />} />
+            <Route path="/my-listings"    element={<MyListingsPage />} />
+            <Route path="/order-history"  element={<OrderHistoryPage />} />
           </Routes>
         </Suspense>
       </CartProvider>

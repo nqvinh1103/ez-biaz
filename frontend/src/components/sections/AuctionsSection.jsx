@@ -1,7 +1,16 @@
 import { Link } from "react-router-dom";
+import { getAuctions } from "../../mock/mockApi";
 import AuctionCard from "../cards/AuctionCard";
 
-function AuctionsSection({ auctions }) {
+function AuctionsSection() {
+  const [auctions, setAuctions] = useState([]);
+
+  useEffect(() => {
+    getAuctions({ isLive: true }).then((res) => {
+      if (res.success) setAuctions(res.data.slice(0, 3));
+    });
+  }, []);
+
   return (
     <section
       className="bg-[rgba(244,243,247,0.4)] px-4 md:px-6 lg:px-24 xl:px-65"
@@ -35,8 +44,15 @@ function AuctionsSection({ auctions }) {
         >
           {auctions.map((auction) => (
             <AuctionCard
-              key={`${auction.artist}-${auction.name}`}
-              {...auction}
+              key={auction.id}
+              id={auction.id}
+              artist={auction.artist}
+              name={auction.name}
+              currentBid={`$${auction.currentBid.toFixed(2)}`}
+              timer="Live"
+              isUrgent={auction.isUrgent}
+              image={auction.image}
+              containImage={auction.containImage ?? false}
             />
           ))}
         </div>
