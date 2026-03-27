@@ -65,6 +65,11 @@ builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddScoped<IContactRepository, ContactRepository>();
 builder.Services.AddScoped<IContactService, ContactService>();
 
+// Products layering
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
+
 // refresh days from config (optional)
 var refreshDays = int.TryParse(builder.Configuration["Jwt:RefreshTokenDays"], out var d) ? d : 7;
 builder.Services.AddScoped<IAuthService>(sp =>
