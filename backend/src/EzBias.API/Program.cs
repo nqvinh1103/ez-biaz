@@ -1,4 +1,9 @@
+using EzBias.Application.Services.Auth;
+using EzBias.Infrastructure.Data;
+using EzBias.Infrastructure.Seeding;
+using EzBias.Infrastructure.Services.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -20,8 +25,15 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// JWT (stub config; real refresh token flow will be added in Application/Infrastructure)
+// Db
+var conn = builder.Configuration.GetConnectionString("DefaultConnection")
+           ?? "Host=localhost;Port=5432;Database=EzBiasDb;Username=postgres;Password=your_password";
+
+builder.Services.AddDbContext<EzBiasDbContext>(opt => opt.UseNpgsql(conn));
+
+// JWT bearer
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "CHANGE_ME_DEV_SECRET_32CHARS_MIN";
+if (jwtSecret.Length < 32) jwtSecret = jwtSecret.PadRight(32, 'x');
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
 
 builder.Services
@@ -40,10 +52,39 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+// DI
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+
+// refresh days from config (optional)
+var refreshDays = int.TryParse(builder.Configuration["Jwt:RefreshTokenDays"], out var d) ? d : 7;
+builder.Services.AddScoped<IAuthService>(sp =>
+{
+    var db = sp.GetRequiredService<EzBiasDbContext>();
+    var hasher = sp.GetRequiredService<IPasswordHasher>();
+    var jwt = sp.GetRequiredService<IJwtTokenService>();
+    var refresh = sp.GetRequiredService<IRefreshTokenService>();
+    return new EzBias.Infrastructure.Services.Auth.AuthService(db, hasher, jwt, refresh, refreshDays);
+});
+
 var app = builder.Build();
 
+// Apply migrations + seed (best-effort)
 if (app.Environment.IsDevelopment())
 {
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<EzBiasDbContext>();
+        await db.Database.MigrateAsync();
+        await DataSeeder.SeedAsync(scope.ServiceProvider);
+    }
+    catch
+    {
+        // ignore on dev if db is not reachable (e.g., Docker not running)
+    }
+
     app.UseSwagger();
     app.UseSwaggerUI();
 }
