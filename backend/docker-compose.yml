@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16
+    container_name: ezbias-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: EzBiasDb
+    ports:
+      - "5432:5432"
+    volumes:
+      - ezbias_pgdata:/var/lib/postgresql/data
+volumes:
+  ezbias_pgdata:
