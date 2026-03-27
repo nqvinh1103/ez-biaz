@@ -86,12 +86,15 @@ public class CheckoutCommandHandler(IOrderRepository repo) : IRequestHandler<Che
             }).ToList()
         };
 
-        await repo.AddOrderAsync(order, cancellationToken);
+        await repo.ExecuteInTransactionAsync(async ct =>
+        {
+            await repo.AddOrderAsync(order, ct);
 
-        if (model.Items is null || model.Items.Count == 0)
-            await repo.ClearCartAsync(model.UserId, cancellationToken);
+            if (model.Items is null || model.Items.Count == 0)
+                await repo.ClearCartAsync(model.UserId, ct);
 
-        await repo.SaveChangesAsync(cancellationToken);
+            await repo.SaveChangesAsync(ct);
+        }, cancellationToken);
 
         return new OrderDto(
             order.Id,

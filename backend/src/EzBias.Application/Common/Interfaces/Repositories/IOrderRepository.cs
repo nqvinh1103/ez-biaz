@@ -20,5 +20,7 @@ public interface IOrderRepository
 
     Task AddOrderAsync(Order order, CancellationToken cancellationToken = default);
 
+    Task ExecuteInTransactionAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken = default);
+
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

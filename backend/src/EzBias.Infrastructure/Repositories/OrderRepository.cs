@@ -61,13 +61,27 @@ public class OrderRepository(EzBiasDbContext db) : IOrderRepository
     {
         var cart = await db.CartItems.Where(c => c.UserId == ownerId).ToListAsync(cancellationToken);
         db.CartItems.RemoveRange(cart);
-        await db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task AddOrderAsync(Order order, CancellationToken cancellationToken = default)
+    public Task AddOrderAsync(Order order, CancellationToken cancellationToken = default)
     {
         db.Orders.Add(order);
-        await db.SaveChangesAsync(cancellationToken);
+        return Task.CompletedTask;
+    }
+
+    public async Task ExecuteInTransactionAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken = default)
+    {
+        await using var tx = await db.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            await action(cancellationToken);
+            await tx.CommitAsync(cancellationToken);
+        }
+        catch
+        {
+            await tx.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 
     public Task SaveChangesAsync(CancellationToken cancellationToken = default)
