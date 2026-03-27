@@ -1,15 +1,14 @@
 using EzBias.API.Models;
 using EzBias.API.Models.Dtos;
+using EzBias.Application.Common.Interfaces.Services;
 using EzBias.Domain.Entities;
-using EzBias.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace EzBias.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuctionsController(EzBiasDbContext db) : ControllerBase
+public class AuctionsController(IAuctionService auctions) : ControllerBase
 {
     /// <summary>
     /// Match mock: getAuctions(filters?)
@@ -21,35 +20,22 @@ public class AuctionsController(EzBiasDbContext db) : ControllerBase
         [FromQuery] bool? isLive,
         [FromQuery] bool? isUrgent)
     {
-        var q = db.Auctions.AsNoTracking().AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(fandom))
-            q = q.Where(a => a.Fandom.ToLower() == fandom.ToLower());
-
-        if (isLive is not null)
-            q = q.Where(a => a.IsLive == isLive.Value);
-
-        if (isUrgent == true)
-            q = q.Where(a => a.IsUrgent);
-
-        var results = await q
-            .OrderBy(a => a.EndsAt)
-            .Select(a => new AuctionDto(
-                a.Id,
-                a.Fandom,
-                a.Artist,
-                a.Name,
-                a.Description,
-                a.FloorPrice,
-                a.CurrentBid,
-                a.SellerId,
-                a.EndsAt,
-                a.Image,
-                a.IsUrgent,
-                a.IsLive,
-                a.ContainImage
-            ))
-            .ToListAsync();
+        var entities = await auctions.GetAuctionsAsync(fandom, isLive, isUrgent);
+        var results = entities.Select(a => new AuctionDto(
+            a.Id,
+            a.Fandom,
+            a.Artist,
+            a.Name,
+            a.Description,
+            a.FloorPrice,
+            a.CurrentBid,
+            a.SellerId,
+            a.EndsAt,
+            a.Image,
+            a.IsUrgent,
+            a.IsLive,
+            a.ContainImage
+        )).ToList();
 
         return ApiResponse<IReadOnlyList<AuctionDto>>.Ok(results);
     }
@@ -57,9 +43,7 @@ public class AuctionsController(EzBiasDbContext db) : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ApiResponse<AuctionDetailDto>>> GetAuctionById([FromRoute] string id)
     {
-        var auction = await db.Auctions.AsNoTracking()
-            .Include(a => a.Bids)
-            .FirstOrDefaultAsync(a => a.Id == id);
+        var auction = await auctions.GetAuctionDetailAsync(id);
 
         if (auction is null)
             return NotFound(ApiResponse<AuctionDetailDto>.Fail("Auction not found."));
@@ -107,78 +91,31 @@ public class AuctionsController(EzBiasDbContext db) : ControllerBase
     [HttpPost("{auctionId}/bids")]
     public async Task<ActionResult<ApiResponse<BidDto>>> PlaceBid([FromRoute] string auctionId, [FromBody] PlaceBidRequest req)
     {
-        if (string.IsNullOrWhiteSpace(req.UserId))
-            return BadRequest(ApiResponse<BidDto>.Fail("User not found. Please log in."));
-
-        var auction = await db.Auctions.Include(a => a.Bids).FirstOrDefaultAsync(a => a.Id == auctionId);
-        if (auction is null)
-            return NotFound(ApiResponse<BidDto>.Fail("Auction not found."));
-
-        if (!auction.IsLive)
-            return BadRequest(ApiResponse<BidDto>.Fail("This auction has ended."));
-
-        var minBid = auction.CurrentBid + 5m;
-        if (req.Amount < minBid)
-            return BadRequest(ApiResponse<BidDto>.Fail($"Bid must be at least ${minBid:0.00} (current bid + $5.00)."));
-
-        if (auction.SellerId == req.UserId)
-            return BadRequest(ApiResponse<BidDto>.Fail("You cannot bid on your own listing."));
-
-        var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == req.UserId);
-        if (user is null)
-            return BadRequest(ApiResponse<BidDto>.Fail("User not found. Please log in."));
-
-        // mark previous winning bids
-        foreach (var b in auction.Bids)
-            b.IsWinning = false;
-
-        var nextBidId = await NextIdAsync("b", db.Bids.Select(b => b.Id));
-
-        var bid = new Bid
+        try
         {
-            Id = nextBidId,
-            AuctionId = auction.Id,
-            UserId = user.Id,
-            Username = user.Username,
-            Avatar = user.Avatar,
-            AvatarBg = user.AvatarBg,
-            Amount = req.Amount,
-            PlacedAt = DateTime.UtcNow,
-            IsWinning = true
-        };
+            var bid = await auctions.PlaceBidAsync(auctionId, req.UserId, req.Amount);
 
-        auction.Bids.Add(bid);
-        auction.CurrentBid = req.Amount;
+            var dto = new BidDto(
+                bid.Id,
+                bid.AuctionId,
+                bid.UserId,
+                bid.Username,
+                bid.Avatar,
+                bid.AvatarBg,
+                bid.Amount,
+                bid.PlacedAt,
+                bid.IsWinning
+            );
 
-        await db.SaveChangesAsync();
-
-        var dto = new BidDto(
-            bid.Id,
-            bid.AuctionId,
-            bid.UserId,
-            bid.Username,
-            bid.Avatar,
-            bid.AvatarBg,
-            bid.Amount,
-            bid.PlacedAt,
-            bid.IsWinning
-        );
-
-        return ApiResponse<BidDto>.Ok(dto, $"Bid of ${req.Amount:0.00} placed successfully!");
-    }
-
-    private static async Task<string> NextIdAsync(string prefix, IQueryable<string> ids)
-    {
-        var list = await ids.ToListAsync();
-        var max = 0;
-        foreach (var id in list)
-        {
-            if (!id.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                continue;
-            var suffix = id[prefix.Length..];
-            if (int.TryParse(suffix, out var n) && n > max)
-                max = n;
+            return ApiResponse<BidDto>.Ok(dto, $"Bid of ${req.Amount:0.00} placed successfully!");
         }
-        return prefix + (max + 1);
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<BidDto>.Fail(ex.Message));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ApiResponse<BidDto>.Fail(ex.Message));
+        }
     }
 }
