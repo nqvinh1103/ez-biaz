@@ -1,13 +1,18 @@
 using EzBias.API.Models;
+using EzBias.Application.Features.Cart.Commands.AddToCart;
+using EzBias.Application.Features.Cart.Commands.ClearCart;
+using EzBias.Application.Features.Cart.Commands.RemoveFromCart;
+using EzBias.Application.Features.Cart.Commands.UpdateCartQty;
+using EzBias.Application.Features.Cart.Queries.GetCart;
 using EzBias.Contracts.Features.Products.Dtos;
-using EzBias.Application.Common.Interfaces.Services;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EzBias.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class CartController(ICartService cart) : ControllerBase
+public class CartController(IMediator mediator) : ControllerBase
 {
 
     /// <summary>
@@ -16,7 +21,7 @@ public class CartController(ICartService cart) : ControllerBase
     [HttpGet("{userId}")]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<CartItemDto>>>> GetCart([FromRoute] string userId)
     {
-        var enriched = await cart.GetCartAsync(userId);
+        var enriched = await mediator.Send(new GetCartQuery(userId));
         return ApiResponse<IReadOnlyList<CartItemDto>>.Ok(enriched);
     }
 
@@ -30,7 +35,7 @@ public class CartController(ICartService cart) : ControllerBase
     {
         try
         {
-            var result = await cart.AddToCartAsync(userId, req.ProductId, req.Qty);
+            var result = await mediator.Send(new AddToCartCommand(userId, req.ProductId, req.Qty));
             return ApiResponse<object>.Ok(new { productId = result.productId, qty = result.qty }, "Item added to cart.");
         }
         catch (KeyNotFoundException ex)
@@ -53,7 +58,7 @@ public class CartController(ICartService cart) : ControllerBase
     {
         try
         {
-            var result = await cart.UpdateQtyAsync(userId, productId, req.Qty);
+            var result = await mediator.Send(new UpdateCartQtyCommand(userId, productId, req.Qty));
             return ApiResponse<object>.Ok(new { productId = result.productId, qty = result.qty }, "Cart updated.");
         }
         catch (KeyNotFoundException ex)
@@ -74,7 +79,7 @@ public class CartController(ICartService cart) : ControllerBase
     {
         try
         {
-            await cart.RemoveAsync(userId, productId);
+            await mediator.Send(new RemoveFromCartCommand(userId, productId));
             return ApiResponse<object?>.Ok(null, "Item removed from cart.");
         }
         catch (KeyNotFoundException ex)
@@ -89,7 +94,7 @@ public class CartController(ICartService cart) : ControllerBase
     [HttpDelete("{userId}")]
     public async Task<ActionResult<ApiResponse<object?>>> Clear([FromRoute] string userId)
     {
-        await cart.ClearAsync(userId);
+        await mediator.Send(new ClearCartCommand(userId));
         return ApiResponse<object?>.Ok(null, "Cart cleared.");
     }
 }
