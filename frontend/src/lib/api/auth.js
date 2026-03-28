@@ -11,5 +11,5 @@ export function register(userData) {
 }
 
 export function logout() {
-  return api.post("/api/auth/logout").catch(() => ({ success: true }));
+  return api.post("/api/auth/logout", null).catch(() => ({ success: true }));
 }

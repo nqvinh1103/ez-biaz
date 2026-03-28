@@ -1,330 +1,344 @@
-import { useCallback, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageLayout from "../components/layout/PageLayout";
-import ItemTypeSelector from "../components/sell/ItemTypeSelector";
-import PhotoUploader from "../components/sell/PhotoUploader";
 import BackLink from "../components/ui/BackLink";
 import Button from "../components/ui/Button";
-import FormField from "../components/ui/FormField";
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../hooks/useAuth";
-import { useFileUpload } from "../hooks/useFileUpload";
-import { useForm } from "../hooks/useForm";
-import { createAuction } from "../lib/ezbiasApi";
+import { createAuction, getListingsByUser } from "../lib/ezbiasApi";
+import { cn } from "../utils/cn";
 
-const CONDITIONS = ["Brand New", "Like New", "Good", "Fair", "Poor"];
+/* ── Constants ──────────────────────────────────────────────────────────── */
 const DURATIONS = [
-  { value: "1", label: "1 Day" },
-  { value: "3", label: "3 Days" },
-  { value: "7", label: "7 Days" },
-  { value: "14", label: "14 Days" },
+  { label: "1 Day",   hours: 24  },
+  { label: "3 Days",  hours: 72  },
+  { label: "7 Days",  hours: 168 },
+  { label: "14 Days", hours: 336 },
 ];
 
-const INITIAL_FORM = {
-  name: "",
-  description: "",
-  condition: "",
-  fandom: "",
-  startingBid: "",
-  reservePrice: "",
-  duration: "",
-};
-
-const GavelIcon = () => (
-  <svg
-    className="h-4 w-4 text-[#ad93e6]"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    viewBox="0 0 24 24"
-    aria-hidden="true"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M15.042 21.672L13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59"
-    />
+/* ── Icons ──────────────────────────────────────────────────────────────── */
+const GavelIcon = ({ className = "h-4 w-4" }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15.042 21.672L13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59" />
   </svg>
 );
 
-const ChevronIcon = () => (
-  <svg
-    className="pointer-events-none absolute bottom-3 right-3 h-4 w-4 text-[#737373]"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    viewBox="0 0 24 24"
-    aria-hidden="true"
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="m19 9-7 7-7-7" />
+const CheckIcon = () => (
+  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
   </svg>
 );
 
-function CreateAuctionPage() {
+const BoltIcon = () => (
+  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
+  </svg>
+);
+
+/* ── Product picker card ─────────────────────────────────────────────────── */
+function ProductPickerCard({ product, selected, onSelect }) {
+  const unavailable = product.isAuction || product.stock <= 0;
+
+  return (
+    <button
+      type="button"
+      disabled={unavailable}
+      onClick={() => !unavailable && onSelect(product.id)}
+      className={cn(
+        "relative flex flex-col overflow-hidden rounded-xl border-2 text-left transition-all",
+        unavailable
+          ? "cursor-not-allowed border-[#e6e6e6] opacity-50"
+          : selected
+            ? "border-[#ad93e6] shadow-[0_0_0_3px_rgba(173,147,230,0.2)]"
+            : "border-[#e6e6e6] hover:border-[#ad93e6]/50 cursor-pointer",
+      )}
+    >
+      {/* Selected overlay */}
+      {selected && (
+        <span className="absolute right-2 top-2 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-[#ad93e6] text-white">
+          <CheckIcon />
+        </span>
+      )}
+
+      {/* Already in auction badge */}
+      {product.isAuction && (
+        <span className="absolute left-2 top-2 z-10 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+          In Auction
+        </span>
+      )}
+
+      {/* Out of stock badge */}
+      {!product.isAuction && product.stock <= 0 && (
+        <span className="absolute left-2 top-2 z-10 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-600">
+          Out of Stock
+        </span>
+      )}
+
+      {/* Image */}
+      <div className="aspect-square w-full overflow-hidden bg-[#f4f3f7]">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="h-full w-full object-contain p-2"
+        />
+      </div>
+
+      {/* Info */}
+      <div className="flex flex-col gap-0.5 p-3">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-[#ad93e6]">
+          {product.fandom ?? product.artist}
+        </p>
+        <p className="line-clamp-2 text-xs font-semibold text-[#121212]">
+          {product.name}
+        </p>
+        <p className="mt-1 text-sm font-bold text-[#121212]">
+          ${Number(product.price).toFixed(2)}
+        </p>
+        <p className={cn(
+          "text-[10px]",
+          product.stock > 5 ? "text-green-600" : product.stock > 0 ? "text-amber-600" : "text-red-500",
+        )}>
+          {product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}
+        </p>
+      </div>
+    </button>
+  );
+}
+
+/* ── Section header ─────────────────────────────────────────────────────── */
+function SectionHeader({ step, title }) {
+  return (
+    <div className="mb-4 flex items-center gap-3">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#ad93e6] text-xs font-bold text-white">
+        {step}
+      </span>
+      <h2 className="text-sm font-semibold text-[#121212]">{title}</h2>
+    </div>
+  );
+}
+
+/* ── Skeleton ───────────────────────────────────────────────────────────── */
+function ListingSkeleton() {
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 animate-pulse">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="rounded-xl border-2 border-[#e6e6e6]">
+          <div className="aspect-square w-full bg-[#f0edf7]" />
+          <div className="flex flex-col gap-2 p-3">
+            <div className="h-2.5 w-12 rounded bg-[#f0edf7]" />
+            <div className="h-3 w-full rounded bg-[#f0edf7]" />
+            <div className="h-4 w-16 rounded bg-[#f0edf7]" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── Page ───────────────────────────────────────────────────────────────── */
+export default function CreateAuctionPage() {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
   const { showToast } = useToast();
-  const { values, handleChange } = useForm(INITIAL_FORM);
-  const [selectedTypes, setSelectedTypes] = useState([]);
-  const upload = useFileUpload(5);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
 
-  const handleTypesChange = useCallback((updated) => {
-    setSelectedTypes(updated);
-  }, []);
+  const [listings, setListings]       = useState([]);
+  const [loadingList, setLoadingList] = useState(true);
+  const [fetchError, setFetchError]   = useState(null);
 
-  const isValid =
-    upload.previews.length > 0 &&
-    values.name.trim() &&
-    values.condition &&
-    values.fandom.trim() &&
-    values.startingBid &&
-    values.duration &&
-    selectedTypes.length > 0;
+  const [selectedId, setSelectedId]   = useState(null);
+  const [durationHours, setDuration]  = useState(72);   // default 3 days
+  const [isUrgent, setIsUrgent]       = useState(false);
+
+  const [submitting, setSubmitting]   = useState(false);
+  const [error, setError]             = useState(null);
+
+  /* fetch seller's listings on mount */
+  useEffect(() => {
+    if (!user?.id) return;
+    let mounted = true;
+    getListingsByUser(user.id).then((res) => {
+      if (!mounted) return;
+      if (res.success) setListings(res.data ?? []);
+      else setFetchError(res.message ?? "Failed to load your listings.");
+      setLoadingList(false);
+    });
+    return () => { mounted = false; };
+  }, [user?.id]);
+
+  const selectedProduct = listings.find((p) => p.id === selectedId) ?? null;
+  const isValid = !!selectedId && durationHours >= 1 && durationHours <= 336;
 
   const handleSubmit = async () => {
     if (!isValid || submitting) return;
     setSubmitting(true);
     setError(null);
 
-    const res = await createAuction(
-      user?.id ?? "u1",
-      {
-        name: values.name,
-        description: values.description,
-        condition: values.condition,
-        fandom: values.fandom,
-        startingBid: values.startingBid,
-        reservePrice: values.reservePrice || null,
-        durationDays: values.duration,
-        itemTypes: selectedTypes,
-      },
-      upload.files,
-    );
+    const res = await createAuction({
+      productId:     selectedId,
+      sellerId:      user.id,
+      durationHours,
+      isUrgent,
+    });
 
     setSubmitting(false);
     if (res.success) {
-      showToast("Auction listed successfully!", "success");
+      showToast("Auction created successfully!", "success");
       navigate("/auction");
     } else {
-      setError(res.message || "Failed to create auction. Please try again.");
+      setError(res.message ?? "Failed to create auction. Please try again.");
     }
   };
 
   return (
     <PageLayout>
-      <div className="mx-auto w-full max-w-170 px-4 py-10 md:py-14">
+      <div className="mx-auto w-full max-w-[760px] px-4 py-10 md:py-14">
         <BackLink to="/auction" label="Back to Auctions" />
 
         {/* Page title */}
-        <div className="mb-8 flex items-center gap-2.5">
+        <div className="mb-10 flex items-center gap-2.5">
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ad93e6]">
             <GavelIcon />
           </span>
-          <h1 className="text-2xl font-bold text-[#121212]">
-            Create an Auction
-          </h1>
+          <h1 className="text-2xl font-bold text-[#121212]">Create an Auction</h1>
         </div>
 
-        {/* ── Product Photos ─────────────────────────────────────── */}
-        <section className="mb-8">
-          <h2 className="mb-3 text-sm font-semibold text-[#121212]">
-            Product Photos
-          </h2>
-          <PhotoUploader
-            previews={upload.previews}
-            isDragging={upload.isDragging}
-            inputRef={upload.inputRef}
-            maxFiles={5}
-            onAddFiles={upload.addFiles}
-            onRemove={upload.removeFile}
-            onOpenPicker={upload.openPicker}
-            dragHandlers={upload.dragHandlers}
-          />
-        </section>
-
-        {/* ── Item Details ───────────────────────────────────────── */}
-        <section className="mb-8">
-          <h2 className="mb-4 text-sm font-semibold text-[#121212]">
-            Item Details
-          </h2>
-
-          <FormField
-            label="Item Name"
-            id="auction-name"
-            name="name"
-            placeholder="e.g. BTS Map of the Soul Photo Book"
-            value={values.name}
-            onChange={handleChange}
-            wrapperClassName="mb-4"
-          />
-
-          <FormField
-            label="Description"
-            id="auction-desc"
-            as="textarea"
-            name="description"
-            placeholder="Describe your item — include condition details, inclusions, defects, etc."
-            rows={4}
-            value={values.description}
-            onChange={handleChange}
-            wrapperClassName="mb-4"
-          />
-
-          <div className="flex gap-4">
-            {/* Condition */}
-            <div className="relative flex-1">
-              <FormField
-                label="Condition"
-                id="auction-condition"
-                as="select"
-                name="condition"
-                value={values.condition}
-                onChange={handleChange}
-              >
-                <option value="" disabled>
-                  Select condition
-                </option>
-                {CONDITIONS.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </FormField>
-              <ChevronIcon />
-            </div>
-
-            {/* Fandom */}
-            <div className="flex-1">
-              <FormField
-                label="Fandom / Group"
-                id="auction-fandom"
-                name="fandom"
-                placeholder="e.g. BTS, BLACKPINK…"
-                value={values.fandom}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* ── Auction Settings ───────────────────────────────────── */}
-        <section className="mb-8">
-          <div className="mb-4 flex items-center gap-2">
-            <GavelIcon />
-            <h2 className="text-sm font-semibold text-[#121212]">
-              Auction Settings
-            </h2>
-          </div>
-
-          <div className="flex gap-4 mb-4">
-            {/* Starting Bid */}
-            <div className="relative flex-1">
-              <FormField
-                label="Starting Bid"
-                id="auction-start"
-                name="startingBid"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                value={values.startingBid}
-                onChange={handleChange}
-                className="pl-7"
-              />
-              <span className="absolute bottom-3 left-3 text-sm text-[#737373]">
-                $
-              </span>
-            </div>
-
-            {/* Reserve Price */}
-            <div className="relative flex-1">
-              <FormField
-                label="Reserve Price (optional)"
-                id="auction-reserve"
-                name="reservePrice"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                value={values.reservePrice}
-                onChange={handleChange}
-                className="pl-7"
-              />
-              <span className="absolute bottom-3 left-3 text-sm text-[#737373]">
-                $
-              </span>
-            </div>
-          </div>
-
-          {/* Duration */}
-          <div className="relative">
-            <FormField
-              label="Auction Duration"
-              id="auction-duration"
-              as="select"
-              name="duration"
-              value={values.duration}
-              onChange={handleChange}
-            >
-              <option value="" disabled>
-                Select duration
-              </option>
-              {DURATIONS.map(({ value, label }) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </FormField>
-            <ChevronIcon />
-          </div>
-
-          {values.reservePrice &&
-            values.startingBid &&
-            Number(values.reservePrice) < Number(values.startingBid) && (
-              <p className="mt-2 text-xs text-amber-600">
-                Reserve price is lower than starting bid — it won't have any
-                effect.
-              </p>
-            )}
-        </section>
-
-        {/* ── Tags & Item Type ───────────────────────────────────── */}
+        {/* ── Step 1: Pick a product ──────────────────────────────── */}
         <section className="mb-10">
-          <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-medium text-[#737373]">
-              Item Type
-            </span>
-            <ItemTypeSelector
-              selected={selectedTypes}
-              onChange={handleTypesChange}
-            />
+          <SectionHeader step="1" title="Select a Product to Auction" />
+
+          {loadingList ? (
+            <ListingSkeleton />
+          ) : fetchError ? (
+            <p className="text-sm text-[#ef4343]">{fetchError}</p>
+          ) : listings.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-[#e6e6e6] py-12 text-center">
+              <p className="text-sm text-[#737373]">You have no listings yet.</p>
+              <a href="/sell" className="mt-2 inline-block text-sm font-semibold text-[#ad93e6] hover:underline">
+                Create a listing first →
+              </a>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {listings.map((product) => (
+                <ProductPickerCard
+                  key={product.id}
+                  product={product}
+                  selected={selectedId === product.id}
+                  onSelect={setSelectedId}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ── Step 2: Auction settings ────────────────────────────── */}
+        <section className="mb-10">
+          <SectionHeader step="2" title="Auction Settings" />
+
+          <div className="rounded-xl border border-[#e6e6e6] bg-white p-5 flex flex-col gap-6">
+
+            {/* Duration */}
+            <div>
+              <p className="mb-2 text-xs font-medium text-[#737373]">Duration</p>
+              <div className="flex flex-wrap gap-2">
+                {DURATIONS.map(({ label, hours }) => (
+                  <button
+                    key={hours}
+                    type="button"
+                    onClick={() => setDuration(hours)}
+                    className={cn(
+                      "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+                      durationHours === hours
+                        ? "border-[#ad93e6] bg-[#ad93e6] text-white"
+                        : "border-[#e6e6e6] text-[#737373] hover:border-[#ad93e6] hover:text-[#ad93e6]",
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-1.5 text-[11px] text-[#b3b3b3]">
+                Auction ends in {durationHours}h ({DURATIONS.find(d => d.hours === durationHours)?.label ?? `${durationHours}h`})
+              </p>
+            </div>
+
+            {/* Urgent toggle */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-[#ef4343]"><BoltIcon /></span>
+                <div>
+                  <p className="text-sm font-medium text-[#121212]">Mark as Urgent</p>
+                  <p className="text-xs text-[#737373]">Shows a red timer badge — draws more attention</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isUrgent}
+                onClick={() => setIsUrgent((v) => !v)}
+                className={cn(
+                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
+                  isUrgent ? "bg-[#ef4343]" : "bg-[#e6e6e6]",
+                )}
+              >
+                <span
+                  className={cn(
+                    "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform",
+                    isUrgent ? "translate-x-5" : "translate-x-0",
+                  )}
+                />
+              </button>
+            </div>
           </div>
         </section>
 
-        {/* ── Submit ────────────────────────────────────────────── */}
+        {/* ── Preview ─────────────────────────────────────────────── */}
+        {selectedProduct && (
+          <section className="mb-8">
+            <SectionHeader step="3" title="Preview" />
+            <div className="flex items-center gap-4 rounded-xl border border-[#ad93e6]/30 bg-[rgba(173,147,230,0.04)] p-4">
+              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-[#e6e6e6] bg-[#f4f3f7]">
+                <img
+                  src={selectedProduct.image}
+                  alt={selectedProduct.name}
+                  className="h-full w-full object-contain p-1"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#ad93e6]">
+                  {selectedProduct.fandom ?? selectedProduct.artist}
+                </p>
+                <p className="truncate text-sm font-semibold text-[#121212]">
+                  {selectedProduct.name}
+                </p>
+                <p className="text-xs text-[#737373]">
+                  Floor price: <span className="font-semibold text-[#121212]">${Number(selectedProduct.price).toFixed(2)}</span>
+                  {" · "}Duration: <span className="font-semibold text-[#121212]">{DURATIONS.find(d => d.hours === durationHours)?.label}</span>
+                  {isUrgent && <span className="ml-2 text-[#ef4343] font-semibold">⚡ Urgent</span>}
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── Submit ──────────────────────────────────────────────── */}
         <div className="flex flex-col items-center gap-2">
           {error && <p className="w-full text-sm text-[#ef4343]">{error}</p>}
           <Button
             size="lg"
-            disabled={!isValid || submitting}
             className="w-full"
+            disabled={!isValid || submitting}
             type="button"
             onClick={handleSubmit}
           >
-            {submitting ? "Creating Auction…" : "Start Auction"}
+            <GavelIcon className="h-4 w-4" />
+            {submitting ? "Creating…" : "Start Auction"}
           </Button>
-          {!isValid && !error && (
-            <p className="text-xs text-[#737373]">
-              Add at least one photo, fill in name, condition, fandom, starting
-              bid, duration, and item type.
-            </p>
+          {!selectedId && (
+            <p className="text-xs text-[#737373]">Select a product to continue.</p>
           )}
         </div>
       </div>
     </PageLayout>
   );
 }
-
-export default CreateAuctionPage;

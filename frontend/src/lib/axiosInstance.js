@@ -44,9 +44,15 @@ instance.interceptors.request.use((config) => {
   const token = getToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
 
-  // Let axios set Content-Type automatically for FormData (includes boundary)
+  // FormData: let axios set Content-Type automatically (includes boundary)
   if (config.data instanceof FormData) {
-    delete config.headers["Content-Type"];
+    config.headers.set("Content-Type", false);
+    return config;
+  }
+
+  // No body: strip Content-Type to avoid 415 on bodyless POST/DELETE endpoints
+  if (config.data === undefined || config.data === null) {
+    config.headers.set("Content-Type", false);
   }
 
   return config;
