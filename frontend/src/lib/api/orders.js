@@ -1,6 +1,11 @@
 import api from "../axiosInstance";
 
-export function checkout(userId, shippingInfo, paymentMethod, reactCartItems = null) {
+export function checkout(
+  userId,
+  shippingInfo,
+  paymentMethod,
+  reactCartItems = null,
+) {
   const items =
     Array.isArray(reactCartItems) && reactCartItems.length
       ? reactCartItems.map((i) => ({
@@ -23,6 +28,6 @@ export function getOrders(userId) {
   return api.get(`/api/orders/${encodeURIComponent(userId)}`);
 }
 
-export function getOrderHistory(userId) {
-  return api.get(`/api/orders/history/${encodeURIComponent(userId)}`);
-}
+// export function getOrderHistory(userId) {
+//   return api.get(`/api/orders/history/${encodeURIComponent(userId)}`);
+// }
