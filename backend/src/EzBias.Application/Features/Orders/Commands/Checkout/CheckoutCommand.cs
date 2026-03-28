@@ -4,4 +4,4 @@ using MediatR;
 
 namespace EzBias.Application.Features.Orders.Commands.Checkout;
 
-public record CheckoutCommand(CheckoutModel Model) : IRequest<OrderDto>;
+public record CheckoutCommand(CheckoutModel Model) : IRequest<CheckoutResultDto>;

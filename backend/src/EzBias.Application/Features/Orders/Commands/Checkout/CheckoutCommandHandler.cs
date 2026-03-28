@@ -6,9 +6,9 @@ using MediatR;
 
 namespace EzBias.Application.Features.Orders.Commands.Checkout;
 
-public class CheckoutCommandHandler(IOrderRepository repo) : IRequestHandler<CheckoutCommand, OrderDto>
+public class CheckoutCommandHandler(IOrderRepository repo) : IRequestHandler<CheckoutCommand, CheckoutResultDto>
 {
-    public async Task<OrderDto> Handle(CheckoutCommand request, CancellationToken cancellationToken)
+    public async Task<CheckoutResultDto> Handle(CheckoutCommand request, CancellationToken cancellationToken)
     {
         var model = request.Model;
 
@@ -73,32 +73,59 @@ public class CheckoutCommandHandler(IOrderRepository repo) : IRequestHandler<Che
             orderItems[idx] = (it.productId, it.name, it.qty, it.price, p.Image);
         }
 
-        var subtotal = orderItems.Sum(i => i.price * i.qty);
-        var shippingFee = 5.99m;
-        var nextOrderId = await repo.NextOrderIdAsync(cancellationToken);
-
-        var order = new Order
+        // Prevent checkout of auction-mode products.
+        foreach (var it in orderItems)
         {
-            Id = nextOrderId,
-            UserId = model.UserId,
-            ShippingFee = shippingFee,
-            Total = decimal.Round(subtotal + shippingFee, 2),
-            Status = "pending",
-            Payment = model.PaymentMethod,
-            Address = $"{model.ShippingInfo.Address}, {model.ShippingInfo.City}",
-            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow),
-            Items = orderItems.Select(i => new OrderItem
+            var p = products.FirstOrDefault(x => x.Id == it.productId);
+            if (p is null) continue;
+            if (p.IsAuction)
+                throw new ArgumentException("One or more items are no longer available.");
+        }
+
+        // Split orders by seller
+        var productMap = products.ToDictionary(p => p.Id, p => p);
+        var groups = orderItems
+            .GroupBy(i => productMap[i.productId].SellerId)
+            .ToList();
+
+        var orderIds = await repo.NextOrderIdsAsync(groups.Count, cancellationToken);
+        var now = DateTime.UtcNow;
+        var address = $"{model.ShippingInfo.Address}, {model.ShippingInfo.City}";
+        const decimal shippingFee = 5.99m;
+
+        var orders = new List<Order>(groups.Count);
+
+        for (var idx = 0; idx < groups.Count; idx++)
+        {
+            var sellerId = groups[idx].Key;
+            var itemsForSeller = groups[idx].ToList();
+            var subtotal = itemsForSeller.Sum(i => i.price * i.qty);
+
+            orders.Add(new Order
             {
-                ProductId = i.productId,
-                Name = i.name,
-                Quantity = i.qty,
-                Price = i.price
-            }).ToList()
-        };
+                Id = orderIds[idx],
+                UserId = model.UserId,
+                SellerId = sellerId,
+                ShippingFee = shippingFee,
+                Total = decimal.Round(subtotal + shippingFee, 2),
+                Status = "pending",
+                Payment = model.PaymentMethod,
+                Address = address,
+                CreatedAt = DateOnly.FromDateTime(now),
+                Items = itemsForSeller.Select(i => new OrderItem
+                {
+                    ProductId = i.productId,
+                    Name = i.name,
+                    Quantity = i.qty,
+                    Price = i.price
+                }).ToList()
+            });
+        }
 
         await repo.ExecuteInTransactionAsync(async ct =>
         {
-            await repo.AddOrderAsync(order, ct);
+            foreach (var o in orders)
+                await repo.AddOrderAsync(o, ct);
 
             if (model.Items is null || model.Items.Count == 0)
                 await repo.ClearCartAsync(model.UserId, ct);
@@ -106,23 +133,30 @@ public class CheckoutCommandHandler(IOrderRepository repo) : IRequestHandler<Che
             await repo.SaveChangesAsync(ct);
         }, cancellationToken);
 
-        return new OrderDto(
-            order.Id,
-            order.UserId,
-            order.Items.Select(i => new OrderItemDto(
+        var dtos = orders.Select(o => new OrderDto(
+            o.Id,
+            o.UserId,
+            o.SellerId,
+            o.Items.Select(i => new OrderItemDto(
                 i.ProductId,
                 i.Name,
                 i.Quantity,
                 i.Price,
                 orderItems.FirstOrDefault(x => x.productId == i.ProductId).image
             )).ToList(),
-            order.ShippingFee,
-            order.Total,
-            order.Status,
-            order.Payment,
-            order.Address,
-            order.CreatedAt.ToString("yyyy-MM-dd")
-        );
+            o.ShippingFee,
+            o.Total,
+            o.Status,
+            o.Payment,
+            o.Address,
+            o.CreatedAt.ToString("yyyy-MM-dd"),
+            o.Carrier,
+            o.TrackingNumber,
+            o.ShippedAt?.ToString("o"),
+            o.DeliveredAt?.ToString("o")
+        )).ToList();
+
+        return new CheckoutResultDto(dtos);
     }
 
     private static List<string> MissingShippingFields(ShippingInfoModel info)

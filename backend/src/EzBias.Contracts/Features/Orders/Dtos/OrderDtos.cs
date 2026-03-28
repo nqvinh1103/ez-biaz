@@ -31,14 +31,23 @@ public record OrderItemDto(
     string Image
 );
 
+public record CheckoutResultDto(
+    IReadOnlyList<OrderDto> Orders
+);
+
 public record OrderDto(
     string Id,
     string UserId,
+    string SellerId,
     IReadOnlyList<OrderItemDto> Items,
     decimal ShippingFee,
     decimal Total,
     string Status,
     string Payment,
     string Address,
-    string CreatedAt
+    string CreatedAt,
+    string? Carrier,
+    string? TrackingNumber,
+    string? ShippedAt,
+    string? DeliveredAt
 );

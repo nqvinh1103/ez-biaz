@@ -75,6 +75,7 @@ public class EzBiasDbContext : DbContext
             b.HasKey(x => x.Id);
             b.Property(x => x.Id).ValueGeneratedNever();
             b.HasIndex(x => x.UserId);
+            b.HasIndex(x => x.SellerId);
             b.HasOne(x => x.User)
                 .WithMany(u => u.Orders)
                 .HasForeignKey(x => x.UserId)

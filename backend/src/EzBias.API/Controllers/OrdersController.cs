@@ -1,7 +1,10 @@
 using EzBias.API.Models;
 using EzBias.Application.Features.Orders.Commands.Checkout;
 using EzBias.Application.Features.Orders.Models;
+using EzBias.Application.Features.Orders.Commands.ReceiveOrder;
+using EzBias.Application.Features.Orders.Commands.ShipOrder;
 using EzBias.Application.Features.Orders.Queries.GetOrders;
+using EzBias.Application.Features.Orders.Queries.GetSellerOrders;
 using EzBias.Application.Features.Orders.Queries.GetSoldItems;
 using EzBias.Contracts.Features.Orders.Dtos;
 using MediatR;
@@ -13,6 +16,66 @@ namespace EzBias.API.Controllers;
 [Route("api/[controller]")]
 public class OrdersController(IMediator mediator) : ControllerBase
 {
+    /// <summary>
+    /// Seller: list orders that belong to this seller.
+    /// </summary>
+    [HttpGet("seller/{sellerId}")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<OrderDto>>>> GetSellerOrders([FromRoute] string sellerId, [FromQuery] string? status)
+    {
+        var list = await mediator.Send(new GetSellerOrdersQuery(sellerId, status));
+        return ApiResponse<IReadOnlyList<OrderDto>>.Ok(list);
+    }
+
+    /// <summary>
+    /// Seller: request shipping / confirm shipped.
+    /// </summary>
+    [HttpPost("{orderId}/ship")]
+    public async Task<ActionResult<ApiResponse<OrderDto>>> Ship([FromRoute] string orderId, [FromBody] ShipOrderRequest req)
+    {
+        try
+        {
+            var dto = await mediator.Send(new ShipOrderCommand(orderId, req.SellerId, req.Carrier, req.TrackingNumber));
+            return ApiResponse<OrderDto>.Ok(dto, "Order is now shipping.");
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ApiResponse<OrderDto>.Fail(ex.Message));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<OrderDto>.Fail(ex.Message));
+        }
+    }
+
+    /// <summary>
+    /// Buyer: confirm received.
+    /// </summary>
+    [HttpPost("{orderId}/received")]
+    public async Task<ActionResult<ApiResponse<OrderDto>>> Received([FromRoute] string orderId, [FromBody] ReceiveOrderRequest req)
+    {
+        try
+        {
+            var dto = await mediator.Send(new ReceiveOrderCommand(orderId, req.BuyerId));
+            return ApiResponse<OrderDto>.Ok(dto, "Order delivered.");
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ApiResponse<OrderDto>.Fail(ex.Message));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<OrderDto>.Fail(ex.Message));
+        }
+    }
+
     /// <summary>
     /// Seller: list items sold by this seller.
     /// </summary>
@@ -46,7 +109,7 @@ public class OrdersController(IMediator mediator) : ControllerBase
     /// If items omitted, uses server-side cart for the user.
     /// </summary>
     [HttpPost("checkout")]
-    public async Task<ActionResult<ApiResponse<OrderDto>>> Checkout([FromBody] CheckoutRequest req)
+    public async Task<ActionResult<ApiResponse<CheckoutResultDto>>> Checkout([FromBody] CheckoutRequest req)
     {
         try
         {
@@ -65,11 +128,11 @@ public class OrdersController(IMediator mediator) : ControllerBase
             );
 
             var dto = await mediator.Send(new CheckoutCommand(model));
-            return ApiResponse<OrderDto>.Ok(dto, "Order placed successfully! Thank you for your purchase.");
+            return ApiResponse<CheckoutResultDto>.Ok(dto, "Order placed successfully! Thank you for your purchase.");
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(ApiResponse<OrderDto>.Fail(ex.Message));
+            return BadRequest(ApiResponse<CheckoutResultDto>.Fail(ex.Message));
         }
     }
 

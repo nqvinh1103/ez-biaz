@@ -40,7 +40,7 @@ function OrderSuccess({ order, onContinue }) {
       <div>
         <h2 className="text-2xl font-bold text-[#121212]">Order Placed!</h2>
         <p className="mt-1 text-sm text-[#737373]">
-          Thank you for your purchase. Your order is being processed.
+          Thank you for your purchase. Your orders are being processed.
         </p>
       </div>
 
@@ -112,7 +112,8 @@ function CheckoutPage() {
       const res = await checkout(user?.id ?? "u1", values, payment, items);
       if (res.success) {
         clearCart();
-        setOrder(res.data);
+        const first = res.data?.orders?.[0] ?? null;
+        setOrder(first);
       } else {
         setError(res.message);
       }
