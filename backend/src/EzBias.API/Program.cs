@@ -3,6 +3,7 @@ using EzBias.Application.Common.Interfaces.Repositories;
 using EzBias.Application.Services.Auth;
 using EzBias.Infrastructure.Data;
 using EzBias.Infrastructure.Repositories;
+using EzBias.Infrastructure.Payments;
 using EzBias.Infrastructure.Seeding;
 // (removed) Application feature services migrated to MediatR handlers
 using EzBias.Infrastructure.Services.Auth;
@@ -15,6 +16,12 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+
+builder.Services.AddHttpClient();
+
+builder.Services.Configure<EzBias.Infrastructure.Payments.VnpaySettings>(
+    builder.Configuration.GetSection(EzBias.Infrastructure.Payments.VnpaySettings.SectionName)
+);
 
 // MediatR (CQRS)
 builder.Services.AddMediatR(typeof(EzBias.Application.Features.Products.Queries.GetProducts.GetProductsQuery).Assembly);
@@ -71,6 +78,9 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
+// Payments
+builder.Services.AddScoped<EzBias.Application.Common.Interfaces.Payments.IVnpayService, VnpayService>();
+
 // Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -79,6 +89,9 @@ builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IContactRepository, ContactRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IPayoutRepository, PayoutRepository>();
+builder.Services.AddScoped<IEscrowRepository, EscrowRepository>();
 
 // Image storage (Cloudinary)
 builder.Services.AddSingleton<EzBias.Application.Common.Interfaces.Storage.IImageStorage>(sp =>
