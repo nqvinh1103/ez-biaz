@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
+import { useToast } from "../../context/ToastContext";
 
 function RegisterModal({
   isOpen,
@@ -9,7 +10,8 @@ function RegisterModal({
 }) {
   const overlayRef = useRef(null);
   const closeButtonRef = useRef(null);
-  const { register, loading, error } = useAuth();
+  const { register, loading, error, clearError } = useAuth();
+  const { showToast } = useToast();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,6 +26,7 @@ function RegisterModal({
 
   useEffect(() => {
     if (!isOpen) return;
+    clearError();
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -102,7 +105,8 @@ function RegisterModal({
       setPassword("");
       setConfirmPassword("");
       setFormError("");
-      onClose();
+      showToast("Account created! Please log in to continue.");
+      onOpenLogin?.();
     }
   };
 

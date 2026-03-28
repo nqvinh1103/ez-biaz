@@ -1,7 +1,11 @@
 import { useState } from "react";
+import { useLoginModal } from "../../context/LoginModalContext";
+import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
 
 function ProductCard({ id, artist, name, price, image }) {
+  const { isLoggedIn } = useAuth();
+  const { openLoginModal } = useLoginModal();
   const { addItem, items } = useCart();
   const [added, setAdded] = useState(false);
 
@@ -16,6 +20,10 @@ function ProductCard({ id, artist, name, price, image }) {
   const displayPrice = typeof price === "number" ? `$${price.toFixed(2)}` : price;
 
   const handleAdd = () => {
+    if (!isLoggedIn) {
+      openLoginModal();
+      return;
+    }
     addItem({ id: itemKey, artist, name, price: numericPrice, image, qty: 1 });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
