@@ -1,13 +1,15 @@
 import api from "../axiosInstance";
 
 export function getProducts(filters = {}) {
-  const params = {};
-  if (filters.fandom) params.fandom = filters.fandom;
-  if (filters.type) params.type = filters.type;
-  if (filters.minPrice != null) params.minPrice = filters.minPrice;
-  if (filters.maxPrice != null) params.maxPrice = filters.maxPrice;
-  if (filters.inStockOnly) params.inStockOnly = true;
-  return api.get("/api/products", { params });
+  const params = new URLSearchParams();
+  if (filters.fandom) params.set("fandom", filters.fandom);
+  if (filters.type) params.set("type", filters.type);
+  if (filters.minPrice != null) params.set("minPrice", String(filters.minPrice));
+  if (filters.maxPrice != null) params.set("maxPrice", String(filters.maxPrice));
+  if (filters.inStockOnly) params.set("inStockOnly", "true");
+
+  const qs = params.toString();
+  return api.get(`/api/products${qs ? `?${qs}` : ""}`);
 }
 
 export function getProductById(id) {

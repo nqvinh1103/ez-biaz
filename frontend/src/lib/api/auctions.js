@@ -1,11 +1,13 @@
 import api from "../axiosInstance";
 
 export function getAuctions(filters = {}) {
-  const params = {};
-  if (filters.fandom) params.fandom = filters.fandom;
-  if (filters.isLive !== undefined) params.isLive = filters.isLive;
-  if (filters.isUrgent) params.isUrgent = true;
-  return api.get("/api/auctions", { params });
+  const params = new URLSearchParams();
+  if (filters.fandom) params.set("fandom", filters.fandom);
+  if (filters.isLive !== undefined) params.set("isLive", String(filters.isLive));
+  if (filters.isUrgent) params.set("isUrgent", "true");
+
+  const qs = params.toString();
+  return api.get(`/api/auctions${qs ? `?${qs}` : ""}`);
 }
 
 export function getAuctionById(id) {
