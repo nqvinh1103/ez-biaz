@@ -22,3 +22,7 @@ export function checkout(userId, shippingInfo, paymentMethod, reactCartItems = n
 export function getOrders(userId) {
   return api.get(`/api/orders/${encodeURIComponent(userId)}`);
 }
+
+export function getOrderHistory(userId) {
+  return api.get(`/api/orders/history/${encodeURIComponent(userId)}`);
+}

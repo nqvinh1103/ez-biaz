@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import PageLayout from "../components/layout/PageLayout";
 import { useAuth } from "../hooks/useAuth";
-import { getOrderHistory } from "../mock/mockApi";
+import { getOrderHistory } from "../lib/ezbiasApi";
 
 /* ── helpers ──────────────────────────────────────────────────────────── */
 function formatDate(iso) {

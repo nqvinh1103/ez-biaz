@@ -24,7 +24,7 @@ const TrashIcon = () => (
  * Consumes cart state via `useCart` — no prop drilling needed.
  */
 const OrderSummary = memo(function OrderSummary() {
-  const { items, removeItem, subtotal, shippingFee, total } = useCart();
+  const { items, removeItem, subtotal } = useCart();
 
   return (
     <aside
@@ -38,7 +38,9 @@ const OrderSummary = memo(function OrderSummary() {
 
         {/* Item list */}
         {items.length === 0 && (
-          <p className="mb-5 text-center text-sm text-[#b3b3b3]">Your cart is empty.</p>
+          <p className="mb-5 text-center text-sm text-[#b3b3b3]">
+            Your cart is empty.
+          </p>
         )}
         <ul className="mb-5 flex flex-col gap-4">
           {items.map((item) => (
@@ -82,17 +84,9 @@ const OrderSummary = memo(function OrderSummary() {
 
         {/* Totals */}
         <div className="flex flex-col gap-2 border-t border-[#e6e6e6] pt-4">
-          <div className="flex justify-between text-sm text-[#737373]">
-            <span>Subtotal</span>
-            <span>{formatCurrency(subtotal)}</span>
-          </div>
-          <div className="flex justify-between text-sm text-[#737373]">
-            <span>Shipping Fee</span>
-            <span>{formatCurrency(shippingFee)}</span>
-          </div>
-          <div className="mt-2 flex justify-between border-t border-[#e6e6e6] pt-3 text-base font-bold text-[#121212]">
+          <div className="flex justify-between text-base font-bold text-[#121212]">
             <span>Total</span>
-            <span>{formatCurrency(total)}</span>
+            <span>{formatCurrency(subtotal)}</span>
           </div>
         </div>
       </div>

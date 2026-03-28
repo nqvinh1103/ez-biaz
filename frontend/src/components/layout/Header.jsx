@@ -61,9 +61,9 @@ const Header = forwardRef(function Header(
           <div className="flex items-center gap-3">
             {isLoggedIn ? (
               <div className="hidden sm:flex items-center gap-2">
-                {/* ── Sell button ── */}
+                {/* ── Create Auction button ── */}
                 <Link
-                  to="/sell"
+                  to="/create-auction"
                   className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#ad93e6] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#9d7ed9]"
                 >
                   <svg
@@ -80,7 +80,7 @@ const Header = forwardRef(function Header(
                       d="M12 4.5v15m7.5-7.5h-15"
                     />
                   </svg>
-                  Sell
+                  Auction
                 </Link>
 
                 {/* ── Avatar + dropdown ── */}
@@ -146,27 +146,6 @@ const Header = forwardRef(function Header(
                           />
                         </svg>
                         My Order History
-                      </Link>
-                      <Link
-                        to="/sell"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex w-full items-center gap-2 px-4 py-3 text-sm text-[#121212] transition-colors hover:bg-[rgba(173,147,230,0.06)]"
-                      >
-                        <svg
-                          className="h-4 w-4 text-[#ad93e6]"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                          aria-hidden="true"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3ZM6 6h.008v.008H6V6Z"
-                          />
-                        </svg>
-                        List an Item
                       </Link>
                       <button
                         onClick={() => {
@@ -296,6 +275,27 @@ const Header = forwardRef(function Header(
                 />
               </svg>
               List an Item for Sale
+            </Link>
+            <Link
+              to="/create-auction"
+              onClick={() => setIsOpen(false)}
+              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-[#ad93e6] text-sm font-semibold text-[#ad93e6]"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15.042 21.672L13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59"
+                />
+              </svg>
+              Create Auction
             </Link>
             <button
               onClick={() => {

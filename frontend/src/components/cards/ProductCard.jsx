@@ -1,7 +1,13 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useLoginModal } from "../../context/LoginModalContext";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
+
+/** Renders a Link only when `to` is non-null, otherwise a plain fragment. */
+function ConditionalLink({ to, children }) {
+  return to ? <Link to={to}>{children}</Link> : <>{children}</>;
+}
 
 function ProductCard({ id, artist, name, price, image }) {
   const { isLoggedIn } = useAuth();
@@ -29,29 +35,38 @@ function ProductCard({ id, artist, name, price, image }) {
     setTimeout(() => setAdded(false), 1500);
   };
 
+  const detailHref = id ? `/product/${id}` : null;
+
   return (
     <article
       className="overflow-hidden rounded-xl border border-[rgba(230,230,230,0.5)] bg-white p-px shadow-[0_1px_2px_2px_rgba(0,0,0,0.09)]"
       role="listitem"
     >
-      <div className="relative aspect-square w-full overflow-hidden">
-        <img
-          className="absolute inset-0 h-full w-full object-contain p-3 sm:object-cover sm:p-0"
-          src={image}
-          alt={name}
-        />
-        <div
-          className="pointer-events-none absolute inset-0 bg-linear-to-b from-[rgba(244,243,247,0)] to-[rgba(143,143,145,0.11)]"
-          aria-hidden="true"
-        ></div>
-      </div>
+      {/* Clickable image → detail page */}
+      <ConditionalLink to={detailHref}>
+        <div className="relative aspect-square w-full overflow-hidden">
+          <img
+            className="absolute inset-0 h-full w-full object-contain p-3 sm:object-cover sm:p-0 transition-transform duration-200 hover:scale-105"
+            src={image}
+            alt={name}
+          />
+          <div
+            className="pointer-events-none absolute inset-0 bg-linear-to-b from-[rgba(244,243,247,0)] to-[rgba(143,143,145,0.11)]"
+            aria-hidden="true"
+          ></div>
+        </div>
+      </ConditionalLink>
+
       <div className="flex flex-col gap-2 p-3 sm:p-4 xl:gap-1.5 xl:p-3">
         <p className="text-xs font-semibold uppercase leading-4 tracking-[0.6px] text-[#ad93e6] xl:text-[10px]">
           {artist}
         </p>
-        <h3 className="text-sm font-semibold xl:min-h-11 text-[#121212] xl:text-[12px]">
-          {name}
-        </h3>
+        {/* Clickable name → detail page */}
+        <ConditionalLink to={detailHref}>
+          <h3 className="text-sm font-semibold xl:min-h-11 text-[#121212] xl:text-[12px] hover:text-[#ad93e6] transition-colors">
+            {name}
+          </h3>
+        </ConditionalLink>
         <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center sm:justify-between xl:pt-0.5">
           <span className="text-[30px] font-bold leading-none text-[#121212] sm:text-lg sm:leading-7 xl:text-[13px]">
             {displayPrice}
