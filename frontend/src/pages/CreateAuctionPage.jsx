@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import PageLayout from "../components/layout/PageLayout";
 import BackLink from "../components/ui/BackLink";
 import Button from "../components/ui/Button";
+import { formatCurrency } from "../utils/formatters";
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../hooks/useAuth";
 import { createAuction, getListingsByUser } from "../lib/ezbiasApi";
@@ -312,7 +313,7 @@ export default function CreateAuctionPage() {
                   {selectedProduct.name}
                 </p>
                 <p className="text-xs text-[#737373]">
-                  Floor price: <span className="font-semibold text-[#121212]">${Number(selectedProduct.price).toFixed(2)}</span>
+                  Floor price: <span className="font-semibold text-[#121212]">{formatCurrency(selectedProduct.price)}</span>
                   {" · "}Duration: <span className="font-semibold text-[#121212]">{DURATIONS.find(d => d.hours === durationHours)?.label}</span>
                   {isUrgent && <span className="ml-2 text-[#ef4343] font-semibold">⚡ Urgent</span>}
                 </p>

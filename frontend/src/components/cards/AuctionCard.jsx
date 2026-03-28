@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "../../utils/cn";
+import { formatCurrency } from "../../utils/formatters";
 
 /**
  * Card displaying a single auction item with timer, current bid, and bid CTA.
@@ -26,7 +27,8 @@ const AuctionCard = memo(function AuctionCard({
   containImage = false,
   id = "detail",
 }) {
-  const displayBid = typeof currentBid === "number" ? `$${currentBid.toFixed(2)}` : currentBid;
+  const displayBid =
+    typeof currentBid === "number" ? formatCurrency(currentBid) : currentBid;
 
   return (
     <article

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import PageLayout from "../components/layout/PageLayout";
 import { useAuth } from "../hooks/useAuth";
 import { getOrders } from "../lib/ezbiasApi";
+import { formatCurrency } from "../utils/formatters";
 
 /* ── Helpers ──────────────────────────────────────────────────────────── */
 function formatDate(iso) {
@@ -99,7 +100,7 @@ function OrderRow({ order }) {
       <div className="flex shrink-0 items-center justify-between gap-4 sm:flex-col sm:items-end">
         <StatusBadge status={order.status} />
         <p className="text-base font-bold text-[#121212]">
-          ${Number(order.total ?? 0).toFixed(2)}
+          {formatCurrency(order.total ?? 0)}
         </p>
       </div>
     </li>
@@ -162,7 +163,7 @@ export default function OrderHistoryPage() {
         {/* Stats */}
         <div className="mb-8 grid grid-cols-2 gap-3">
           <StatCard label="Total Orders" value={orders.length} />
-          <StatCard label="Total Spent"  value={`$${totalSpent.toFixed(2)}`} />
+          <StatCard label="Total Spent"  value={formatCurrency(totalSpent)} />
         </div>
 
         {/* Order list */}

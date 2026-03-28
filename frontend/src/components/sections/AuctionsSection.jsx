@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
 import AuctionCard from "../cards/AuctionCard";
+import { formatCurrency } from "../../utils/formatters";
 
 function AuctionsSection({ auctions }) {
   return (
     <section
-      className="bg-[rgba(244,243,247,0.4)] px-4 md:px-6 lg:px-24 xl:px-65"
+      className="bg-[rgba(244,243,247,0.4)] px-4 md:px-6 lg:px-24"
       aria-labelledby="auctions-title"
     >
       <div className="mx-auto flex w-full max-w-350 flex-col gap-8 px-4 py-10 md:py-16">
@@ -39,7 +40,7 @@ function AuctionsSection({ auctions }) {
               id={auction.id}
               artist={auction.artist}
               name={auction.name}
-              currentBid={`$${auction.currentBid.toFixed(2)}`}
+              currentBid={formatCurrency(auction.currentBid)}
               timer="Live"
               isUrgent={auction.isUrgent}
               image={auction.image}

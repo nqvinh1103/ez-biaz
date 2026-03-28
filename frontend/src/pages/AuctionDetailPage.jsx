@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import BidHistory from "../components/auction/BidHistory";
 import CountdownTimer from "../components/auction/CountdownTimer";
 import PageLayout from "../components/layout/PageLayout";
+import { formatCurrency } from "../utils/formatters";
 import BackLink from "../components/ui/BackLink";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
@@ -120,7 +121,7 @@ function AuctionDetailPage() {
       avatar: b.avatar,
       avatarBg: b.avatarBg,
       timeAgo: timeAgo(b.placedAt),
-      amount: `$${Number(b.amount).toFixed(2)}`,
+      amount: formatCurrency(Number(b.amount)),
       isWinning: b.isWinning,
     }));
   }, [auction]);
@@ -197,7 +198,7 @@ function AuctionDetailPage() {
                       Floor Price
                     </p>
                     <p className="text-lg font-bold text-[#121212]">
-                      ${Number(auction.floorPrice).toFixed(2)}
+                      {formatCurrency(auction.floorPrice)}
                     </p>
                   </div>
                   <div>
@@ -207,7 +208,7 @@ function AuctionDetailPage() {
                     <div className="flex items-center gap-1.5">
                       <TrendIcon />
                       <p className="text-2xl font-bold text-[#ad93e6]">
-                        ${Number(auction.currentBid).toFixed(2)}
+                        {formatCurrency(auction.currentBid)}
                       </p>
                     </div>
                   </div>
@@ -219,18 +220,15 @@ function AuctionDetailPage() {
 
                 <div className="flex gap-2">
                   <div className="relative flex-1">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#737373]">
-                      $
-                    </span>
                     <input
                       type="number"
                       min={(Number(auction.currentBid) + 5).toFixed(2)}
                       step="0.01"
                       value={bidInput}
                       onChange={(e) => setBidInput(e.target.value)}
-                      placeholder={`${(Number(auction.currentBid) + 5).toFixed(2)} or higher`}
+                      placeholder={`${formatCurrency(Number(auction.currentBid) + 5)} or higher`}
                       aria-label="Your bid amount"
-                      className="h-10 w-full rounded-lg border border-[#e6e6e6] pl-7 pr-4 text-sm text-[#121212] placeholder-[#b3b3b3] outline-none focus:border-[#ad93e6] focus:ring-2 focus:ring-[rgba(173,147,230,0.2)]"
+                      className="h-10 w-full rounded-lg border border-[#e6e6e6] px-4 text-sm text-[#121212] placeholder-[#b3b3b3] outline-none focus:border-[#ad93e6] focus:ring-2 focus:ring-[rgba(173,147,230,0.2)]"
                     />
                   </div>
                   <Button type="button" disabled={placing || !auction.isLive} onClick={handlePlaceBid}>
