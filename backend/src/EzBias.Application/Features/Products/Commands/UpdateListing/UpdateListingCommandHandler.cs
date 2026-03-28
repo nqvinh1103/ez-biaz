@@ -34,7 +34,8 @@ public class UpdateListingCommandHandler(IProductRepository repo) : IRequestHand
             existing.SellerId,
             existing.Image,
             existing.Description,
-            existing.CreatedAt.ToString("yyyy-MM-dd")
+            existing.CreatedAt.ToString("yyyy-MM-dd"),
+            existing.IsAuction
         );
     }
 }
