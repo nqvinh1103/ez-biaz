@@ -35,8 +35,15 @@ function AuctionsSection({ auctions }) {
         >
           {auctions.map((auction) => (
             <AuctionCard
-              key={`${auction.artist}-${auction.name}`}
-              {...auction}
+              key={auction.id}
+              id={auction.id}
+              artist={auction.artist}
+              name={auction.name}
+              currentBid={`$${auction.currentBid.toFixed(2)}`}
+              timer="Live"
+              isUrgent={auction.isUrgent}
+              image={auction.image}
+              containImage={auction.containImage ?? false}
             />
           ))}
         </div>

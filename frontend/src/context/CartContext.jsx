@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CartContext } from "./cartContextObject";
 import { useAuth } from "../hooks/useAuth";
 import * as api from "../lib/ezbiasApi";
+import { CartContext } from "./cartContextObject";
 
 const SHIPPING_FEE = 5.99;
 
@@ -38,7 +38,9 @@ export function CartProvider({ children, initialItems = [] }) {
     return id;
   }
 
-  const [guestId] = useState(() => (typeof window !== "undefined" ? getGuestId() : ""));
+  const [guestId] = useState(() =>
+    typeof window !== "undefined" ? getGuestId() : "",
+  );
 
   const ownerId = user?.id ?? guestId;
 
@@ -61,7 +63,11 @@ export function CartProvider({ children, initialItems = [] }) {
       // merge guest → user on login
       if (user?.id && guestId) {
         const guestRes = await api.getCart(guestId);
-        if (guestRes.success && Array.isArray(guestRes.data) && guestRes.data.length > 0) {
+        if (
+          guestRes.success &&
+          Array.isArray(guestRes.data) &&
+          guestRes.data.length > 0
+        ) {
           for (const item of guestRes.data) {
             await api.addToCart(user.id, item.productId, item.qty);
           }

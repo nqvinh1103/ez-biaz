@@ -1,8 +1,12 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import LoginModal from "./components/modals/LoginModal";
+import RegisterModal from "./components/modals/RegisterModal";
+import RequireAuth from "./components/layout/RequireAuth";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
-import { DEFAULT_CART_ITEMS } from "./data/checkoutData";
+import { LoginModalProvider, useLoginModal } from "./context/LoginModalContext";
+import { ToastProvider } from "./context/ToastContext";
 
 /* ─── Lazy-loaded page bundles ────────────────────────────────────────────── */
 const LandingPage       = lazy(() => import("./pages/LandingPage"));
@@ -14,8 +18,8 @@ const ContactPage       = lazy(() => import("./pages/ContactPage"));
 const SellPage          = lazy(() => import("./pages/SellPage"));
 const CheckoutPage      = lazy(() => import("./pages/CheckoutPage"));
 const MyListingsPage    = lazy(() => import("./pages/MyListingsPage"));
+const OrderHistoryPage  = lazy(() => import("./pages/OrderHistoryPage"));
 
-/* ─── Full-screen spinner shown while a page chunk loads ─────────────────── */
 function PageLoader() {
   return (
     <div className="flex min-h-screen items-center justify-center">
@@ -24,32 +28,59 @@ function PageLoader() {
   );
 }
 
+/* ─── Global auth modals connected to LoginModalContext ─────────────────── */
+function GlobalAuthModals() {
+  const {
+    loginOpen, openLoginModal, closeLoginModal,
+    registerOpen, openRegisterModal, closeRegisterModal,
+  } = useLoginModal();
+
+  return (
+    <>
+      <LoginModal
+        isOpen={loginOpen}
+        onClose={closeLoginModal}
+        onOpenRegister={openRegisterModal}
+      />
+      <RegisterModal
+        isOpen={registerOpen}
+        onClose={closeRegisterModal}
+        onOpenLogin={openLoginModal}
+      />
+    </>
+  );
+}
+
 /* ─── Root ────────────────────────────────────────────────────────────────── */
 function App() {
   return (
     <BrowserRouter>
-      {/*
-       * CartProvider wraps the whole tree so any page/component can access
-       * cart state via useCart() without prop drilling.
-       * In production, initialItems should be hydrated from localStorage or an API.
-       */}
+      <ToastProvider>
+      <LoginModalProvider>
       <AuthProvider>
       <CartProvider initialItems={[]}>
+        <GlobalAuthModals />
         <Suspense fallback={<PageLoader />}>
           <Routes>
+            {/* Public */}
             <Route path="/"            element={<LandingPage />} />
             <Route path="/about"       element={<AboutPage />} />
             <Route path="/fandoms"     element={<FandomsPage />} />
             <Route path="/auction"     element={<AuctionPage />} />
             <Route path="/auction/:id" element={<AuctionDetailPage />} />
             <Route path="/contact"     element={<ContactPage />} />
-            <Route path="/sell"        element={<SellPage />} />
-            <Route path="/checkout"    element={<CheckoutPage />} />
-            <Route path="/my-listings" element={<MyListingsPage />} />
+
+            {/* Protected */}
+            <Route path="/sell"          element={<RequireAuth><SellPage /></RequireAuth>} />
+            <Route path="/checkout"      element={<RequireAuth><CheckoutPage /></RequireAuth>} />
+            <Route path="/my-listings"   element={<RequireAuth><MyListingsPage /></RequireAuth>} />
+            <Route path="/order-history" element={<RequireAuth><OrderHistoryPage /></RequireAuth>} />
           </Routes>
         </Suspense>
       </CartProvider>
       </AuthProvider>
+      </LoginModalProvider>
+      </ToastProvider>
     </BrowserRouter>
   );
 }

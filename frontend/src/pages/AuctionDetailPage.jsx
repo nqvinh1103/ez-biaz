@@ -6,6 +6,7 @@ import PageLayout from "../components/layout/PageLayout";
 import BackLink from "../components/ui/BackLink";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
+import { useLoginModal } from "../context/LoginModalContext";
 import { useAuth } from "../hooks/useAuth";
 import { getAuctionById, placeBid } from "../lib/ezbiasApi";
 
@@ -65,7 +66,8 @@ function timeAgo(iso) {
 
 function AuctionDetailPage() {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, isLoggedIn } = useAuth();
+  const { openLoginModal } = useLoginModal();
 
   const [auction, setAuction] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -124,6 +126,10 @@ function AuctionDetailPage() {
   }, [auction]);
 
   const handlePlaceBid = async () => {
+    if (!isLoggedIn) {
+      openLoginModal();
+      return;
+    }
     if (!auction || placing) return;
     const amount = Number(bidInput);
     if (!amount || Number.isNaN(amount)) return;

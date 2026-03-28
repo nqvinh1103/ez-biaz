@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
+import { useToast } from "../../context/ToastContext";
 
 function LoginModal({
   isOpen,
@@ -9,7 +10,8 @@ function LoginModal({
 }) {
   const overlayRef = useRef(null);
   const closeButtonRef = useRef(null);
-  const { login, loading, error } = useAuth();
+  const { login, loading, error, clearError } = useAuth();
+  const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -21,6 +23,7 @@ function LoginModal({
 
   useEffect(() => {
     if (!isOpen) return;
+    clearError();
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -48,6 +51,7 @@ function LoginModal({
       setEmail("");
       setPassword("");
       onClose();
+      showToast("Welcome back! You're now logged in.");
     }
   };
 

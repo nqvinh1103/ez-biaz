@@ -1,9 +1,8 @@
 import { createContext, useCallback, useState } from "react";
 import * as api from "../lib/ezbiasApi";
 
+// Must match TOKEN_KEY in axiosInstance.js
 const STORAGE_KEY = "ezbias_user";
-const ACCESS_TOKEN_KEY = "ezbias_accessToken";
-const REFRESH_TOKEN_KEY = "ezbias_refreshToken";
 
 function readStoredUser() {
   try {
@@ -13,14 +12,11 @@ function readStoredUser() {
   }
 }
 
-function persistTokens(accessToken, refreshToken) {
-  if (accessToken) localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-  if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-}
-
-function clearTokens() {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
+function clearAllStorage() {
+  localStorage.removeItem(STORAGE_KEY);
+  // Remove legacy keys if present
+  localStorage.removeItem("ezbias_accessToken");
+  localStorage.removeItem("ezbias_refreshToken");
 }
 
 export const AuthContext = createContext(null);
@@ -42,9 +38,10 @@ export function AuthProvider({ children }) {
     try {
       const res = await api.login(email, password);
       if (res.success) {
-        // Backend returns: { user, accessToken, refreshToken, ... }
-        persist(res.data.user);
-        persistTokens(res.data.accessToken, res.data.refreshToken);
+        // Store user object — include token inside so axiosInstance can read it
+        const userData = res.data?.user ?? res.data;
+        const token = res.data?.accessToken ?? res.data?.token ?? null;
+        persist({ ...userData, token });
       } else {
         setError(res.message);
       }
@@ -63,10 +60,7 @@ export function AuthProvider({ children }) {
     setError(null);
     try {
       const res = await api.register(userData);
-      if (res.success) {
-        persist(res.data.user);
-        persistTokens(res.data.accessToken, res.data.refreshToken);
-      } else {
+      if (!res.success) {
         setError(res.message);
       }
       return res;
@@ -79,14 +73,17 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const logout = useCallback(() => {
-    clearTokens();
-    persist(null);
+  const logout = useCallback(async () => {
+    await api.logout();   // invalidate server-side session/token
+    clearAllStorage();
+    setUser(null);
   }, []);
+
+  const clearError = useCallback(() => setError(null), []);
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, error, login, logout, register, isLoggedIn: !!user }}
+      value={{ user, loading, error, login, logout, register, clearError, isLoggedIn: !!user }}
     >
       {children}
     </AuthContext.Provider>

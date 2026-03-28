@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useAuth } from "../../hooks/useAuth";
+import { useToast } from "../../context/ToastContext";
 
 function RegisterModal({
   isOpen,
@@ -8,6 +10,13 @@ function RegisterModal({
 }) {
   const overlayRef = useRef(null);
   const closeButtonRef = useRef(null);
+  const { register, loading, error, clearError } = useAuth();
+  const { showToast } = useToast();
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [formError, setFormError] = useState("");
 
   const focusableSelector = useMemo(
     () =>
@@ -17,6 +26,7 @@ function RegisterModal({
 
   useEffect(() => {
     if (!isOpen) return;
+    clearError();
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -55,6 +65,48 @@ function RegisterModal({
     if (!event.shiftKey && document.activeElement === last) {
       event.preventDefault();
       first.focus();
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFormError("");
+
+    if (!fullName.trim()) {
+      setFormError("Full name is required.");
+      return;
+    }
+
+    if (!email.trim()) {
+      setFormError("Email is required.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setFormError("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setFormError("Passwords do not match.");
+      return;
+    }
+
+    const res = await register({
+      fullName: fullName.trim(),
+      email: email.trim(),
+      password,
+      phone: "",
+    });
+
+    if (res.success) {
+      setFullName("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      setFormError("");
+      showToast("Account created! Please log in to continue.");
+      onOpenLogin?.();
     }
   };
 
@@ -110,16 +162,19 @@ function RegisterModal({
 
           <div className="mb-4.5 w-full md:w-75">
             <label
-              htmlFor="register-username"
+              htmlFor="register-fullname"
               className="mb-1.5 block font-['Poppins'] text-[10px] font-medium text-[#7c838a]"
             >
-              Username
+              Full Name
             </label>
             <input
-              id="register-username"
+              id="register-fullname"
               type="text"
-              placeholder="Enter your Username"
-              autoComplete="username"
+              placeholder="Enter your Full Name"
+              autoComplete="name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
               className="h-[32.5px] w-full rounded-[10px] border-none bg-[rgba(176,186,195,0.4)] px-5 font-['Poppins'] text-[10px] text-black/80 outline-none focus:ring-2 focus:ring-[rgba(155,132,236,0.4)]"
             />
           </div>
@@ -136,6 +191,9 @@ function RegisterModal({
               type="email"
               placeholder="Enter your Email"
               autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
               className="h-[32.5px] w-full rounded-[10px] border-none bg-[rgba(176,186,195,0.4)] px-5 font-['Poppins'] text-[10px] text-black/80 outline-none focus:ring-2 focus:ring-[rgba(155,132,236,0.4)]"
             />
           </div>
@@ -152,6 +210,9 @@ function RegisterModal({
               type="password"
               placeholder="Enter your Password"
               autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
               className="h-[32.5px] w-full rounded-[10px] border-none bg-[rgba(176,186,195,0.4)] px-5 font-['Poppins'] text-[10px] text-black/80 outline-none focus:ring-2 focus:ring-[rgba(155,132,236,0.4)]"
             />
           </div>
@@ -168,15 +229,26 @@ function RegisterModal({
               type="password"
               placeholder="Confirm your Password"
               autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
               className="h-[32.5px] w-full rounded-[10px] border-none bg-[rgba(176,186,195,0.4)] px-5 font-['Poppins'] text-[10px] text-black/80 outline-none focus:ring-2 focus:ring-[rgba(155,132,236,0.4)]"
             />
           </div>
 
+          {(formError || error) && (
+            <p className="mb-2 w-full text-center font-['Poppins'] text-[10px] text-red-500 md:w-75">
+              {formError || error}
+            </p>
+          )}
+
           <button
             type="button"
-            className="mb-5 mt-2 h-7.5 w-full rounded-[5px] bg-[#9b84ec] font-['Poppins'] text-[13px] font-medium text-black transition-colors hover:bg-[#8a72db] md:w-42.5"
+            onClick={handleSubmit}
+            disabled={loading}
+            className="mb-5 mt-2 h-7.5 w-full rounded-[5px] bg-[#9b84ec] font-['Poppins'] text-[13px] font-medium text-black transition-colors hover:bg-[#8a72db] disabled:opacity-60 md:w-42.5 mx-auto"
           >
-            Create Account
+            {loading ? "Creating…" : "Create Account"}
           </button>
 
           <p className="mb-4.5 text-center font-['Poppins'] text-[9px] text-[#7c838a]">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import OrderSummary from "../components/checkout/OrderSummary";
 import PaymentSelector from "../components/checkout/PaymentSelector";
 import PageLayout from "../components/layout/PageLayout";
@@ -91,6 +91,7 @@ function OrderSuccess({ order, onContinue }) {
 
 /* ── Main page ──────────────────────────────────────────────────────────── */
 function CheckoutPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { items, clearCart } = useCart();
   const { values, handleChange } = useForm(INITIAL_SHIPPING);
@@ -125,7 +126,7 @@ function CheckoutPage() {
   if (order) {
     return (
       <PageLayout>
-        <OrderSuccess order={order} onContinue={() => window.location.assign("/")} />
+        <OrderSuccess order={order} onContinue={() => navigate("/")} />
       </PageLayout>
     );
   }
