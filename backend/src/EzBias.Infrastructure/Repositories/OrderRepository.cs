@@ -8,6 +8,31 @@ namespace EzBias.Infrastructure.Repositories;
 
 public class OrderRepository(EzBiasDbContext db) : IOrderRepository
 {
+    public async Task<IReadOnlyList<SoldItemDto>> GetSoldItemsDtoAsync(string sellerId, CancellationToken cancellationToken = default)
+    {
+        // Seller sold items = all order items whose product belongs to seller.
+        // Join OrderItems -> Orders -> Products to fetch buyerId + sold date + product image.
+        var rows = await (
+            from oi in db.OrderItems.AsNoTracking()
+            join o in db.Orders.AsNoTracking() on oi.OrderId equals o.Id
+            join p in db.Products.AsNoTracking() on oi.ProductId equals p.Id
+            where p.SellerId == sellerId
+            orderby o.CreatedAt descending
+            select new SoldItemDto(
+                o.Id,
+                o.UserId,
+                oi.ProductId,
+                oi.Name,
+                oi.Quantity,
+                oi.Price,
+                p.Image,
+                o.CreatedAt.ToString("yyyy-MM-dd")
+            )
+        ).ToListAsync(cancellationToken);
+
+        return rows;
+    }
+
     public async Task<IReadOnlyList<OrderDto>> GetOrdersDtoAsync(string userId, CancellationToken cancellationToken = default)
     {
         // 2-step approach to avoid correlated subqueries and keep SQL simple.

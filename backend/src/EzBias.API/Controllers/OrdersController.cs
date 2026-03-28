@@ -2,6 +2,7 @@ using EzBias.API.Models;
 using EzBias.Application.Features.Orders.Commands.Checkout;
 using EzBias.Application.Features.Orders.Models;
 using EzBias.Application.Features.Orders.Queries.GetOrders;
+using EzBias.Application.Features.Orders.Queries.GetSoldItems;
 using EzBias.Contracts.Features.Orders.Dtos;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +13,16 @@ namespace EzBias.API.Controllers;
 [Route("api/[controller]")]
 public class OrdersController(IMediator mediator) : ControllerBase
 {
+    /// <summary>
+    /// Seller: list items sold by this seller.
+    /// </summary>
+    [HttpGet("seller/{sellerId}/sold")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<SoldItemDto>>>> GetSoldItems([FromRoute] string sellerId)
+    {
+        var list = await mediator.Send(new GetSoldItemsQuery(sellerId));
+        return ApiResponse<IReadOnlyList<SoldItemDto>>.Ok(list);
+    }
+
     /// <summary>
     /// Match mock: getOrders(userId)
     /// </summary>
