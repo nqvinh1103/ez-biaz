@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import PageLayout from "../components/layout/PageLayout";
 import BackLink from "../components/ui/BackLink";
 import Button from "../components/ui/Button";
+import { formatCurrency } from "../utils/formatters";
 import { useLoginModal } from "../context/LoginModalContext";
 import { useAuth } from "../hooks/useAuth";
 import { useCart } from "../hooks/useCart";
@@ -242,7 +243,7 @@ function ProductDetailPage() {
 
               {/* Price */}
               <p className="text-3xl font-bold text-[#121212]">
-                ${Number(product.price).toFixed(2)}
+                {formatCurrency(product.price)}
               </p>
 
               {/* Condition + Stock */}

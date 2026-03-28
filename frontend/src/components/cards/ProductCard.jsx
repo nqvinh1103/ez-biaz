@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useLoginModal } from "../../context/LoginModalContext";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
+import { formatCurrency } from "../../utils/formatters";
 
 /** Renders a Link only when `to` is non-null, otherwise a plain fragment. */
 function ConditionalLink({ to, children }) {
@@ -21,9 +22,9 @@ function ProductCard({ id, artist, name, price, image }) {
 
   const numericPrice = typeof price === "number"
     ? price
-    : parseFloat(String(price).replace("$", ""));
+    : parseFloat(String(price).replace(" VNĐ", "").replace("VNĐ", ""));
 
-  const displayPrice = typeof price === "number" ? `$${price.toFixed(2)}` : price;
+  const displayPrice = typeof price === "number" ? formatCurrency(price) : price;
 
   const handleAdd = () => {
     if (!isLoggedIn) {

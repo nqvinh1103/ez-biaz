@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import OrderSummary from "../components/checkout/OrderSummary";
 import PaymentSelector from "../components/checkout/PaymentSelector";
 import PageLayout from "../components/layout/PageLayout";
+import { formatCurrency } from "../utils/formatters";
 import BackLink from "../components/ui/BackLink";
 import Button from "../components/ui/Button";
 import FormField from "../components/ui/FormField";
@@ -66,7 +67,7 @@ function OrderSuccess({ order, onContinue }) {
           </div>
           <div className="mt-2 flex justify-between border-t border-[#e6e6e6] pt-2">
             <span className="font-bold text-[#121212]">Total</span>
-            <span className="font-bold text-[#ad93e6]">${order.total.toFixed(2)}</span>
+            <span className="font-bold text-[#ad93e6]">{formatCurrency(order.total)}</span>
           </div>
         </div>
       </div>

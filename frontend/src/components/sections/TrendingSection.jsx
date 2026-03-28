@@ -3,10 +3,7 @@ import ProductCard from "../cards/ProductCard";
 
 function TrendingSection({ products }) {
   return (
-    <section
-      className="px-4 md:px-6 lg:px-24 xl:px-65"
-      aria-labelledby="trending-title"
-    >
+    <section className="px-4 md:px-6 lg:px-24" aria-labelledby="trending-title">
       <div className="mx-auto flex w-full max-w-350 flex-col gap-6 px-2 py-8 sm:px-4 md:gap-8 md:py-16">
         <div className="flex items-center justify-between">
           <h2

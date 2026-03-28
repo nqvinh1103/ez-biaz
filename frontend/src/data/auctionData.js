@@ -9,7 +9,7 @@ export const BID_HISTORY = [
     avatar: "JJ",
     avatarBg: "#ad93e6",
     timeAgo: "3 mins ago",
-    amount: "$310.00",
+    amount: "310.00 VNĐ",
     isWinning: true,
   },
   {
@@ -18,7 +18,7 @@ export const BID_HISTORY = [
     avatar: "TL",
     avatarBg: "#93b7e6",
     timeAgo: "6 mins ago",
-    amount: "$285.00",
+    amount: "285.00 VNĐ",
     isWinning: false,
   },
   {
@@ -27,7 +27,7 @@ export const BID_HISTORY = [
     avatar: "SR",
     avatarBg: "#e693b7",
     timeAgo: "12 mins ago",
-    amount: "$250.00",
+    amount: "250.00 VNĐ",
     isWinning: false,
   },
   {
@@ -36,7 +36,7 @@ export const BID_HISTORY = [
     avatar: "HS",
     avatarBg: "#e6c993",
     timeAgo: "25 mins ago",
-    amount: "$220.00",
+    amount: "220.00 VNĐ",
     isWinning: false,
   },
   {
@@ -45,7 +45,7 @@ export const BID_HISTORY = [
     avatar: "JW",
     avatarBg: "#93e6b7",
     timeAgo: "40 mins ago",
-    amount: "$195.00",
+    amount: "195.00 VNĐ",
     isWinning: false,
   },
 ];

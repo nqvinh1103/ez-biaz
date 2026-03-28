@@ -28,6 +28,10 @@ export function getOrders(userId) {
   return api.get(`/api/orders/${encodeURIComponent(userId)}`);
 }
 
+export function getSoldItems(sellerId) {
+  return api.get(`/api/orders/seller/${encodeURIComponent(sellerId)}/sold`);
+}
+
 // export function getOrderHistory(userId) {
 //   return api.get(`/api/orders/history/${encodeURIComponent(userId)}`);
 // }

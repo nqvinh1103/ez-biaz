@@ -192,10 +192,10 @@ function SellPage() {
                 placeholder="0.00"
                 value={values.price}
                 onChange={handleChange}
-                className="pl-7"
+                className="pr-12"
               />
-              <span className="absolute bottom-3 left-3 text-sm text-[#737373]">
-                $
+              <span className="absolute bottom-3 right-3 text-sm text-[#737373]">
+                VNĐ
               </span>
             </div>
           </div>
@@ -233,9 +233,7 @@ function SellPage() {
 
         {/* ── Submit ────────────────────────────────────────────── */}
         <div className="flex flex-col items-center gap-2">
-          {error && (
-            <p className="w-full text-sm text-[#ef4343]">{error}</p>
-          )}
+          {error && <p className="w-full text-sm text-[#ef4343]">{error}</p>}
           <Button
             size="lg"
             disabled={!isValid || submitting}

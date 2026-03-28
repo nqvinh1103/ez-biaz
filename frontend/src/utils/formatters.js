@@ -1,14 +1,10 @@
 /**
- * Formats a number as USD currency.
+ * Formats a number as VNĐ currency.
  * @param {number} amount
- * @returns {string}  e.g. "$59.99"
+ * @returns {string}  e.g. "8.000.000 VNĐ"
  */
 export const formatCurrency = (amount) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-  }).format(amount);
+  `${Math.round(Number(amount)).toLocaleString("vi-VN")} VNĐ`;
 
 /**
  * Left-pads a number with zeros to a minimum width of 2.
