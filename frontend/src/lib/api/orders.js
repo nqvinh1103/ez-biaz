@@ -16,11 +16,14 @@ export function checkout(
         }))
       : null;
 
-  return api.post("/api/orders/checkout", {
-    userId,
-    shippingInfo,
-    paymentMethod,
-    items,
+  // VNPay flow: backend returns payUrl, frontend redirects.
+  return api.post("/api/payments/vnpay/orders/create", {
+    checkout: {
+      userId,
+      shippingInfo,
+      paymentMethod,
+      items,
+    },
   });
 }
 

@@ -112,9 +112,12 @@ function CheckoutPage() {
     try {
       const res = await checkout(user?.id ?? "u1", values, payment, items);
       if (res.success) {
-        clearCart();
-        const first = res.data?.orders?.[0] ?? null;
-        setOrder(first);
+        const payUrl = res.data?.payUrl;
+        if (payUrl) {
+          window.location.href = payUrl;
+          return;
+        }
+        showToast("Missing MoMo payUrl.", "error");
       } else {
         setError(res.message);
       }
