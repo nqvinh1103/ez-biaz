@@ -31,6 +31,10 @@ public class CreateListingCommandHandler(IProductRepository repo, IUserRepositor
         var name = req.Name.Trim();
         var fandom = req.Fandom.Trim();
 
+        var imageUrls = req.ImageUrls?.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToList() ?? new List<string>();
+        var primaryImage = imageUrls.FirstOrDefault()
+            ?? ("https://placehold.co/300x300/e8e0f7/7c5cbf?text=" + Uri.EscapeDataString(name.Length > 12 ? name[..12] : name));
+
         var product = new Product
         {
             Id = nextId,
@@ -42,9 +46,15 @@ public class CreateListingCommandHandler(IProductRepository repo, IUserRepositor
             Price = decimal.Round(req.Price, 2),
             Stock = 1,
             SellerId = request.SellerId,
-            Image = "https://placehold.co/300x300/e8e0f7/7c5cbf?text=" + Uri.EscapeDataString(name.Length > 12 ? name[..12] : name),
+            Image = primaryImage,
             Description = req.Description ?? string.Empty,
-            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
+            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow),
+            Images = imageUrls.Select((url, idx) => new ProductImage
+            {
+                ProductId = nextId,
+                Url = url,
+                SortOrder = idx
+            }).ToList()
         };
 
         await repo.AddAsync(product, cancellationToken);

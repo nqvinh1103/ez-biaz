@@ -14,7 +14,7 @@ namespace EzBias.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ProductsController(IMediator mediator) : ControllerBase
+public class ProductsController(IMediator mediator, EzBias.Application.Common.Interfaces.Storage.IImageStorage images) : ControllerBase
 {
     /// <summary>
     /// Match mock: getProducts(filters?)
@@ -59,19 +59,57 @@ public class ProductsController(IMediator mediator) : ControllerBase
     /// <summary>
     /// Match mock: createListing(userId, listingData)
     /// </summary>
+    public class CreateListingForm
+    {
+        [FromForm(Name = "name")] public string Name { get; set; } = string.Empty;
+        [FromForm(Name = "condition")] public string Condition { get; set; } = string.Empty;
+        [FromForm(Name = "price")] public decimal Price { get; set; }
+        [FromForm(Name = "fandom")] public string Fandom { get; set; } = string.Empty;
+        [FromForm(Name = "itemTypes")] public List<string> ItemTypes { get; set; } = new();
+        [FromForm(Name = "description")] public string? Description { get; set; }
+
+        // multiple files: formData.append('images', file)
+        [FromForm(Name = "images")] public List<IFormFile> Images { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Create listing with optional multiple images (multipart/form-data).
+    /// </summary>
     [HttpPost("seller/{userId}")]
-    public async Task<ActionResult<ApiResponse<ProductDto>>> CreateListing([FromRoute] string userId, [FromBody] CreateListingRequest req)
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<ApiResponse<ProductDto>>> CreateListing([FromRoute] string userId, [FromForm] CreateListingForm req)
     {
         try
         {
+            var imageUrls = new List<string>();
+
+            // Validate and upload images (max 5MB each)
+            foreach (var file in req.Images.Take(5))
+            {
+                if (file.Length == 0) continue;
+                if (file.Length > 5 * 1024 * 1024)
+                    return BadRequest(ApiResponse<ProductDto>.Fail("Each image must be 5MB or less."));
+
+                var ct = file.ContentType?.ToLowerInvariant() ?? string.Empty;
+                var allowed = ct is "image/jpeg" or "image/jpg" or "image/png" or "image/webp";
+                if (!allowed)
+                    return BadRequest(ApiResponse<ProductDto>.Fail("Only JPG, PNG, or WEBP images are allowed."));
+
+                await using var stream = file.OpenReadStream();
+                var url = await images.UploadImageAsync(stream, file.FileName, file.ContentType ?? "application/octet-stream", "ez-biaz/listings");
+                imageUrls.Add(url);
+            }
+
             var dto = await mediator.Send(new CreateListingCommand(userId, new CreateListingModel(
                 req.Name,
                 req.Condition,
                 req.Price,
                 req.Fandom,
                 req.ItemTypes,
-                req.Description
+                req.Description,
+                imageUrls.Count > 0 ? imageUrls : null
             )));
+
             return ApiResponse<ProductDto>.Ok(dto, "Your listing has been posted successfully!");
         }
         catch (ArgumentException ex)

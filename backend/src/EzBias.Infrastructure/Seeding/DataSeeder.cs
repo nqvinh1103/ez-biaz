@@ -16,15 +16,18 @@ public static class DataSeeder
         // Idempotent: only seed when empty
         if (await db.Users.AnyAsync())
         {
+            Console.WriteLine("[Seed] Users table is not empty. Skipping seeding.");
             return;
         }
 
-        var seedPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "seed", "seed.json");
-        seedPath = Path.GetFullPath(seedPath);
+        Console.WriteLine("[Seed] Seeding database...");
+
+        // seed.json is bundled into publish output by EzBias.API.csproj (seed/seed.json)
+        var seedPath = Path.Combine(AppContext.BaseDirectory, "seed", "seed.json");
 
         if (!File.Exists(seedPath))
         {
-            // seed file not present; skip
+            Console.WriteLine($"[Seed] seed.json not found at '{seedPath}'. Skipping seeding.");
             return;
         }
 
@@ -36,6 +39,7 @@ public static class DataSeeder
 
         if (seed == null)
         {
+            Console.WriteLine("[Seed] seed.json deserialized to null. Skipping seeding.");
             return;
         }
 
@@ -182,5 +186,6 @@ public static class DataSeeder
         await db.OrderItems.AddRangeAsync(orderItems);
 
         await db.SaveChangesAsync();
+        Console.WriteLine($"[Seed] Done. Inserted users={users.Count}, products={products.Count}, auctions={auctions.Count}, bids={bids.Count}, cartItems={cartItems.Count}, orders={orders.Count}, orderItems={orderItems.Count}.");
     }
 }

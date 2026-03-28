@@ -41,7 +41,9 @@ builder.Services.AddSwaggerGen();
 var conn = builder.Configuration.GetConnectionString("DefaultConnection")
            ?? "Host=localhost;Port=5432;Database=EzBiasDb;Username=postgres;Password=your_password";
 
-builder.Services.AddDbContext<EzBiasDbContext>(opt => opt.UseNpgsql(conn));
+builder.Services.AddDbContext<EzBiasDbContext>(opt =>
+    opt.UseNpgsql(conn, b => b.MigrationsAssembly("EzBias.Infrastructure"))
+);
 
 // JWT bearer
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "CHANGE_ME_DEV_SECRET_32CHARS_MIN";
@@ -77,6 +79,15 @@ builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IContactRepository, ContactRepository>();
 
+// Image storage (Cloudinary)
+builder.Services.AddSingleton<EzBias.Application.Common.Interfaces.Storage.IImageStorage>(sp =>
+{
+    var url = builder.Configuration["CLOUDINARY_URL"];
+    if (string.IsNullOrWhiteSpace(url))
+        throw new InvalidOperationException("Missing CLOUDINARY_URL environment variable.");
+    return new EzBias.Infrastructure.Services.Images.CloudinaryImageStorage(url);
+});
+
 // refresh days from config (optional)
 var refreshDays = int.TryParse(builder.Configuration["Jwt:RefreshTokenDays"], out var d) ? d : 7;
 builder.Services.AddScoped<IAuthService>(sp =>
@@ -91,20 +102,27 @@ builder.Services.AddScoped<IAuthService>(sp =>
 var app = builder.Build();
 
 // Apply migrations + seed (best-effort)
+// - In Development: always migrate + seed.
+// - In Production: migrate only. Seed is opt-in via env var SEED_ON_START=true
+var seedOnStart = string.Equals(builder.Configuration["SEED_ON_START"], "true", StringComparison.OrdinalIgnoreCase);
+
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<EzBiasDbContext>();
+    await db.Database.MigrateAsync();
+
+    if (app.Environment.IsDevelopment() || seedOnStart)
+        await DataSeeder.SeedAsync(scope.ServiceProvider);
+}
+catch (Exception ex)
+{
+    // Log to stdout so Render logs show migration/seed failures
+    Console.WriteLine("[Startup] Migration/seed failed: " + ex);
+}
+
 if (app.Environment.IsDevelopment())
 {
-    try
-    {
-        using var scope = app.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<EzBiasDbContext>();
-        await db.Database.MigrateAsync();
-        await DataSeeder.SeedAsync(scope.ServiceProvider);
-    }
-    catch
-    {
-        // ignore on dev if db is not reachable (e.g., Docker not running)
-    }
-
     app.UseSwagger();
     app.UseSwaggerUI();
 }

@@ -6,7 +6,8 @@ public record CreateListingModel(
     decimal Price,
     string Fandom,
     IReadOnlyList<string> ItemTypes,
-    string? Description
+    string? Description,
+    IReadOnlyList<string>? ImageUrls
 );
 
 public record UpdateListingModel(

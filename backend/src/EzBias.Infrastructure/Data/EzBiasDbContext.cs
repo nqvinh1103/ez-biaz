@@ -14,6 +14,7 @@ public class EzBiasDbContext : DbContext
     public DbSet<Auction> Auctions => Set<Auction>();
     public DbSet<Bid> Bids => Set<Bid>();
     public DbSet<CartItem> CartItems => Set<CartItem>();
+    public DbSet<ProductImage> ProductImages => Set<ProductImage>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
@@ -41,6 +42,17 @@ public class EzBiasDbContext : DbContext
                 .WithMany(u => u.Products)
                 .HasForeignKey(x => x.SellerId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ProductImage>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => x.ProductId);
+            b.Property(x => x.Url).HasMaxLength(2048);
+            b.HasOne(x => x.Product)
+                .WithMany(p => p.Images)
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<CartItem>(b =>

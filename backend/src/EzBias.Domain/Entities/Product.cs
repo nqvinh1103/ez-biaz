@@ -22,5 +22,7 @@ public class Product
     public DateOnly CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 
+    public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
+
     public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
 }

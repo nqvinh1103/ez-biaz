@@ -63,14 +63,18 @@ function SellPage() {
     if (!isValid || submitting) return;
     setSubmitting(true);
     setError(null);
-    const res = await createListing(user?.id ?? "u1", {
-      name: values.name,
-      description: values.description,
-      condition: values.condition,
-      price: values.price,
-      fandom: values.fandom,
-      itemTypes: selectedTypes,
-    });
+    const res = await createListing(
+      user?.id ?? "u1",
+      {
+        name: values.name,
+        description: values.description,
+        condition: values.condition,
+        price: values.price,
+        fandom: values.fandom,
+        itemTypes: selectedTypes,
+      },
+      upload.files,
+    );
     setSubmitting(false);
     if (res.success) {
       navigate("/my-listings");
