@@ -54,10 +54,7 @@ const CardIcon = () => (
 );
 
 /* ─── Data ────────────────────────────────────────────────────────────────── */
-const METHODS = [
-  { id: "cod", label: "Cash on Delivery", Icon: CodIcon },
-  { id: "bank", label: "Bank Transfer", Icon: BankIcon },
-];
+const METHODS = [{ id: "bank", label: "Bank Transfer", Icon: BankIcon }];
 const PaymentSelector = memo(function PaymentSelector({ value, onChange }) {
   return (
     <fieldset>

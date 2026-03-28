@@ -18,7 +18,9 @@ const ContactPage       = lazy(() => import("./pages/ContactPage"));
 const SellPage          = lazy(() => import("./pages/SellPage"));
 const CheckoutPage      = lazy(() => import("./pages/CheckoutPage"));
 const MyListingsPage    = lazy(() => import("./pages/MyListingsPage"));
-const OrderHistoryPage  = lazy(() => import("./pages/OrderHistoryPage"));
+const OrderHistoryPage    = lazy(() => import("./pages/OrderHistoryPage"));
+const CreateAuctionPage   = lazy(() => import("./pages/CreateAuctionPage"));
+const ProductDetailPage   = lazy(() => import("./pages/ProductDetailPage"));
 
 function PageLoader() {
   return (
@@ -67,14 +69,16 @@ function App() {
             <Route path="/about"       element={<AboutPage />} />
             <Route path="/fandoms"     element={<FandomsPage />} />
             <Route path="/auction"     element={<AuctionPage />} />
-            <Route path="/auction/:id" element={<AuctionDetailPage />} />
+            <Route path="/auction/:id"  element={<AuctionDetailPage />} />
+            <Route path="/product/:id" element={<ProductDetailPage />} />
             <Route path="/contact"     element={<ContactPage />} />
 
             {/* Protected */}
             <Route path="/sell"          element={<RequireAuth><SellPage /></RequireAuth>} />
             <Route path="/checkout"      element={<RequireAuth><CheckoutPage /></RequireAuth>} />
             <Route path="/my-listings"   element={<RequireAuth><MyListingsPage /></RequireAuth>} />
-            <Route path="/order-history" element={<RequireAuth><OrderHistoryPage /></RequireAuth>} />
+            <Route path="/order-history"    element={<RequireAuth><OrderHistoryPage /></RequireAuth>} />
+            <Route path="/create-auction"  element={<RequireAuth><CreateAuctionPage /></RequireAuth>} />
           </Routes>
         </Suspense>
       </CartProvider>

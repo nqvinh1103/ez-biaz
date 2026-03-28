@@ -73,8 +73,7 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const logout = useCallback(async () => {
-    await api.logout();   // invalidate server-side session/token
+  const logout = useCallback(() => {
     clearAllStorage();
     setUser(null);
   }, []);

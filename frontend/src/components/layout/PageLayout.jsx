@@ -1,31 +1,32 @@
 import { memo } from "react";
 import { navLinks } from "../../data/landingData";
+import { useLoginModal } from "../../context/LoginModalContext";
 import Footer from "./Footer";
 import Header from "./Header";
 
 /**
  * Standard page shell: sticky Header + <main> content area + Footer.
- * Eliminates the boilerplate that was duplicated across all 8 pages.
+ * Opens the login modal via LoginModalContext — no prop drilling needed.
  *
  * @param {{
  *   children: React.ReactNode,
  *   headerRef?: React.Ref,
- *   onOpenLoginModal?: () => void,
  *   mainClassName?: string,
  * }} props
  */
 const PageLayout = memo(function PageLayout({
   children,
   headerRef,
-  onOpenLoginModal,
   mainClassName,
 }) {
+  const { openLoginModal } = useLoginModal();
+
   return (
     <div className="min-h-screen min-w-[320px] bg-white font-['Inter'] text-[#121212]">
       <Header
         ref={headerRef}
         navLinks={navLinks}
-        onOpenLoginModal={onOpenLoginModal ?? (() => {})}
+        onOpenLoginModal={openLoginModal}
       />
       <main className={mainClassName ?? ""}>
         {children}
