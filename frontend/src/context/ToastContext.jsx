@@ -44,8 +44,8 @@ const ICONS = {
 };
 
 const STYLES = {
-  success: "bg-[#22c55e] text-white",
-  error:   "bg-[#ef4343] text-white",
+  success: "bg-[#ad93e6] text-white",
+  error:   "bg-white text-[#ef4343] border border-[#fecaca]",
 };
 
 function ToastContainer({ toasts }) {
