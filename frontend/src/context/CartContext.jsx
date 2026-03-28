@@ -28,10 +28,6 @@ export function CartProvider({ children, initialItems = [] }) {
       qty: i.qty,
     }));
 
-  const reload = useCallback(async () => {
-    await reloadFor(ownerId);
-  }, [reloadFor, ownerId]);
-
   function getGuestId() {
     const key = "ezbias_guestId";
     let id = localStorage.getItem(key);
@@ -51,6 +47,10 @@ export function CartProvider({ children, initialItems = [] }) {
     const res = await api.getCart(owner);
     if (res.success) setItems(mapServerCart(res.data));
   }, []);
+
+  const reload = useCallback(async () => {
+    await reloadFor(ownerId);
+  }, [reloadFor, ownerId]);
 
   // When auth changes, reload cart. If logging in, merge guest cart into user cart.
   useEffect(() => {
