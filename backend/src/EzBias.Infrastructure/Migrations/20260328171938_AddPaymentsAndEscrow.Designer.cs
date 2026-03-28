@@ -3,6 +3,7 @@ using System;
 using EzBias.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EzBias.Infrastructure.Migrations
 {
     [DbContext(typeof(EzBiasDbContext))]
-    partial class EzBiasDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260328171938_AddPaymentsAndEscrow")]
+    partial class AddPaymentsAndEscrow
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -86,7 +89,7 @@ namespace EzBias.Infrastructure.Migrations
 
                     b.HasIndex("SellerId");
 
-                    b.ToTable("Auctions", (string)null);
+                    b.ToTable("Auctions");
                 });
 
             modelBuilder.Entity("EzBias.Domain.Entities.Bid", b =>
@@ -129,7 +132,7 @@ namespace EzBias.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Bids", (string)null);
+                    b.ToTable("Bids");
                 });
 
             modelBuilder.Entity("EzBias.Domain.Entities.CartItem", b =>
@@ -161,7 +164,7 @@ namespace EzBias.Infrastructure.Migrations
                     b.HasIndex("UserId", "ProductId")
                         .IsUnique();
 
-                    b.ToTable("CartItems", (string)null);
+                    b.ToTable("CartItems");
                 });
 
             modelBuilder.Entity("EzBias.Domain.Entities.ContactMessage", b =>
@@ -189,7 +192,7 @@ namespace EzBias.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ContactMessages", (string)null);
+                    b.ToTable("ContactMessages");
                 });
 
             modelBuilder.Entity("EzBias.Domain.Entities.Order", b =>
@@ -247,7 +250,7 @@ namespace EzBias.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("EzBias.Domain.Entities.OrderItem", b =>
@@ -280,7 +283,7 @@ namespace EzBias.Infrastructure.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderItems", (string)null);
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("EzBias.Domain.Entities.Payments.EscrowTransaction", b =>
@@ -319,7 +322,7 @@ namespace EzBias.Infrastructure.Migrations
 
                     b.HasIndex("SellerId");
 
-                    b.ToTable("EscrowTransactions", (string)null);
+                    b.ToTable("EscrowTransactions");
                 });
 
             modelBuilder.Entity("EzBias.Domain.Entities.Payments.Payment", b =>
@@ -380,7 +383,7 @@ namespace EzBias.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Payments", (string)null);
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("EzBias.Domain.Entities.Payments.PaymentOrder", b =>
@@ -395,7 +398,7 @@ namespace EzBias.Infrastructure.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("PaymentOrders", (string)null);
+                    b.ToTable("PaymentOrders");
                 });
 
             modelBuilder.Entity("EzBias.Domain.Entities.Payments.Payout", b =>
@@ -439,7 +442,7 @@ namespace EzBias.Infrastructure.Migrations
 
                     b.HasIndex("SellerId");
 
-                    b.ToTable("Payouts", (string)null);
+                    b.ToTable("Payouts");
                 });
 
             modelBuilder.Entity("EzBias.Domain.Entities.Product", b =>
@@ -502,7 +505,7 @@ namespace EzBias.Infrastructure.Migrations
 
                     b.HasIndex("SellerId");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("EzBias.Domain.Entities.ProductImage", b =>
@@ -532,7 +535,7 @@ namespace EzBias.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductImages", (string)null);
+                    b.ToTable("ProductImages");
                 });
 
             modelBuilder.Entity("EzBias.Domain.Entities.RefreshToken", b =>
@@ -565,7 +568,7 @@ namespace EzBias.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens", (string)null);
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("EzBias.Domain.Entities.User", b =>
@@ -647,7 +650,7 @@ namespace EzBias.Infrastructure.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("EzBias.Domain.Entities.UserSubscription", b =>
@@ -687,7 +690,7 @@ namespace EzBias.Infrastructure.Migrations
 
                     b.HasIndex("UserId", "Status");
 
-                    b.ToTable("UserSubscriptions", (string)null);
+                    b.ToTable("UserSubscriptions");
                 });
 
             modelBuilder.Entity("EzBias.Domain.Entities.Auction", b =>

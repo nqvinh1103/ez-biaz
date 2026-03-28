@@ -1,4 +1,5 @@
 using EzBias.Domain.Entities;
+using EzBias.Domain.Entities.Payments;
 using Microsoft.EntityFrameworkCore;
 
 namespace EzBias.Infrastructure.Data;
@@ -20,6 +21,12 @@ public class EzBiasDbContext : DbContext
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
+    // Payments / Escrow
+    public DbSet<EzBias.Domain.Entities.Payments.Payment> Payments => Set<EzBias.Domain.Entities.Payments.Payment>();
+    public DbSet<EzBias.Domain.Entities.Payments.PaymentOrder> PaymentOrders => Set<EzBias.Domain.Entities.Payments.PaymentOrder>();
+    public DbSet<EzBias.Domain.Entities.Payments.EscrowTransaction> EscrowTransactions => Set<EzBias.Domain.Entities.Payments.EscrowTransaction>();
+    public DbSet<EzBias.Domain.Entities.Payments.Payout> Payouts => Set<EzBias.Domain.Entities.Payments.Payout>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -95,6 +102,50 @@ public class EzBiasDbContext : DbContext
                 .WithMany(u => u.Orders)
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Payment>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Id).ValueGeneratedNever();
+            b.HasIndex(x => x.UserId);
+            b.HasIndex(x => x.Status);
+            b.Property(x => x.Provider).HasMaxLength(32);
+            b.Property(x => x.Type).HasMaxLength(32);
+            b.Property(x => x.Status).HasMaxLength(32);
+            b.Property(x => x.Reference).HasMaxLength(64);
+            b.Property(x => x.ProviderOrderId).HasMaxLength(128);
+            b.Property(x => x.RequestId).HasMaxLength(64);
+
+            b.HasMany(x => x.Orders)
+                .WithOne(x => x.Payment)
+                .HasForeignKey(x => x.PaymentId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PaymentOrder>(b =>
+        {
+            b.HasKey(x => new { x.PaymentId, x.OrderId });
+            b.HasIndex(x => x.OrderId);
+        });
+
+        modelBuilder.Entity<EscrowTransaction>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Id).ValueGeneratedNever();
+            b.HasIndex(x => x.OrderId);
+            b.HasIndex(x => x.SellerId);
+            b.Property(x => x.Type).HasMaxLength(8);
+        });
+
+        modelBuilder.Entity<Payout>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Id).ValueGeneratedNever();
+            b.HasIndex(x => x.OrderId).IsUnique();
+            b.HasIndex(x => x.SellerId);
+            b.Property(x => x.Status).HasMaxLength(16);
+            b.Property(x => x.BankTransferRef).HasMaxLength(128);
         });
 
         modelBuilder.Entity<OrderItem>(b =>

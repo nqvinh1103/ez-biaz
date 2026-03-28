@@ -18,6 +18,11 @@ public class User
     public string Avatar { get; set; } = string.Empty;
     public string AvatarBg { get; set; } = string.Empty;
 
+    // Seller payout bank info (demo/manual settlement)
+    public string BankName { get; set; } = string.Empty;
+    public string BankAccountNumber { get; set; } = string.Empty;
+    public string BankAccountName { get; set; } = string.Empty;
+
     public DateOnly JoinedAt { get; set; }
     public string Role { get; set; } = "buyer";
 
