@@ -78,6 +78,7 @@ builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IContactRepository, ContactRepository>();
+builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 
 // Image storage (Cloudinary)
 builder.Services.AddSingleton<EzBias.Application.Common.Interfaces.Storage.IImageStorage>(sp =>

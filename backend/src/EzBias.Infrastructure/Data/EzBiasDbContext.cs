@@ -15,6 +15,7 @@ public class EzBiasDbContext : DbContext
     public DbSet<Bid> Bids => Set<Bid>();
     public DbSet<CartItem> CartItems => Set<CartItem>();
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
+    public DbSet<UserSubscription> UserSubscriptions => Set<UserSubscription>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
@@ -31,6 +32,20 @@ public class EzBiasDbContext : DbContext
             b.HasIndex(x => x.Email).IsUnique();
             b.HasIndex(x => x.Username).IsUnique();
             b.Property(x => x.Role).HasMaxLength(32);
+        });
+
+        modelBuilder.Entity<UserSubscription>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Id).ValueGeneratedNever();
+            b.HasIndex(x => x.UserId);
+            b.HasIndex(x => new { x.UserId, x.Status });
+            b.Property(x => x.PlanId).HasMaxLength(32);
+            b.Property(x => x.Status).HasMaxLength(32);
+            b.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Product>(b =>
