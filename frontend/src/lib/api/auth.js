@@ -11,5 +11,12 @@ export function register(userData) {
 }
 
 export function logout() {
-  return api.post("/api/auth/logout", null).catch(() => ({ success: true }));
+  // POST with no body — transformRequest prevents axios from serialising
+  // null to "null" and attaching Content-Type: application/json (→ 415).
+  return api
+    .post("/api/auth/logout", null, {
+      transformRequest: [() => undefined],
+      headers: { "Content-Type": false },
+    })
+    .catch(() => ({ success: true }));
 }
