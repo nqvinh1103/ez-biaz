@@ -21,6 +21,7 @@ const MyListingsPage    = lazy(() => import("./pages/MyListingsPage"));
 const OrderHistoryPage    = lazy(() => import("./pages/OrderHistoryPage"));
 const CreateAuctionPage   = lazy(() => import("./pages/CreateAuctionPage"));
 const ProductDetailPage   = lazy(() => import("./pages/ProductDetailPage"));
+const SubscriptionPage    = lazy(() => import("./pages/SubscriptionPage"));
 
 function PageLoader() {
   return (
@@ -79,6 +80,7 @@ function App() {
             <Route path="/my-listings"   element={<RequireAuth><MyListingsPage /></RequireAuth>} />
             <Route path="/order-history"    element={<RequireAuth><OrderHistoryPage /></RequireAuth>} />
             <Route path="/create-auction"  element={<RequireAuth><CreateAuctionPage /></RequireAuth>} />
+            <Route path="/subscription"    element={<SubscriptionPage />} />
           </Routes>
         </Suspense>
       </CartProvider>

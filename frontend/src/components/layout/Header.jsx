@@ -147,6 +147,16 @@ const Header = forwardRef(function Header(
                         </svg>
                         My Order History
                       </Link>
+                      <Link
+                        to="/subscription"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-[#7c3aed] transition-colors hover:bg-[rgba(124,58,237,0.06)]"
+                      >
+                        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        Upgrade Plan
+                      </Link>
                       <button
                         onClick={() => {
                           logout();
@@ -296,6 +306,16 @@ const Header = forwardRef(function Header(
                 />
               </svg>
               Create Auction
+            </Link>
+            <Link
+              to="/subscription"
+              onClick={() => setIsOpen(false)}
+              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-[#7c3aed] to-[#ad93e6] text-sm font-semibold text-white"
+            >
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              Upgrade Plan
             </Link>
             <button
               onClick={() => {
