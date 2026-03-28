@@ -16,7 +16,7 @@ public class ProductRepository(EzBiasDbContext db) : IProductRepository
         bool? inStockOnly,
         CancellationToken cancellationToken = default)
     {
-        var q = db.Products.AsNoTracking().Where(p => !p.IsAuction).AsQueryable();
+        var q = db.Products.AsNoTracking().Where(p => !p.IsAuction && p.Stock > 0).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(fandom))
             q = q.Where(p => p.Fandom.ToLower() == fandom.ToLower());
@@ -30,6 +30,7 @@ public class ProductRepository(EzBiasDbContext db) : IProductRepository
         if (maxPrice is not null)
             q = q.Where(p => p.Price <= maxPrice.Value);
 
+        // stock > 0 is already enforced by default; keep flag for backward compatibility
         if (inStockOnly == true)
             q = q.Where(p => p.Stock > 0);
 
