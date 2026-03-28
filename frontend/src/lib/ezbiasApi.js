@@ -1,128 +1,72 @@
-/*
+/**
  * ezbiasApi.js
- * Thin client for EzBias backend.
- * Keeps the same response shape as mockApi.js:
- *   { success: boolean, data: any, message: string }
+ * API client for EzBias backend using Axios.
+ * All functions return: { success: boolean, data: any, message: string }
  */
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5171";
+import api from "./axiosInstance";
 
-function ok(data, message = "Success") {
-  return { success: true, data, message };
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+export function login(email, password) {
+  return api.post("/api/auth/login", { email, password });
 }
 
-function fail(message, data = null) {
-  return { success: false, data, message };
+export function register(userData) {
+  return api.post("/api/auth/register", userData);
 }
 
-function readJsonSafe(text) {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return null;
-  }
+// ── Products ──────────────────────────────────────────────────────────────────
+
+export function getProducts(filters = {}) {
+  const params = {};
+  if (filters.fandom) params.fandom = filters.fandom;
+  if (filters.type) params.type = filters.type;
+  if (filters.minPrice != null) params.minPrice = filters.minPrice;
+  if (filters.maxPrice != null) params.maxPrice = filters.maxPrice;
+  if (filters.inStockOnly) params.inStockOnly = true;
+  return api.get("/api/products", { params });
 }
 
-async function request(method, path, body = null, { token } = {}) {
-  try {
-    const res = await fetch(`${BASE_URL}${path}`, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: body ? JSON.stringify(body) : null,
-    });
-
-    const text = await res.text();
-    const json = readJsonSafe(text);
-
-    // Backend uses ApiResponse<T>
-    if (json && typeof json.success === "boolean") {
-      return json;
-    }
-
-    if (!res.ok) {
-      return fail(json?.message ?? `Request failed (${res.status}).`);
-    }
-
-    // Fallback: return raw json/text
-    return ok(json ?? text);
-  } catch (err) {
-    return fail(err?.message ?? "Network error: request failed.");
-  }
+export function getProductById(id) {
+  return api.get(`/api/products/${encodeURIComponent(id)}`);
 }
 
-/* ──────────────────────────────────────────────────────────────────────────
-   AUTH
-────────────────────────────────────────────────────────────────────────── */
-export async function login(email, password) {
-  if (!email || !password) return fail("Email and password are required.");
-  return request("POST", "/api/auth/login", { email, password });
+// ── Auctions ──────────────────────────────────────────────────────────────────
+
+export function getAuctions(filters = {}) {
+  const params = {};
+  if (filters.fandom) params.fandom = filters.fandom;
+  if (filters.isLive !== undefined) params.isLive = filters.isLive;
+  if (filters.isUrgent) params.isUrgent = true;
+  return api.get("/api/auctions", { params });
 }
 
-export async function register(userData) {
-  return request("POST", "/api/auth/register", userData);
+export function getAuctionById(id) {
+  return api.get(`/api/auctions/${encodeURIComponent(id)}`);
 }
 
-/* ──────────────────────────────────────────────────────────────────────────
-   PRODUCTS
-────────────────────────────────────────────────────────────────────────── */
-export async function getProducts(filters = {}) {
-  const params = new URLSearchParams();
-  if (filters.fandom) params.set("fandom", filters.fandom);
-  if (filters.type) params.set("type", filters.type);
-  if (filters.minPrice !== undefined && filters.minPrice !== null)
-    params.set("minPrice", String(filters.minPrice));
-  if (filters.maxPrice !== undefined && filters.maxPrice !== null)
-    params.set("maxPrice", String(filters.maxPrice));
-  if (filters.inStockOnly) params.set("inStockOnly", "true");
-
-  const qs = params.toString();
-  return request("GET", `/api/products${qs ? `?${qs}` : ""}`);
-}
-
-export async function getProductById(id) {
-  return request("GET", `/api/products/${encodeURIComponent(id)}`);
-}
-
-/* ──────────────────────────────────────────────────────────────────────────
-   AUCTIONS
-────────────────────────────────────────────────────────────────────────── */
-export async function getAuctions(filters = {}) {
-  const params = new URLSearchParams();
-  if (filters.fandom) params.set("fandom", filters.fandom);
-  if (filters.isLive !== undefined) params.set("isLive", String(filters.isLive));
-  if (filters.isUrgent) params.set("isUrgent", "true");
-  const qs = params.toString();
-  return request("GET", `/api/auctions${qs ? `?${qs}` : ""}`);
-}
-
-export async function getAuctionById(id) {
-  return request("GET", `/api/auctions/${encodeURIComponent(id)}`);
-}
-
-export async function placeBid(userId, auctionId, amount) {
-  return request("POST", `/api/auctions/${encodeURIComponent(auctionId)}/bids`, {
+export function placeBid(userId, auctionId, amount) {
+  return api.post(`/api/auctions/${encodeURIComponent(auctionId)}/bids`, {
     userId,
     amount,
   });
 }
 
-/* ──────────────────────────────────────────────────────────────────────────
-   CHECKOUT / ORDERS
-────────────────────────────────────────────────────────────────────────── */
-export async function checkout(userId, shippingInfo, paymentMethod, reactCartItems = null) {
-  const items = Array.isArray(reactCartItems) && reactCartItems.length
-    ? reactCartItems.map((i) => ({
-        productId: i.id ?? i.productId,
-        name: i.name,
-        price: i.price,
-        qty: i.qty ?? 1,
-      }))
-    : null;
+// ── Checkout / Orders ─────────────────────────────────────────────────────────
 
-  return request("POST", "/api/orders/checkout", {
+export function checkout(userId, shippingInfo, paymentMethod, reactCartItems = null) {
+  const items =
+    Array.isArray(reactCartItems) && reactCartItems.length
+      ? reactCartItems.map((i) => ({
+          productId: i.id ?? i.productId,
+          name: i.name,
+          price: i.price,
+          qty: i.qty ?? 1,
+        }))
+      : null;
+
+  return api.post("/api/orders/checkout", {
     userId,
     shippingInfo,
     paymentMethod,
@@ -130,67 +74,65 @@ export async function checkout(userId, shippingInfo, paymentMethod, reactCartIte
   });
 }
 
-export async function getOrders(userId) {
-  return request("GET", `/api/orders/${encodeURIComponent(userId)}`);
+export function getOrders(userId) {
+  return api.get(`/api/orders/${encodeURIComponent(userId)}`);
 }
 
-/* ──────────────────────────────────────────────────────────────────────────
-   LISTINGS (Sell / My Listings)
-────────────────────────────────────────────────────────────────────────── */
-export async function getListingsByUser(userId) {
-  return request("GET", `/api/products/seller/${encodeURIComponent(userId)}`);
+// ── Listings ──────────────────────────────────────────────────────────────────
+
+export function getListingsByUser(userId) {
+  return api.get(`/api/products/seller/${encodeURIComponent(userId)}`);
 }
 
-export async function createListing(userId, listingData) {
-  return request("POST", `/api/products/seller/${encodeURIComponent(userId)}`, listingData);
+export function createListing(userId, listingData) {
+  return api.post(`/api/products/seller/${encodeURIComponent(userId)}`, listingData);
 }
 
-export async function updateListing(userId, productId, updates) {
-  return request(
-    "PUT",
+export function updateListing(userId, productId, updates) {
+  return api.put(
     `/api/products/seller/${encodeURIComponent(userId)}/${encodeURIComponent(productId)}`,
     updates,
   );
 }
 
-export async function deleteListing(userId, productId) {
-  return request(
-    "DELETE",
+export function deleteListing(userId, productId) {
+  return api.delete(
     `/api/products/seller/${encodeURIComponent(userId)}/${encodeURIComponent(productId)}`,
   );
 }
 
-/* ──────────────────────────────────────────────────────────────────────────
-   CART (server-side)
-────────────────────────────────────────────────────────────────────────── */
-export async function getCart(userId) {
-  return request("GET", `/api/cart/${encodeURIComponent(userId)}`);
+// ── Cart ──────────────────────────────────────────────────────────────────────
+
+export function getCart(userId) {
+  return api.get(`/api/cart/${encodeURIComponent(userId)}`);
 }
 
-export async function addToCart(userId, productId, qty = 1) {
-  return request("POST", `/api/cart/${encodeURIComponent(userId)}/items`, {
+export function addToCart(userId, productId, qty = 1) {
+  return api.post(`/api/cart/${encodeURIComponent(userId)}/items`, {
     productId,
     qty,
   });
 }
 
-export async function updateCartQty(userId, productId, qty) {
-  return request("PUT", `/api/cart/${encodeURIComponent(userId)}/items/${encodeURIComponent(productId)}`, {
-    qty,
-  });
+export function updateCartQty(userId, productId, qty) {
+  return api.put(
+    `/api/cart/${encodeURIComponent(userId)}/items/${encodeURIComponent(productId)}`,
+    { qty },
+  );
 }
 
-export async function removeFromCart(userId, productId) {
-  return request("DELETE", `/api/cart/${encodeURIComponent(userId)}/items/${encodeURIComponent(productId)}`);
+export function removeFromCart(userId, productId) {
+  return api.delete(
+    `/api/cart/${encodeURIComponent(userId)}/items/${encodeURIComponent(productId)}`,
+  );
 }
 
-export async function clearCart(userId) {
-  return request("DELETE", `/api/cart/${encodeURIComponent(userId)}`);
+export function clearCart(userId) {
+  return api.delete(`/api/cart/${encodeURIComponent(userId)}`);
 }
 
-/* ──────────────────────────────────────────────────────────────────────────
-   CONTACT
-────────────────────────────────────────────────────────────────────────── */
-export async function sendContactMessage(name, email, message) {
-  return request("POST", "/api/contact", { name, email, message });
+// ── Contact ───────────────────────────────────────────────────────────────────
+
+export function sendContactMessage(name, email, message) {
+  return api.post("/api/contact", { name, email, message });
 }
