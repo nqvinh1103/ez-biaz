@@ -28,6 +28,13 @@ public record BidDto(
     bool IsWinning
 );
 
+public record CreateAuctionRequest(
+    string SellerId,
+    string ProductId,
+    int DurationHours,
+    bool IsUrgent
+);
+
 public record AuctionDetailDto(
     string Id,
     string Fandom,

@@ -19,6 +19,9 @@ public class Product
     public string Image { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
 
+    // If true, this product is currently being sold via auction (not fixed-price cart/checkout)
+    public bool IsAuction { get; set; }
+
     public DateOnly CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 

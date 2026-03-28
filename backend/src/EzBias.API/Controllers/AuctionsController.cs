@@ -1,4 +1,5 @@
 using EzBias.API.Models;
+using EzBias.Application.Features.Auctions.Commands.CreateAuction;
 using EzBias.Application.Features.Auctions.Commands.PlaceBid;
 using EzBias.Application.Features.Auctions.Queries.GetAuctionById;
 using EzBias.Application.Features.Auctions.Queries.GetAuctions;
@@ -12,6 +13,24 @@ namespace EzBias.API.Controllers;
 [Route("api/[controller]")]
 public class AuctionsController(IMediator mediator) : ControllerBase
 {
+    [HttpPost]
+    public async Task<ActionResult<ApiResponse<AuctionDetailDto>>> CreateAuction([FromBody] CreateAuctionRequest req)
+    {
+        try
+        {
+            var dto = await mediator.Send(new CreateAuctionCommand(req.SellerId, req.ProductId, req.DurationHours, req.IsUrgent));
+            return ApiResponse<AuctionDetailDto>.Ok(dto, "Auction created.");
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ApiResponse<AuctionDetailDto>.Fail(ex.Message));
+        }
+    }
+
     /// <summary>
     /// Match mock: getAuctions(filters?)
     /// Optional filters: fandom, isLive, isUrgent
