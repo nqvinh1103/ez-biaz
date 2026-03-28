@@ -27,7 +27,8 @@ public record OrderItemDto(
     string ProductId,
     string Name,
     int Qty,
-    decimal Price
+    decimal Price,
+    string Image
 );
 
 public record OrderDto(

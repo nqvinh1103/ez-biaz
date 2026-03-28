@@ -19,14 +19,14 @@ public class CheckoutCommandHandler(IOrderRepository repo) : IRequestHandler<Che
         if (string.IsNullOrWhiteSpace(model.PaymentMethod))
             throw new ArgumentException("Please select a payment method.");
 
-        var orderItems = new List<(string productId, string name, int qty, decimal price)>();
+        var orderItems = new List<(string productId, string name, int qty, decimal price, string image)>();
 
         if (model.Items is { Count: > 0 })
         {
             foreach (var item in model.Items)
             {
                 if (item.Qty < 1) throw new ArgumentException("Quantity must be at least 1.");
-                orderItems.Add((item.ProductId, item.Name, item.Qty, item.Price));
+                orderItems.Add((item.ProductId, item.Name, item.Qty, item.Price, string.Empty));
             }
         }
         else
@@ -40,7 +40,7 @@ public class CheckoutCommandHandler(IOrderRepository repo) : IRequestHandler<Che
                 if (ci.Product is null)
                     throw new ArgumentException("One or more items are no longer available.");
 
-                orderItems.Add((ci.ProductId, ci.Product.Name, ci.Quantity, ci.Product.Price));
+                orderItems.Add((ci.ProductId, ci.Product.Name, ci.Quantity, ci.Product.Price, ci.Product.Image));
             }
         }
 
@@ -50,17 +50,27 @@ public class CheckoutCommandHandler(IOrderRepository repo) : IRequestHandler<Che
         var productIds = orderItems.Select(i => i.productId).Distinct().ToList();
         var products = await repo.GetProductsForUpdateAsync(productIds, cancellationToken);
 
-        foreach (var (productId, _, qty, _) in orderItems)
+        foreach (var (productId, _, qty, _, _) in orderItems)
         {
             var p = products.FirstOrDefault(x => x.Id == productId);
             if (p is null) throw new ArgumentException("One or more items are no longer available.");
             if (p.Stock < qty) throw new ArgumentException("One or more items are no longer available.");
         }
 
-        foreach (var (productId, _, qty, _) in orderItems)
+        foreach (var (productId, _, qty, _, _) in orderItems)
         {
             var p = products.First(x => x.Id == productId);
             p.Stock -= qty;
+        }
+
+        // Fill missing images (when checkout items provided by client)
+        foreach (var idx in Enumerable.Range(0, orderItems.Count))
+        {
+            var it = orderItems[idx];
+            if (!string.IsNullOrWhiteSpace(it.image)) continue;
+            var p = products.FirstOrDefault(x => x.Id == it.productId);
+            if (p is null) continue;
+            orderItems[idx] = (it.productId, it.name, it.qty, it.price, p.Image);
         }
 
         var subtotal = orderItems.Sum(i => i.price * i.qty);
@@ -99,7 +109,13 @@ public class CheckoutCommandHandler(IOrderRepository repo) : IRequestHandler<Che
         return new OrderDto(
             order.Id,
             order.UserId,
-            order.Items.Select(i => new OrderItemDto(i.ProductId, i.Name, i.Quantity, i.Price)).ToList(),
+            order.Items.Select(i => new OrderItemDto(
+                i.ProductId,
+                i.Name,
+                i.Quantity,
+                i.Price,
+                orderItems.FirstOrDefault(x => x.productId == i.ProductId).image
+            )).ToList(),
             order.ShippingFee,
             order.Total,
             order.Status,

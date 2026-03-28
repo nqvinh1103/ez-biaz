@@ -9,25 +9,58 @@ namespace EzBias.Infrastructure.Repositories;
 public class OrderRepository(EzBiasDbContext db) : IOrderRepository
 {
     public async Task<IReadOnlyList<OrderDto>> GetOrdersDtoAsync(string userId, CancellationToken cancellationToken = default)
-        => await db.Orders
+    {
+        // 2-step approach to avoid correlated subqueries and keep SQL simple.
+        var orders = await db.Orders
             .AsNoTracking()
             .Where(o => o.UserId == userId)
             .OrderByDescending(o => o.CreatedAt)
-            .Select(o => new OrderDto(
+            .Select(o => new
+            {
                 o.Id,
                 o.UserId,
-                o.Items
-                    .OrderBy(i => i.Id)
-                    .Select(i => new OrderItemDto(i.ProductId, i.Name, i.Quantity, i.Price))
-                    .ToList(),
                 o.ShippingFee,
                 o.Total,
                 o.Status,
                 o.Payment,
                 o.Address,
-                o.CreatedAt.ToString("yyyy-MM-dd")
-            ))
+                o.CreatedAt,
+                Items = o.Items
+                    .OrderBy(i => i.Id)
+                    .Select(i => new { i.ProductId, i.Name, i.Quantity, i.Price })
+                    .ToList()
+            })
             .ToListAsync(cancellationToken);
+
+        var productIds = orders
+            .SelectMany(o => o.Items.Select(i => i.ProductId))
+            .Distinct()
+            .ToList();
+
+        var imageMap = await db.Products
+            .AsNoTracking()
+            .Where(p => productIds.Contains(p.Id))
+            .Select(p => new { p.Id, p.Image })
+            .ToDictionaryAsync(x => x.Id, x => x.Image, cancellationToken);
+
+        return orders.Select(o => new OrderDto(
+            o.Id,
+            o.UserId,
+            o.Items.Select(i => new OrderItemDto(
+                i.ProductId,
+                i.Name,
+                i.Quantity,
+                i.Price,
+                imageMap.TryGetValue(i.ProductId, out var img) ? img : string.Empty
+            )).ToList(),
+            o.ShippingFee,
+            o.Total,
+            o.Status,
+            o.Payment,
+            o.Address,
+            o.CreatedAt.ToString("yyyy-MM-dd")
+        )).ToList();
+    }
 
     // (removed) entity-returning query method; use GetOrdersDtoAsync for reads
 
