@@ -20,6 +20,9 @@ public class ReceiveOrderCommandHandler(IOrderRepository repo) : IRequestHandler
         order.DeliveredAt = DateTime.UtcNow;
         order.UpdatedAt = DateTime.UtcNow;
 
+        // Create payout pending (manual settlement)
+        await repo.CreatePayoutPendingIfMissingAsync(order.Id, cancellationToken);
+
         await repo.SaveChangesAsync(cancellationToken);
 
         return await repo.GetOrderDtoByIdAsync(order.Id, cancellationToken)

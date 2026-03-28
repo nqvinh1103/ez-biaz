@@ -19,6 +19,7 @@ public interface IOrderRepository
 
     // WRITE
     Task<Order?> GetTrackedByIdAsync(string orderId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Order>> GetTrackedByIdsAsync(IEnumerable<string> orderIds, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<string>> NextOrderIdsAsync(int count, CancellationToken cancellationToken = default);
 
@@ -35,6 +36,8 @@ public interface IOrderRepository
     Task AddOrderAsync(Order order, CancellationToken cancellationToken = default);
 
     Task ExecuteInTransactionAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken = default);
+
+    Task CreatePayoutPendingIfMissingAsync(string orderId, CancellationToken cancellationToken = default);
 
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

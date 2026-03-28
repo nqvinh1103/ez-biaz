@@ -161,6 +161,12 @@ public class OrderRepository(EzBiasDbContext db) : IOrderRepository
     public Task<Order?> GetTrackedByIdAsync(string orderId, CancellationToken cancellationToken = default)
         => db.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
 
+    public async Task<IReadOnlyList<Order>> GetTrackedByIdsAsync(IEnumerable<string> orderIds, CancellationToken cancellationToken = default)
+    {
+        var ids = orderIds.Distinct().ToList();
+        return await db.Orders.Where(o => ids.Contains(o.Id)).ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<string>> NextOrderIdsAsync(int count, CancellationToken cancellationToken = default)
     {
         var list = await db.Orders.AsNoTracking().Select(o => o.Id).ToListAsync(cancellationToken);
@@ -245,6 +251,35 @@ public class OrderRepository(EzBiasDbContext db) : IOrderRepository
             await tx.RollbackAsync(cancellationToken);
             throw;
         }
+    }
+
+    public async Task CreatePayoutPendingIfMissingAsync(string orderId, CancellationToken cancellationToken = default)
+    {
+        var exists = await db.Payouts.AnyAsync(p => p.OrderId == orderId, cancellationToken);
+        if (exists) return;
+
+        var order = await db.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
+        if (order is null) return;
+
+        var ids = await db.Payouts.AsNoTracking().Select(x => x.Id).ToListAsync(cancellationToken);
+        var max = 0;
+        foreach (var id in ids)
+        {
+            if (!id.StartsWith("po", StringComparison.OrdinalIgnoreCase)) continue;
+            if (int.TryParse(id[2..], out var n) && n > max) max = n;
+        }
+
+        var payoutId = "po" + (max + 1);
+
+        db.Payouts.Add(new EzBias.Domain.Entities.Payments.Payout
+        {
+            Id = payoutId,
+            OrderId = order.Id,
+            SellerId = order.SellerId,
+            Amount = order.Total,
+            Status = "pending",
+            CreatedAt = DateTime.UtcNow
+        });
     }
 
     public Task SaveChangesAsync(CancellationToken cancellationToken = default)

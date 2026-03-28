@@ -13,7 +13,7 @@ public class ShipOrderCommandHandler(IOrderRepository repo) : IRequestHandler<Sh
 
         if (order.SellerId != request.SellerId) throw new UnauthorizedAccessException();
 
-        if (order.Status != "pending")
+        if (order.Status is not ("paid" or "pending"))
             throw new ArgumentException("Order is not ready to ship.");
 
         order.Status = "shipping";
