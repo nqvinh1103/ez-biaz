@@ -49,6 +49,7 @@ public class AuctionRepository(EzBiasDbContext db) : IAuctionRepository
             .OrderBy(a => a.EndsAt)
             .Select(a => new AuctionDto(
                 a.Id,
+                a.ProductId,
                 a.Fandom,
                 a.Artist,
                 a.Name,
@@ -72,6 +73,7 @@ public class AuctionRepository(EzBiasDbContext db) : IAuctionRepository
             .Where(a => a.Id == id)
             .Select(a => new AuctionDetailDto(
                 a.Id,
+                a.ProductId,
                 a.Fandom,
                 a.Artist,
                 a.Name,

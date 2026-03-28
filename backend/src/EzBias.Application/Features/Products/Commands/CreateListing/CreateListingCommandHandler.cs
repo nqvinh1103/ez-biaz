@@ -71,7 +71,8 @@ public class CreateListingCommandHandler(IProductRepository repo, IUserRepositor
             product.SellerId,
             product.Image,
             product.Description,
-            product.CreatedAt.ToString("yyyy-MM-dd")
+            product.CreatedAt.ToString("yyyy-MM-dd"),
+            product.IsAuction
         );
     }
 }

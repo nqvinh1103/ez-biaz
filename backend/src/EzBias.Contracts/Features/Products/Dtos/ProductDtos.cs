@@ -12,7 +12,8 @@ public record ProductDto(
     string SellerId,
     string Image,
     string Description,
-    string CreatedAt
+    string CreatedAt,
+    bool IsAuction
 );
 
 public record CartItemDto(

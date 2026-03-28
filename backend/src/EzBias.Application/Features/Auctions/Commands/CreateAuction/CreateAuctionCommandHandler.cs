@@ -73,6 +73,7 @@ public class CreateAuctionCommandHandler(
 
         return new AuctionDetailDto(
             auction.Id,
+            auction.ProductId,
             auction.Fandom,
             auction.Artist,
             auction.Name,

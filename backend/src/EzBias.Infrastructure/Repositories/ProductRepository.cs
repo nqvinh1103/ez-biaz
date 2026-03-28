@@ -47,14 +47,15 @@ public class ProductRepository(EzBiasDbContext db) : IProductRepository
                 p.SellerId,
                 p.Image,
                 p.Description,
-                p.CreatedAt.ToString("yyyy-MM-dd")
+                p.CreatedAt.ToString("yyyy-MM-dd"),
+                p.IsAuction
             ))
             .ToListAsync(cancellationToken);
     }
 
     public Task<ProductDto?> GetByIdDtoAsync(string id, CancellationToken cancellationToken = default)
         => db.Products.AsNoTracking()
-            .Where(p => p.Id == id && !p.IsAuction)
+            .Where(p => p.Id == id)
             .Select(p => new ProductDto(
                 p.Id,
                 p.Fandom,
@@ -67,13 +68,14 @@ public class ProductRepository(EzBiasDbContext db) : IProductRepository
                 p.SellerId,
                 p.Image,
                 p.Description,
-                p.CreatedAt.ToString("yyyy-MM-dd")
+                p.CreatedAt.ToString("yyyy-MM-dd"),
+                p.IsAuction
             ))
             .FirstOrDefaultAsync(cancellationToken);
 
     public async Task<IReadOnlyList<ProductDto>> GetBySellerDtoAsync(string sellerId, CancellationToken cancellationToken = default)
         => await db.Products.AsNoTracking()
-            .Where(p => p.SellerId == sellerId && !p.IsAuction)
+            .Where(p => p.SellerId == sellerId)
             .OrderByDescending(p => p.CreatedAt)
             .Select(p => new ProductDto(
                 p.Id,
@@ -87,7 +89,8 @@ public class ProductRepository(EzBiasDbContext db) : IProductRepository
                 p.SellerId,
                 p.Image,
                 p.Description,
-                p.CreatedAt.ToString("yyyy-MM-dd")
+                p.CreatedAt.ToString("yyyy-MM-dd"),
+                p.IsAuction
             ))
             .ToListAsync(cancellationToken);
 
