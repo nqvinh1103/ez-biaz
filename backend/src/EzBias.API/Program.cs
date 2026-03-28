@@ -79,6 +79,15 @@ builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IContactRepository, ContactRepository>();
 
+// Image storage (Cloudinary)
+builder.Services.AddSingleton<EzBias.Application.Common.Interfaces.Storage.IImageStorage>(sp =>
+{
+    var url = builder.Configuration["CLOUDINARY_URL"];
+    if (string.IsNullOrWhiteSpace(url))
+        throw new InvalidOperationException("Missing CLOUDINARY_URL environment variable.");
+    return new EzBias.Infrastructure.Services.Images.CloudinaryImageStorage(url);
+});
+
 // refresh days from config (optional)
 var refreshDays = int.TryParse(builder.Configuration["Jwt:RefreshTokenDays"], out var d) ? d : 7;
 builder.Services.AddScoped<IAuthService>(sp =>

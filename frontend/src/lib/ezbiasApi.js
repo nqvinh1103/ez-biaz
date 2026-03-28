@@ -23,15 +23,15 @@ function readJsonSafe(text) {
   }
 }
 
-async function request(method, path, body = null, { token } = {}) {
+async function request(method, path, body = null, { token, isForm = false } = {}) {
   try {
     const res = await fetch(`${BASE_URL}${path}`, {
       method,
       headers: {
-        "Content-Type": "application/json",
+        ...(isForm ? {} : { "Content-Type": "application/json" }),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: body ? JSON.stringify(body) : null,
+      body: body ? (isForm ? body : JSON.stringify(body)) : null,
     });
 
     const text = await res.text();
@@ -141,8 +141,18 @@ export async function getListingsByUser(userId) {
   return request("GET", `/api/products/seller/${encodeURIComponent(userId)}`);
 }
 
-export async function createListing(userId, listingData) {
-  return request("POST", `/api/products/seller/${encodeURIComponent(userId)}`, listingData);
+export async function createListing(userId, listingData, images = []) {
+  const form = new FormData();
+  form.append("name", listingData.name);
+  form.append("condition", listingData.condition);
+  form.append("price", String(listingData.price));
+  form.append("fandom", listingData.fandom);
+  (listingData.itemTypes ?? []).forEach((t) => form.append("itemTypes", t));
+  if (listingData.description) form.append("description", listingData.description);
+
+  (images ?? []).forEach((file) => form.append("images", file));
+
+  return request("POST", `/api/products/seller/${encodeURIComponent(userId)}`, form, { isForm: true });
 }
 
 export async function updateListing(userId, productId, updates) {
