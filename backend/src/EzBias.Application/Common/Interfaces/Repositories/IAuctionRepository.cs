@@ -15,6 +15,11 @@ public interface IAuctionRepository
     // tracked for bidding
     Task<Auction?> GetAuctionForBiddingAsync(string id, CancellationToken cancellationToken = default);
 
+    // CREATE
+    Task<string> NextAuctionIdAsync(CancellationToken cancellationToken = default);
+    Task AddAuctionAsync(Auction auction, CancellationToken cancellationToken = default);
+    Task<bool> AnyLiveAuctionForProductAsync(string productId, CancellationToken cancellationToken = default);
+
     Task<string> NextBidIdAsync(CancellationToken cancellationToken = default);
 
     Task SaveChangesAsync(CancellationToken cancellationToken = default);

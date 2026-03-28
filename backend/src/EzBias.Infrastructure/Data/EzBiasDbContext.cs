@@ -38,6 +38,7 @@ public class EzBiasDbContext : DbContext
             b.HasKey(x => x.Id);
             b.Property(x => x.Id).ValueGeneratedNever();
             b.HasIndex(x => x.Fandom);
+            b.HasIndex(x => x.IsAuction);
             b.HasOne(x => x.Seller)
                 .WithMany(u => u.Products)
                 .HasForeignKey(x => x.SellerId)
@@ -95,10 +96,15 @@ public class EzBiasDbContext : DbContext
             b.HasKey(x => x.Id);
             b.Property(x => x.Id).ValueGeneratedNever();
             b.HasIndex(x => x.Fandom);
+            b.HasIndex(x => x.ProductId);
             b.HasOne(x => x.Seller)
                 .WithMany(u => u.Auctions)
                 .HasForeignKey(x => x.SellerId)
                 .OnDelete(DeleteBehavior.Restrict);
+            b.HasOne(x => x.Product)
+                .WithMany()
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Bid>(b =>

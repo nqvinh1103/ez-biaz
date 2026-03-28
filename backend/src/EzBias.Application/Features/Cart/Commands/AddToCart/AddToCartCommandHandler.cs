@@ -12,8 +12,8 @@ public class AddToCartCommandHandler(ICartRepository cart, IProductRepository pr
 
         await cart.EnsureOwnerExistsAsync(request.OwnerId, cancellationToken);
 
-        var p = await products.GetByIdAsync(request.ProductId, cancellationToken);
-        if (p is null) throw new KeyNotFoundException("Product not found.");
+        var p = await products.GetTrackedByIdAsync(request.ProductId, cancellationToken);
+        if (p is null || p.IsAuction) throw new KeyNotFoundException("Product not found.");
 
         var existing = await cart.GetCartItemAsync(request.OwnerId, request.ProductId, cancellationToken);
         if (existing is null)

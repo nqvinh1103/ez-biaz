@@ -2,6 +2,9 @@ namespace EzBias.Domain.Entities;
 
 public class Auction
 {
+    public string? ProductId { get; set; }
+    public Product? Product { get; set; }
+
     public string Id { get; set; } = default!; // a1
 
     public string Fandom { get; set; } = string.Empty;

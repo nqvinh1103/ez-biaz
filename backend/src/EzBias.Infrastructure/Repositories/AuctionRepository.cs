@@ -8,6 +8,30 @@ namespace EzBias.Infrastructure.Repositories;
 
 public class AuctionRepository(EzBiasDbContext db) : IAuctionRepository
 {
+    public async Task<string> NextAuctionIdAsync(CancellationToken cancellationToken = default)
+    {
+        var list = await db.Auctions.AsNoTracking().Select(a => a.Id).ToListAsync(cancellationToken);
+        var max = 0;
+        foreach (var id in list)
+        {
+            if (!id.StartsWith("a", StringComparison.OrdinalIgnoreCase))
+                continue;
+            var suffix = id[1..];
+            if (int.TryParse(suffix, out var n) && n > max)
+                max = n;
+        }
+        return "a" + (max + 1);
+    }
+
+    public Task AddAuctionAsync(Auction auction, CancellationToken cancellationToken = default)
+    {
+        db.Auctions.Add(auction);
+        return Task.CompletedTask;
+    }
+
+    public Task<bool> AnyLiveAuctionForProductAsync(string productId, CancellationToken cancellationToken = default)
+        => db.Auctions.AsNoTracking().AnyAsync(a => a.ProductId == productId && a.IsLive, cancellationToken);
+
     public async Task<IReadOnlyList<AuctionDto>> GetAuctionsDtoAsync(string? fandom, bool? isLive, bool? isUrgent, CancellationToken cancellationToken = default)
     {
         var q = db.Auctions.AsNoTracking().AsQueryable();
