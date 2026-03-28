@@ -2,6 +2,7 @@ namespace EzBias.Contracts.Features.Auctions.Dtos;
 
 public record AuctionDto(
     string Id,
+    string? ProductId,
     string Fandom,
     string Artist,
     string Name,
@@ -37,6 +38,7 @@ public record CreateAuctionRequest(
 
 public record AuctionDetailDto(
     string Id,
+    string? ProductId,
     string Fandom,
     string Artist,
     string Name,
