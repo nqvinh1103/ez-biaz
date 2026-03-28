@@ -276,18 +276,14 @@ export default function SubscriptionPage() {
     try {
       const res = await subscribe(planId);
       if (res.success) {
-        showToast(
-          planId === "boost"
-            ? "Boost activated! Your listings are now prioritised for 24 hours."
-            : "Welcome to Premium! Enjoy unlimited selling.",
-          "success",
-        );
-        navigate("/my-listings");
+        const payUrl = res.data?.payUrl;
+        if (payUrl) {
+          window.location.href = payUrl;
+          return;
+        }
+        showToast("Missing MoMo payUrl.", "error");
       } else {
-        showToast(
-          res.message ?? "Subscription failed. Please try again.",
-          "error",
-        );
+        showToast(res.message ?? "Subscription failed. Please try again.", "error");
       }
     } catch {
       showToast("Something went wrong. Please try again.", "error");

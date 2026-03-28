@@ -7,7 +7,8 @@ export function getMySubscription() {
 
 /** POST subscribe to a plan: planId = "boost" | "premium" */
 export function subscribe(planId) {
-  return api.post("/api/subscriptions", { planId });
+  // VNPay flow: backend returns payUrl, frontend redirects.
+  return api.post("/api/payments/vnpay/subscriptions/create", { planId });
 }
 
 /** DELETE cancel current subscription */

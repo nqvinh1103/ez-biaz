@@ -51,10 +51,14 @@ public class SubscriptionsController(IMediator mediator) : ControllerBase
 
     private string GetUserId()
     {
-        // Our JWT uses standard "sub" claim for user id.
-        var sub = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-        if (string.IsNullOrWhiteSpace(sub))
+        var id =
+            User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+            ?? User.FindFirstValue("sub");
+
+        if (string.IsNullOrWhiteSpace(id))
             throw new UnauthorizedAccessException("Missing user id.");
-        return sub;
+
+        return id;
     }
 }
