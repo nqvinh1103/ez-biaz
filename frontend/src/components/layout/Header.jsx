@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
 
@@ -8,19 +8,15 @@ const Header = forwardRef(function Header(
   signUpButtonRef,
 ) {
   const [isOpen, setIsOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const wrapperRef = useRef(null);
-  const dropdownRef = useRef(null);
   const { user, logout, isLoggedIn } = useAuth();
   const { count } = useCart();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
         setIsOpen(false);
-      }
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false);
       }
     };
 
@@ -62,7 +58,7 @@ const Header = forwardRef(function Header(
             {isLoggedIn ? (
               <div className="hidden sm:flex items-center gap-2">
                 {/* ── Create Auction button ── */}
-                <Link
+                {/* <Link
                   to="/create-auction"
                   className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#ad93e6] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#9d7ed9]"
                 >
@@ -81,108 +77,17 @@ const Header = forwardRef(function Header(
                     />
                   </svg>
                   Auction
+                </Link> */}
+
+                {/* ── Avatar → /profile ── */}
+                <Link
+                  to="/profile"
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm ring-2 ring-[#ad93e6] ring-offset-1 transition-transform hover:scale-105"
+                  style={{ backgroundColor: user.avatarBg }}
+                  aria-label="My profile"
+                >
+                  {user.avatar}
                 </Link>
-
-                {/* ── Avatar + dropdown ── */}
-                <div className="relative" ref={dropdownRef}>
-                  <button
-                    onClick={() => setDropdownOpen((p) => !p)}
-                    className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm ring-2 ring-[#ad93e6] ring-offset-1 transition-transform hover:scale-105"
-                    style={{ backgroundColor: user.avatarBg }}
-                    aria-label="User menu"
-                    aria-expanded={dropdownOpen}
-                  >
-                    {user.avatar}
-                  </button>
-
-                  {dropdownOpen && (
-                    <div className="absolute right-0 top-11 z-50 w-52 overflow-hidden rounded-xl border border-[#e6e6e6] bg-white shadow-lg">
-                      <div className="border-b border-[#e6e6e6] px-4 py-3">
-                        <p className="truncate text-sm font-semibold text-[#121212]">
-                          {user.fullName}
-                        </p>
-                        <p className="truncate text-xs text-[#737373]">
-                          {user.email}
-                        </p>
-                      </div>
-                      <Link
-                        to="/my-listings"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex w-full items-center gap-2 px-4 py-3 text-sm text-[#121212] transition-colors hover:bg-[rgba(173,147,230,0.06)]"
-                      >
-                        <svg
-                          className="h-4 w-4 text-[#ad93e6]"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                          aria-hidden="true"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
-                          />
-                        </svg>
-                        My Listings
-                      </Link>
-                      <Link
-                        to="/order-history"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex w-full items-center gap-2 px-4 py-3 text-sm text-[#121212] transition-colors hover:bg-[rgba(173,147,230,0.06)]"
-                      >
-                        <svg
-                          className="h-4 w-4 text-[#ad93e6]"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                          aria-hidden="true"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"
-                          />
-                        </svg>
-                        My Order History
-                      </Link>
-                      <Link
-                        to="/subscription"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-[#7c3aed] transition-colors hover:bg-[rgba(124,58,237,0.06)]"
-                      >
-                        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                        Upgrade Plan
-                      </Link>
-                      <button
-                        onClick={() => {
-                          logout();
-                          setDropdownOpen(false);
-                        }}
-                        className="flex w-full items-center gap-2 px-4 py-3 text-sm text-[#ef4343] transition-colors hover:bg-[rgba(239,67,67,0.06)]"
-                      >
-                        <svg
-                          className="h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                          aria-hidden="true"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"
-                          />
-                        </svg>
-                        Logout
-                      </button>
-                    </div>
-                  )}
-                </div>
               </div>
             ) : (
               <button
@@ -312,7 +217,12 @@ const Header = forwardRef(function Header(
               onClick={() => setIsOpen(false)}
               className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-[#7c3aed] to-[#ad93e6] text-sm font-semibold text-white"
             >
-              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+              <svg
+                className="h-4 w-4"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                aria-hidden="true"
+              >
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
               Upgrade Plan

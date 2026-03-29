@@ -289,7 +289,7 @@ function ListingRow({ listing, onEdit, onDelete }) {
 
       {/* Price */}
       <p className="hidden shrink-0 text-base font-bold text-[#121212] sm:block">
-        ${listing.price.toFixed(2)}
+        {formatCurrency(listing.price)}
       </p>
 
       {/* Actions */}
@@ -353,37 +353,55 @@ function SoldItemRow({ item }) {
       {/* Image */}
       <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-[#f0f0f0] bg-[#f7f6fb] flex items-center justify-center">
         {item.image ? (
-          <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+          <img
+            src={item.image}
+            alt={item.name}
+            className="h-full w-full object-cover"
+          />
         ) : (
-          <svg className="h-6 w-6 text-[#d4d4d4]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5" />
+          <svg
+            className="h-6 w-6 text-[#d4d4d4]"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5"
+            />
           </svg>
         )}
       </div>
 
       {/* Info */}
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-[#121212]">{item.name}</p>
+        <p className="truncate text-sm font-semibold text-[#121212]">
+          {item.name}
+        </p>
         <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-[#737373]">
           <span>
             Order:{" "}
             <span className="font-medium text-[#121212]">#{item.orderId}</span>
           </span>
           <span>
-            Qty:{" "}
-            <span className="font-medium text-[#121212]">{item.qty}</span>
+            Qty: <span className="font-medium text-[#121212]">{item.qty}</span>
           </span>
           <span>
-            Sold:{" "}
-            <span className="font-medium text-[#121212]">{date}</span>
+            Sold: <span className="font-medium text-[#121212]">{date}</span>
           </span>
         </div>
       </div>
 
       {/* Revenue */}
       <div className="shrink-0 text-right">
-        <p className="text-base font-bold text-[#121212]">{formatCurrency(item.price * item.qty)}</p>
-        <p className="text-xs text-[#737373]">{formatCurrency(item.price)} × {item.qty}</p>
+        <p className="text-base font-bold text-[#121212]">
+          {formatCurrency(item.price * item.qty)}
+        </p>
+        <p className="text-xs text-[#737373]">
+          {formatCurrency(item.price)} × {item.qty}
+        </p>
       </div>
     </div>
   );
@@ -421,7 +439,7 @@ export default function MyListingsPage() {
 
   useEffect(() => {
     load().catch(() => setLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const handleTabChange = (tab) => {
@@ -431,7 +449,9 @@ export default function MyListingsPage() {
       getSoldItems(user.id).then((res) => {
         if (res.success) {
           const items = Array.isArray(res.data) ? res.data : [];
-          setSoldItems(items.sort((a, b) => new Date(b.soldAt) - new Date(a.soldAt)));
+          setSoldItems(
+            items.sort((a, b) => new Date(b.soldAt) - new Date(a.soldAt)),
+          );
         }
         setSoldLoading(false);
         setSoldFetched(true);
@@ -556,7 +576,7 @@ export default function MyListingsPage() {
         <div className="mb-6 flex gap-1 rounded-xl border border-[#e6e6e6] bg-[#f4f3f7] p-1">
           {[
             { key: "listings", label: "My Listings", count: listings.length },
-            { key: "sold",     label: "Sold Items",  count: soldItems.length },
+            { key: "sold", label: "Sold Items", count: soldItems.length },
           ].map((t) => (
             <button
               key={t.key}
@@ -569,7 +589,9 @@ export default function MyListingsPage() {
             >
               {t.label}
               {(t.key === "sold" ? soldFetched : true) && (
-                <span className={`text-xs ${pageTab === t.key ? "text-[#ad93e6]" : "text-[#b3b3b3]"}`}>
+                <span
+                  className={`text-xs ${pageTab === t.key ? "text-[#ad93e6]" : "text-[#b3b3b3]"}`}
+                >
                   {t.count}
                 </span>
               )}
@@ -578,62 +600,79 @@ export default function MyListingsPage() {
         </div>
 
         {/* Search + filter (listings only) */}
-        {pageTab === "sold" ? null : <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
-            <svg
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#b3b3b3]"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-              />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search listings…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-10 w-full rounded-lg border border-[#e6e6e6] bg-white pl-9 pr-4 text-sm text-[#121212] placeholder-[#b3b3b3] outline-none focus:border-[#ad93e6] focus:ring-2 focus:ring-[rgba(173,147,230,0.2)]"
-            />
-          </div>
-          <div className="flex gap-2">
-            {FILTERS.map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                  filter === f
-                    ? "border-[#ad93e6] bg-[#ad93e6] text-white"
-                    : "border-[#e6e6e6] text-[#737373] hover:border-[#ad93e6] hover:text-[#ad93e6]"
-                }`}
+        {pageTab === "sold" ? null : (
+          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
+              <svg
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#b3b3b3]"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
               >
-                {f}
-              </button>
-            ))}
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search listings…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-10 w-full rounded-lg border border-[#e6e6e6] bg-white pl-9 pr-4 text-sm text-[#121212] placeholder-[#b3b3b3] outline-none focus:border-[#ad93e6] focus:ring-2 focus:ring-[rgba(173,147,230,0.2)]"
+              />
+            </div>
+            <div className="flex gap-2">
+              {FILTERS.map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                    filter === f
+                      ? "border-[#ad93e6] bg-[#ad93e6] text-white"
+                      : "border-[#e6e6e6] text-[#737373] hover:border-[#ad93e6] hover:text-[#ad93e6]"
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>}
+        )}
 
         {/* ── Listings tab ── */}
-        {pageTab === "listings" && (
-          loading ? (
+        {pageTab === "listings" &&
+          (loading ? (
             <div className="flex justify-center py-20">
               <span className="h-8 w-8 animate-spin rounded-full border-2 border-[#e6e6e6] border-t-[#ad93e6]" />
             </div>
           ) : visible.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-20 text-center">
-              <svg className="h-12 w-12 text-[#d4d4d4]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3ZM6 6h.008v.008H6V6Z" />
+              <svg
+                className="h-12 w-12 text-[#d4d4d4]"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3ZM6 6h.008v.008H6V6Z"
+                />
               </svg>
               <p className="text-sm font-medium text-[#737373]">
-                {listings.length === 0 ? "You haven't listed anything yet." : "No listings match your search."}
+                {listings.length === 0
+                  ? "You haven't listed anything yet."
+                  : "No listings match your search."}
               </p>
               {listings.length === 0 && (
-                <Link to="/sell" className="text-sm font-semibold text-[#ad93e6] hover:underline">
+                <Link
+                  to="/sell"
+                  className="text-sm font-semibold text-[#ad93e6] hover:underline"
+                >
                   Post your first listing →
                 </Link>
               )}
@@ -641,44 +680,66 @@ export default function MyListingsPage() {
           ) : (
             <div className="flex flex-col gap-3">
               {visible.map((l) => (
-                <ListingRow key={l.id} listing={l} onEdit={setEditing} onDelete={setDeleting} />
+                <ListingRow
+                  key={l.id}
+                  listing={l}
+                  onEdit={setEditing}
+                  onDelete={setDeleting}
+                />
               ))}
             </div>
-          )
-        )}
+          ))}
 
         {/* ── Sold items tab ── */}
-        {pageTab === "sold" && (
-          soldLoading ? (
+        {pageTab === "sold" &&
+          (soldLoading ? (
             <div className="flex justify-center py-20">
               <span className="h-8 w-8 animate-spin rounded-full border-2 border-[#e6e6e6] border-t-[#ad93e6]" />
             </div>
           ) : soldItems.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-20 text-center">
-              <svg className="h-12 w-12 text-[#d4d4d4]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+              <svg
+                className="h-12 w-12 text-[#d4d4d4]"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
+                />
               </svg>
-              <p className="text-sm font-medium text-[#737373]">No sold items yet.</p>
+              <p className="text-sm font-medium text-[#737373]">
+                No sold items yet.
+              </p>
             </div>
           ) : (
             <>
               {/* Revenue summary */}
               <div className="mb-4 flex items-center justify-between rounded-xl border border-[#e6e6e6] bg-[#f7f6fb] px-5 py-3">
                 <span className="text-sm text-[#737373]">
-                  {soldItems.length} item{soldItems.length !== 1 ? "s" : ""} sold
+                  {soldItems.length} item{soldItems.length !== 1 ? "s" : ""}{" "}
+                  sold
                 </span>
                 <span className="text-base font-bold text-[#121212]">
-                  Total revenue: {formatCurrency(soldItems.reduce((s, i) => s + i.price * i.qty, 0))}
+                  Total revenue:{" "}
+                  {formatCurrency(
+                    soldItems.reduce((s, i) => s + i.price * i.qty, 0),
+                  )}
                 </span>
               </div>
               <div className="flex flex-col gap-3">
                 {soldItems.map((item) => (
-                  <SoldItemRow key={`${item.orderId}-${item.productId}`} item={item} />
+                  <SoldItemRow
+                    key={`${item.orderId}-${item.productId}`}
+                    item={item}
+                  />
                 ))}
               </div>
             </>
-          )
-        )}
+          ))}
       </div>
 
       {/* Modals */}

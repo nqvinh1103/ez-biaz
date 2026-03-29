@@ -1,18 +1,13 @@
 import { memo } from "react";
 import { navLinks } from "../../data/landingData";
 import { useLoginModal } from "../../context/LoginModalContext";
+import { useNestedLayout } from "../../context/NestedLayoutContext";
 import Footer from "./Footer";
 import Header from "./Header";
 
 /**
  * Standard page shell: sticky Header + <main> content area + Footer.
- * Opens the login modal via LoginModalContext — no prop drilling needed.
- *
- * @param {{
- *   children: React.ReactNode,
- *   headerRef?: React.Ref,
- *   mainClassName?: string,
- * }} props
+ * Khi render bên trong ProfilePage (nested route), tự động bỏ Header/Footer.
  */
 const PageLayout = memo(function PageLayout({
   children,
@@ -20,6 +15,11 @@ const PageLayout = memo(function PageLayout({
   mainClassName,
 }) {
   const { openLoginModal } = useLoginModal();
+  const isNested = useNestedLayout();
+
+  if (isNested) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="min-h-screen min-w-[320px] bg-white font-['Inter'] text-[#121212]">
