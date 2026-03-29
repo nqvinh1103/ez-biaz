@@ -26,9 +26,10 @@ public class ProductsController(IMediator mediator, EzBias.Application.Common.In
         [FromQuery] string? type,
         [FromQuery] decimal? minPrice,
         [FromQuery] decimal? maxPrice,
-        [FromQuery] bool? inStockOnly)
+        [FromQuery] bool? inStockOnly,
+        [FromQuery] bool? boostedFirst)
     {
-        var results = await mediator.Send(new GetProductsQuery(fandom, type, minPrice, maxPrice, inStockOnly));
+        var results = await mediator.Send(new GetProductsQuery(fandom, type, minPrice, maxPrice, inStockOnly, boostedFirst));
 
         if (results.Count == 0)
             return ApiResponse<IReadOnlyList<ProductDto>>.Ok(results, "No products found for the selected filters.");

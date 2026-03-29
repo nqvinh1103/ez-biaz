@@ -12,6 +12,7 @@ public interface IProductRepository
         decimal? minPrice,
         decimal? maxPrice,
         bool? inStockOnly,
+        bool? boostedFirst,
         CancellationToken cancellationToken = default);
 
     Task<ProductDto?> GetByIdDtoAsync(string id, CancellationToken cancellationToken = default);

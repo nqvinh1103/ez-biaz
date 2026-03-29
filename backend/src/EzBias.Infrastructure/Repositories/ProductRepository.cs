@@ -14,6 +14,7 @@ public class ProductRepository(EzBiasDbContext db) : IProductRepository
         decimal? minPrice,
         decimal? maxPrice,
         bool? inStockOnly,
+        bool? boostedFirst,
         CancellationToken cancellationToken = default)
     {
         var q = db.Products.AsNoTracking().Where(p => !p.IsAuction && p.Stock > 0).AsQueryable();
@@ -34,8 +35,28 @@ public class ProductRepository(EzBiasDbContext db) : IProductRepository
         if (inStockOnly == true)
             q = q.Where(p => p.Stock > 0);
 
+        var now = DateTime.UtcNow;
+
+        if (boostedFirst == true)
+        {
+            var boostedSellerIds = db.UserSubscriptions.AsNoTracking()
+                .Where(s => s.PlanId == "boost" && s.Status == "active" && s.EndsAt > now)
+                .Select(s => s.UserId)
+                .Distinct();
+
+            // Order boosted sellers first; within each group keep newest first.
+            q = from p in q
+                join b in boostedSellerIds on p.SellerId equals b into pb
+                from b in pb.DefaultIfEmpty()
+                orderby (b != null) descending, p.CreatedAt descending
+                select p;
+        }
+        else
+        {
+            q = q.OrderByDescending(p => p.CreatedAt);
+        }
+
         return await q
-            .OrderByDescending(p => p.CreatedAt)
             .Select(p => new ProductDto(
                 p.Id,
                 p.Fandom,

@@ -200,7 +200,7 @@ AuthAvailable: {{hasAuth}}
                 var keyword = GetString(args, "keyword");
                 var artist = GetString(args, "artist");
 
-                var list = await products.GetProductsDtoAsync(fandom, type, min, max, true, cancellationToken);
+                var list = await products.GetProductsDtoAsync(fandom, type, min, max, true, false, cancellationToken);
 
                 var filtered = list
                     .Where(p => string.IsNullOrWhiteSpace(keyword)

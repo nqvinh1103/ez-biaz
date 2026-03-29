@@ -8,5 +8,6 @@ public record GetProductsQuery(
     string? Type,
     decimal? MinPrice,
     decimal? MaxPrice,
-    bool? InStockOnly
+    bool? InStockOnly,
+    bool? BoostedFirst
 ) : IRequest<IReadOnlyList<ProductDto>>;

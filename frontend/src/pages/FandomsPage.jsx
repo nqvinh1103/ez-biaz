@@ -78,7 +78,9 @@ function FandomsPage() {
     (async () => {
       setLoading(true);
       setError(null);
-      const query = activeTab === ALL_TAB ? undefined : { fandom: activeTab };
+      const query = activeTab === ALL_TAB
+        ? { boostedFirst: true }
+        : { fandom: activeTab, boostedFirst: true };
       const res = await getProducts(query);
       if (!mounted) return;
       if (res.success) setProducts(res.data ?? []);
