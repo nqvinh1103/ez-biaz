@@ -98,7 +98,8 @@ public class AuthService : IAuthService
         var expiresAt = DateTime.UtcNow.AddDays(_refreshDays);
         var rotated = await _refresh.RotateAsync(request.RefreshToken, expiresAt, ct);
 
-        var accessToken = _jwt.GenerateAccessToken(user);
+        var planId = await GetActivePlanIdAsync(user.Id, ct);
+        var accessToken = _jwt.GenerateAccessToken(user, planId);
         var expiresIn = _jwt.GetAccessTokenExpiresInSeconds();
 
         return new AuthResponse(
@@ -113,7 +114,8 @@ public class AuthService : IAuthService
 
     private async Task<AuthResponse> IssueTokensAsync(User user, CancellationToken ct)
     {
-        var accessToken = _jwt.GenerateAccessToken(user);
+        var planId = await GetActivePlanIdAsync(user.Id, ct);
+        var accessToken = _jwt.GenerateAccessToken(user, planId);
         var expiresIn = _jwt.GetAccessTokenExpiresInSeconds();
 
         var expiresAt = DateTime.UtcNow.AddDays(_refreshDays);
@@ -125,6 +127,13 @@ public class AuthService : IAuthService
             ExpiresInSeconds: expiresIn,
             RefreshToken: created.RawToken);
     }
+
+    private Task<string?> GetActivePlanIdAsync(string userId, CancellationToken ct)
+        => _db.UserSubscriptions.AsNoTracking()
+            .Where(s => s.UserId == userId && s.Status == "active" && s.EndsAt > DateTime.UtcNow)
+            .OrderByDescending(s => s.StartsAt)
+            .Select(s => (string?)s.PlanId)
+            .FirstOrDefaultAsync(ct);
 
     private static AuthUserDto MapUser(User user) => new(
         Id: user.Id,

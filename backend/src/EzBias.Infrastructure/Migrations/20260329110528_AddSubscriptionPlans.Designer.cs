@@ -3,6 +3,7 @@ using System;
 using EzBias.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EzBias.Infrastructure.Migrations
 {
     [DbContext(typeof(EzBiasDbContext))]
-    partial class EzBiasDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260329110528_AddSubscriptionPlans")]
+    partial class AddSubscriptionPlans
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -592,12 +595,10 @@ namespace EzBias.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("text");
 
                     b.Property<decimal>("Price")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -721,8 +722,6 @@ namespace EzBias.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("PlanId");
 
                     b.HasIndex("UserId");
 
@@ -855,12 +854,6 @@ namespace EzBias.Infrastructure.Migrations
 
             modelBuilder.Entity("EzBias.Domain.Entities.UserSubscription", b =>
                 {
-                    b.HasOne("EzBias.Domain.Entities.SubscriptionPlan", null)
-                        .WithMany()
-                        .HasForeignKey("PlanId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("EzBias.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")

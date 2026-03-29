@@ -25,7 +25,7 @@ public class JwtTokenService : IJwtTokenService
         }
     }
 
-    public string GenerateAccessToken(User user)
+    public string GenerateAccessToken(User user, string? planId)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -38,6 +38,9 @@ public class JwtTokenService : IJwtTokenService
             new("username", user.Username),
             new("fullName", user.FullName)
         };
+
+        if (!string.IsNullOrWhiteSpace(planId))
+            claims.Add(new Claim("planId", planId));
 
         var token = new JwtSecurityToken(
             claims: claims,

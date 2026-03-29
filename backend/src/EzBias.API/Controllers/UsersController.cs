@@ -17,25 +17,8 @@ public class UsersController(IUserRepository users) : ControllerBase
     public async Task<ActionResult<ApiResponse<MyProfileDto>>> GetMe()
     {
         var userId = GetUserId();
-        var u = await users.GetByIdAsync(userId);
-        if (u is null) return NotFound(ApiResponse<MyProfileDto>.Fail("User not found."));
-
-        var dto = new MyProfileDto(
-            u.Id,
-            u.FullName,
-            u.Username,
-            u.Email,
-            u.Role,
-            u.Avatar,
-            u.AvatarBg,
-            u.Phone,
-            u.Address,
-            u.City,
-            u.Zip,
-            u.BankName,
-            u.BankAccountNumber,
-            u.BankAccountName
-        );
+        var dto = await users.GetMyProfileDtoAsync(userId);
+        if (dto is null) return NotFound(ApiResponse<MyProfileDto>.Fail("User not found."));
 
         return ApiResponse<MyProfileDto>.Ok(dto);
     }
