@@ -1,38 +1,71 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PageLayout from "../components/layout/PageLayout";
 import BackLink from "../components/ui/BackLink";
 import Button from "../components/ui/Button";
-import { formatCurrency } from "../utils/formatters";
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../hooks/useAuth";
 import { createAuction, getListingsByUser } from "../lib/ezbiasApi";
 import { cn } from "../utils/cn";
+import { formatCurrency } from "../utils/formatters";
 
 /* ── Constants ──────────────────────────────────────────────────────────── */
 const DURATIONS = [
-  { label: "1 Day",   hours: 24  },
-  { label: "3 Days",  hours: 72  },
-  { label: "7 Days",  hours: 168 },
+  { label: "1 Day", hours: 24 },
+  { label: "3 Days", hours: 72 },
+  { label: "7 Days", hours: 168 },
   { label: "14 Days", hours: 336 },
 ];
 
 /* ── Icons ──────────────────────────────────────────────────────────────── */
 const GavelIcon = ({ className = "h-4 w-4" }) => (
-  <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" aria-hidden="true">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.042 21.672L13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59" />
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15.042 21.672L13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59"
+    />
   </svg>
 );
 
 const CheckIcon = () => (
-  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true">
-    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+  <svg
+    className="h-4 w-4"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="m4.5 12.75 6 6 9-13.5"
+    />
   </svg>
 );
 
 const BoltIcon = () => (
-  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-    <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
+  <svg
+    className="h-4 w-4"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z"
+    />
   </svg>
 );
 
@@ -95,10 +128,16 @@ function ProductPickerCard({ product, selected, onSelect }) {
         <p className="mt-1 text-sm font-bold text-[#121212]">
           ${Number(product.price).toFixed(2)}
         </p>
-        <p className={cn(
-          "text-[10px]",
-          product.stock > 5 ? "text-green-600" : product.stock > 0 ? "text-amber-600" : "text-red-500",
-        )}>
+        <p
+          className={cn(
+            "text-[10px]",
+            product.stock > 5
+              ? "text-green-600"
+              : product.stock > 0
+                ? "text-amber-600"
+                : "text-red-500",
+          )}
+        >
           {product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}
         </p>
       </div>
@@ -139,19 +178,19 @@ function ListingSkeleton() {
 /* ── Page ───────────────────────────────────────────────────────────────── */
 export default function CreateAuctionPage() {
   const { user } = useAuth();
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
   const { showToast } = useToast();
 
-  const [listings, setListings]       = useState([]);
+  const [listings, setListings] = useState([]);
   const [loadingList, setLoadingList] = useState(true);
-  const [fetchError, setFetchError]   = useState(null);
+  const [fetchError, setFetchError] = useState(null);
 
-  const [selectedId, setSelectedId]   = useState(null);
-  const [durationHours, setDuration]  = useState(72);   // default 3 days
-  const [isUrgent, setIsUrgent]       = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
+  const [durationHours, setDuration] = useState(72); // default 3 days
+  const [isUrgent, setIsUrgent] = useState(false);
 
-  const [submitting, setSubmitting]   = useState(false);
-  const [error, setError]             = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
   /* fetch seller's listings on mount */
   useEffect(() => {
@@ -163,7 +202,9 @@ export default function CreateAuctionPage() {
       else setFetchError(res.message ?? "Failed to load your listings.");
       setLoadingList(false);
     });
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [user?.id]);
 
   const selectedProduct = listings.find((p) => p.id === selectedId) ?? null;
@@ -175,8 +216,8 @@ export default function CreateAuctionPage() {
     setError(null);
 
     const res = await createAuction({
-      productId:     selectedId,
-      sellerId:      user.id,
+      productId: selectedId,
+      sellerId: user.id,
       durationHours,
       isUrgent,
     });
@@ -200,12 +241,23 @@ export default function CreateAuctionPage() {
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ad93e6]">
             <GavelIcon />
           </span>
-          <h1 className="text-2xl font-bold text-[#121212]">Create an Auction</h1>
+          <h1 className="text-2xl font-bold text-[#121212]">
+            Create an Auction
+          </h1>
         </div>
 
         {/* ── Step 1: Pick a product ──────────────────────────────── */}
         <section className="mb-10">
           <SectionHeader step="1" title="Select a Product to Auction" />
+
+          <div className="mb-4 text-right">
+            <Link
+              to="/sell"
+              className="text-xs font-semibold text-[#ad93e6] hover:underline"
+            >
+              Create product?
+            </Link>
+          </div>
 
           {loadingList ? (
             <ListingSkeleton />
@@ -213,10 +265,15 @@ export default function CreateAuctionPage() {
             <p className="text-sm text-[#ef4343]">{fetchError}</p>
           ) : listings.length === 0 ? (
             <div className="rounded-xl border border-dashed border-[#e6e6e6] py-12 text-center">
-              <p className="text-sm text-[#737373]">You have no listings yet.</p>
-              <a href="/sell" className="mt-2 inline-block text-sm font-semibold text-[#ad93e6] hover:underline">
+              <p className="text-sm text-[#737373]">
+                You have no listings yet.
+              </p>
+              <Link
+                to="/sell"
+                className="mt-2 inline-block text-sm font-semibold text-[#ad93e6] hover:underline"
+              >
                 Create a listing first →
-              </a>
+              </Link>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -237,10 +294,11 @@ export default function CreateAuctionPage() {
           <SectionHeader step="2" title="Auction Settings" />
 
           <div className="rounded-xl border border-[#e6e6e6] bg-white p-5 flex flex-col gap-6">
-
             {/* Duration */}
             <div>
-              <p className="mb-2 text-xs font-medium text-[#737373]">Duration</p>
+              <p className="mb-2 text-xs font-medium text-[#737373]">
+                Duration
+              </p>
               <div className="flex flex-wrap gap-2">
                 {DURATIONS.map(({ label, hours }) => (
                   <button
@@ -259,17 +317,26 @@ export default function CreateAuctionPage() {
                 ))}
               </div>
               <p className="mt-1.5 text-[11px] text-[#b3b3b3]">
-                Auction ends in {durationHours}h ({DURATIONS.find(d => d.hours === durationHours)?.label ?? `${durationHours}h`})
+                Auction ends in {durationHours}h (
+                {DURATIONS.find((d) => d.hours === durationHours)?.label ??
+                  `${durationHours}h`}
+                )
               </p>
             </div>
 
             {/* Urgent toggle */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-[#ef4343]"><BoltIcon /></span>
+                <span className="text-[#ef4343]">
+                  <BoltIcon />
+                </span>
                 <div>
-                  <p className="text-sm font-medium text-[#121212]">Mark as Urgent</p>
-                  <p className="text-xs text-[#737373]">Shows a red timer badge — draws more attention</p>
+                  <p className="text-sm font-medium text-[#121212]">
+                    Mark as Urgent
+                  </p>
+                  <p className="text-xs text-[#737373]">
+                    Shows a red timer badge — draws more attention
+                  </p>
                 </div>
               </div>
               <button
@@ -313,9 +380,19 @@ export default function CreateAuctionPage() {
                   {selectedProduct.name}
                 </p>
                 <p className="text-xs text-[#737373]">
-                  Floor price: <span className="font-semibold text-[#121212]">{formatCurrency(selectedProduct.price)}</span>
-                  {" · "}Duration: <span className="font-semibold text-[#121212]">{DURATIONS.find(d => d.hours === durationHours)?.label}</span>
-                  {isUrgent && <span className="ml-2 text-[#ef4343] font-semibold">⚡ Urgent</span>}
+                  Floor price:{" "}
+                  <span className="font-semibold text-[#121212]">
+                    {formatCurrency(selectedProduct.price)}
+                  </span>
+                  {" · "}Duration:{" "}
+                  <span className="font-semibold text-[#121212]">
+                    {DURATIONS.find((d) => d.hours === durationHours)?.label}
+                  </span>
+                  {isUrgent && (
+                    <span className="ml-2 text-[#ef4343] font-semibold">
+                      ⚡ Urgent
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
@@ -336,7 +413,9 @@ export default function CreateAuctionPage() {
             {submitting ? "Creating…" : "Start Auction"}
           </Button>
           {!selectedId && (
-            <p className="text-xs text-[#737373]">Select a product to continue.</p>
+            <p className="text-xs text-[#737373]">
+              Select a product to continue.
+            </p>
           )}
         </div>
       </div>
