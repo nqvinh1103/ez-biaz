@@ -13,10 +13,21 @@ public static class DataSeeder
     {
         var db = services.GetRequiredService<EzBiasDbContext>();
 
-        // Idempotent: only seed when empty
+        // Ensure subscription plans exist (idempotent, even when DB already has users)
+        if (!await db.SubscriptionPlans.AnyAsync())
+        {
+            await db.SubscriptionPlans.AddRangeAsync(
+                new SubscriptionPlan { Id = "free", Name = "Free", Price = 0m, DurationDays = 0, DurationHours = 0, IsActive = true, CreatedAt = DateTime.UtcNow },
+                new SubscriptionPlan { Id = "boost", Name = "Boost", Price = 19000m, DurationDays = 0, DurationHours = 24, IsActive = true, CreatedAt = DateTime.UtcNow },
+                new SubscriptionPlan { Id = "premium", Name = "Premium", Price = 99000m, DurationDays = 30, DurationHours = 0, IsActive = true, CreatedAt = DateTime.UtcNow }
+            );
+            await db.SaveChangesAsync();
+        }
+
+        // Idempotent: only seed demo data when empty
         if (await db.Users.AnyAsync())
         {
-            Console.WriteLine("[Seed] Users table is not empty. Skipping seeding.");
+            Console.WriteLine("[Seed] Users table is not empty. Skipping demo seeding.");
             return;
         }
 

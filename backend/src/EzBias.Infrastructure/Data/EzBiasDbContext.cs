@@ -17,6 +17,7 @@ public class EzBiasDbContext : DbContext
     public DbSet<CartItem> CartItems => Set<CartItem>();
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
     public DbSet<UserSubscription> UserSubscriptions => Set<UserSubscription>();
+    public DbSet<SubscriptionPlan> SubscriptionPlans => Set<SubscriptionPlan>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
@@ -41,6 +42,14 @@ public class EzBiasDbContext : DbContext
             b.Property(x => x.Role).HasMaxLength(32);
         });
 
+        modelBuilder.Entity<SubscriptionPlan>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Id).ValueGeneratedNever();
+            b.Property(x => x.Name).HasMaxLength(64);
+            b.Property(x => x.Price).HasPrecision(18, 2);
+        });
+
         modelBuilder.Entity<UserSubscription>(b =>
         {
             b.HasKey(x => x.Id);
@@ -53,6 +62,11 @@ public class EzBiasDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasOne<SubscriptionPlan>()
+                .WithMany()
+                .HasForeignKey(x => x.PlanId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Product>(b =>
