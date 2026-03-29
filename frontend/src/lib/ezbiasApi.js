@@ -5,3 +5,4 @@ export * from "./api/contact";
 export * from "./api/listings";
 export * from "./api/orders";
 export * from "./api/products";
+export * from "./api/users";

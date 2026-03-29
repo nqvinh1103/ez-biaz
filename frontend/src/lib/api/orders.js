@@ -27,14 +27,26 @@ export function checkout(
   });
 }
 
+/** Buyer: list all orders for a user */
 export function getOrders(userId) {
   return api.get(`/api/orders/${encodeURIComponent(userId)}`);
+}
+
+/** Seller: list all orders assigned to this seller */
+export function getSellerOrders(sellerId) {
+  return api.get(`/api/orders/seller/${encodeURIComponent(sellerId)}`);
+}
+
+/** Seller: mark an order as shipped */
+export function shipOrder(orderId, sellerId) {
+  return api.post(`/api/orders/${encodeURIComponent(orderId)}/ship`, { sellerId });
+}
+
+/** Buyer: confirm order received */
+export function receiveOrder(orderId, buyerId) {
+  return api.post(`/api/orders/${encodeURIComponent(orderId)}/received`, { buyerId });
 }
 
 export function getSoldItems(sellerId) {
   return api.get(`/api/orders/seller/${encodeURIComponent(sellerId)}/sold`);
 }
-
-// export function getOrderHistory(userId) {
-//   return api.get(`/api/orders/history/${encodeURIComponent(userId)}`);
-// }
