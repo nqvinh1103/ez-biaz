@@ -93,6 +93,10 @@ builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPayoutRepository, PayoutRepository>();
 builder.Services.AddScoped<IEscrowRepository, EscrowRepository>();
 
+// Assistant (Gemini)
+builder.Services.AddHttpClient<EzBias.Application.Common.Interfaces.AI.IChatModelClient, EzBias.Infrastructure.AI.GeminiChatClient>();
+builder.Services.AddSingleton<EzBias.Application.Features.Assistant.Commands.Chat.IConversationStore, EzBias.Application.Features.Assistant.Commands.Chat.InMemoryConversationStore>();
+
 // Image storage (Cloudinary)
 builder.Services.AddSingleton<EzBias.Application.Common.Interfaces.Storage.IImageStorage>(sp =>
 {
