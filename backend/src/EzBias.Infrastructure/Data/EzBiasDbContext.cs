@@ -114,6 +114,7 @@ public class EzBiasDbContext : DbContext
             b.Property(x => x.Type).HasMaxLength(32);
             b.Property(x => x.Status).HasMaxLength(32);
             b.Property(x => x.Reference).HasMaxLength(64);
+            b.Property(x => x.Payload).HasMaxLength(16_384);
             b.Property(x => x.ProviderOrderId).HasMaxLength(128);
             b.Property(x => x.RequestId).HasMaxLength(64);
 

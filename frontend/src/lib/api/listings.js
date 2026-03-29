@@ -9,6 +9,7 @@ export function createListing(userId, listingData, images = []) {
   form.append("name", listingData.name);
   form.append("condition", listingData.condition);
   form.append("price", String(listingData.price));
+  if (listingData.stock != null) form.append("stock", String(listingData.stock));
   form.append("fandom", listingData.fandom);
   (listingData.itemTypes ?? []).forEach((t) => form.append("itemTypes", t));
   if (listingData.description) form.append("description", listingData.description);

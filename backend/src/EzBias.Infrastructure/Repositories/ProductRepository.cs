@@ -47,6 +47,7 @@ public class ProductRepository(EzBiasDbContext db) : IProductRepository
                 p.Stock,
                 p.SellerId,
                 p.Image,
+                p.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).ToList(),
                 p.Description,
                 p.CreatedAt.ToString("yyyy-MM-dd"),
                 p.IsAuction
@@ -68,6 +69,7 @@ public class ProductRepository(EzBiasDbContext db) : IProductRepository
                 p.Stock,
                 p.SellerId,
                 p.Image,
+                p.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).ToList(),
                 p.Description,
                 p.CreatedAt.ToString("yyyy-MM-dd"),
                 p.IsAuction
@@ -89,6 +91,7 @@ public class ProductRepository(EzBiasDbContext db) : IProductRepository
                 p.Stock,
                 p.SellerId,
                 p.Image,
+                p.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).ToList(),
                 p.Description,
                 p.CreatedAt.ToString("yyyy-MM-dd"),
                 p.IsAuction

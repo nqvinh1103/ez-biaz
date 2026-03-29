@@ -20,6 +20,9 @@ public class Payment
     // For subscription: planId (boost|premium). For orders: empty.
     public string Reference { get; set; } = string.Empty;
 
+    // For order payments: store checkout/shipping payload (JSON)
+    public string Payload { get; set; } = string.Empty;
+
     // MoMo fields
     public string? ProviderOrderId { get; set; }
     public string? RequestId { get; set; }
