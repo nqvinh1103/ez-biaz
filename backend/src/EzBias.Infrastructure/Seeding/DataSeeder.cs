@@ -190,7 +190,7 @@ public static class DataSeeder
 
                 var itemsForSeller = g.Select(x => x.it).ToList();
                 var subtotal = itemsForSeller.Sum(i => i.price * i.qty);
-                var shippingFee = o.shippingFee; // keep same fee per split order (demo)
+                var shippingFee = 0m;
                 var total = decimal.Round(subtotal + shippingFee, 2);
 
                 orders.Add(new Order

@@ -3,7 +3,7 @@ import { useAuth } from "../hooks/useAuth";
 import * as api from "../lib/ezbiasApi";
 import { CartContext } from "./cartContextObject";
 
-const SHIPPING_FEE = 5.99;
+const SHIPPING_FEE = 0;
 
 /**
  * Provides cart state (items, add, remove, totals) to the subtree.

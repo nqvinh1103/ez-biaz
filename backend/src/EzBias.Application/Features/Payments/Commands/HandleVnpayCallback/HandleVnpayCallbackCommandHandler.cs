@@ -65,6 +65,9 @@ public class HandleVnpayCallbackCommandHandler(
                     CreatedAt = DateTime.UtcNow
                 }, cancellationToken);
             }
+
+            // Clear buyer cart AFTER successful payment
+            await orders.ClearCartAsync(payment.UserId, cancellationToken);
         }
         else if (payment.Type == "subscription")
         {

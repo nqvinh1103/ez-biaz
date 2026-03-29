@@ -91,7 +91,7 @@ public class CheckoutCommandHandler(IOrderRepository repo) : IRequestHandler<Che
         var orderIds = await repo.NextOrderIdsAsync(groups.Count, cancellationToken);
         var now = DateTime.UtcNow;
         var address = $"{model.ShippingInfo.Address}, {model.ShippingInfo.City}";
-        const decimal shippingFee = 5.99m;
+        const decimal shippingFee = 0m;
 
         var orders = new List<Order>(groups.Count);
 
