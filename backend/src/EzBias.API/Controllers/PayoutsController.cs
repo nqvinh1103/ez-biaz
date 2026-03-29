@@ -11,10 +11,10 @@ namespace EzBias.API.Controllers;
 public class PayoutsController(IPayoutRepository payouts) : ControllerBase
 {
     [HttpGet("pending")]
-    public async Task<ActionResult<ApiResponse<IReadOnlyList<Payout>>>> GetPending()
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<EzBias.Contracts.Features.Payments.Dtos.PayoutPendingDto>>>> GetPending()
     {
-        var list = await payouts.GetPendingAsync();
-        return ApiResponse<IReadOnlyList<Payout>>.Ok(list);
+        var list = await payouts.GetPendingDtosAsync();
+        return ApiResponse<IReadOnlyList<EzBias.Contracts.Features.Payments.Dtos.PayoutPendingDto>>.Ok(list);
     }
 
     public record MarkPaidRequest(string BankTransferRef);

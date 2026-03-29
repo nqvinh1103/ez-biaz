@@ -1,4 +1,5 @@
 using EzBias.Application.Common.Interfaces.Repositories;
+using EzBias.Contracts.Features.Payments.Dtos;
 using EzBias.Domain.Entities.Payments;
 using EzBias.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,26 @@ public class PayoutRepository(EzBiasDbContext db) : IPayoutRepository
 
     public async Task<IReadOnlyList<Payout>> GetPendingAsync(CancellationToken cancellationToken = default)
         => await db.Payouts.AsNoTracking().Where(x => x.Status == "pending").OrderBy(x => x.CreatedAt).ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<PayoutPendingDto>> GetPendingDtosAsync(CancellationToken cancellationToken = default)
+    {
+        return await (
+            from p in db.Payouts.AsNoTracking()
+            join u in db.Users.AsNoTracking() on p.SellerId equals u.Id
+            where p.Status == "pending"
+            orderby p.CreatedAt
+            select new PayoutPendingDto(
+                p.Id,
+                p.OrderId,
+                p.SellerId,
+                p.Amount,
+                p.Status,
+                u.BankName,
+                u.BankAccountNumber,
+                u.BankAccountName
+            )
+        ).ToListAsync(cancellationToken);
+    }
 
     public async Task<IReadOnlyList<Payout>> GetBySellerIdAsync(string sellerId, CancellationToken cancellationToken = default)
         => await db.Payouts.AsNoTracking().Where(x => x.SellerId == sellerId).OrderByDescending(x => x.CreatedAt).ToListAsync(cancellationToken);

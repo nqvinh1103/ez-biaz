@@ -1,3 +1,4 @@
+using EzBias.Contracts.Features.Payments.Dtos;
 using EzBias.Domain.Entities.Payments;
 
 namespace EzBias.Application.Common.Interfaces.Repositories;
@@ -8,6 +9,8 @@ public interface IPayoutRepository
     Task<Payout?> GetByOrderIdAsync(string orderId, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<Payout>> GetPendingAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<PayoutPendingDto>> GetPendingDtosAsync(CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<Payout>> GetBySellerIdAsync(string sellerId, CancellationToken cancellationToken = default);
 
     Task AddAsync(Payout payout, CancellationToken cancellationToken = default);
