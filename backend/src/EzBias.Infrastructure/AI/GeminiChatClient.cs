@@ -8,7 +8,8 @@ namespace EzBias.Infrastructure.AI;
 public class GeminiChatClient(HttpClient http, IConfiguration config) : IChatModelClient
 {
     private readonly string _apiKey = config["Gemini:ApiKey"] ?? string.Empty;
-    private readonly string _model = config["Gemini:Model"] ?? "gemini-1.5-flash";
+    // Gemini model ids change over time; use *-latest by default.
+    private readonly string _model = config["Gemini:Model"] ?? "gemini-1.5-flash-latest";
 
     public async Task<string> GenerateAsync(IReadOnlyList<ChatMessage> messages, CancellationToken cancellationToken = default)
     {
@@ -16,6 +17,9 @@ public class GeminiChatClient(HttpClient http, IConfiguration config) : IChatMod
             throw new InvalidOperationException("Missing Gemini:ApiKey configuration.");
 
         var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKey}";
+
+        // NOTE: If you see 404 model not found, set Gemini:Model to an available model id.
+        // You can list models via: GET https://generativelanguage.googleapis.com/v1beta/models?key=API_KEY
 
         var contents = messages.Select(m => new
         {
