@@ -13,6 +13,34 @@ namespace EzBias.API.Controllers;
 public class UsersController(IUserRepository users) : ControllerBase
 {
     [Authorize]
+    [HttpGet("me")]
+    public async Task<ActionResult<ApiResponse<MyProfileDto>>> GetMe()
+    {
+        var userId = GetUserId();
+        var u = await users.GetByIdAsync(userId);
+        if (u is null) return NotFound(ApiResponse<MyProfileDto>.Fail("User not found."));
+
+        var dto = new MyProfileDto(
+            u.Id,
+            u.FullName,
+            u.Username,
+            u.Email,
+            u.Role,
+            u.Avatar,
+            u.AvatarBg,
+            u.Phone,
+            u.Address,
+            u.City,
+            u.Zip,
+            u.BankName,
+            u.BankAccountNumber,
+            u.BankAccountName
+        );
+
+        return ApiResponse<MyProfileDto>.Ok(dto);
+    }
+
+    [Authorize]
     [HttpPut("me/bank")]
     public async Task<ActionResult<ApiResponse<object>>> UpdateMyBank([FromBody] UpdateBankInfoRequest req)
     {
