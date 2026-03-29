@@ -11,6 +11,7 @@ public record ProductDto(
     int Stock,
     string SellerId,
     string Image,
+    IReadOnlyList<string> Images,
     string Description,
     string CreatedAt,
     bool IsAuction

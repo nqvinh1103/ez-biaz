@@ -70,6 +70,7 @@ public class CreateListingCommandHandler(IProductRepository repo, IUserRepositor
             product.Stock,
             product.SellerId,
             product.Image,
+            imageUrls,
             product.Description,
             product.CreatedAt.ToString("yyyy-MM-dd"),
             product.IsAuction
