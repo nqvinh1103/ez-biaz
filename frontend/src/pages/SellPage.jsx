@@ -77,7 +77,7 @@ function SellPage() {
     );
     setSubmitting(false);
     if (res.success) {
-      navigate("/my-listings");
+      navigate("/profile/my-shop");
     } else {
       setError(res.message);
     }
