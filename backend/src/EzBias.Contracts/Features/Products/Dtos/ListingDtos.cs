@@ -4,6 +4,7 @@ public record CreateListingRequest(
     string Name,
     string Condition,
     decimal Price,
+    int Stock,
     string Fandom,
     IReadOnlyList<string> ItemTypes,
     string? Description

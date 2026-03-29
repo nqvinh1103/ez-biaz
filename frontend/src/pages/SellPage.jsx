@@ -18,6 +18,7 @@ const INITIAL_FORM = {
   description: "",
   condition: "",
   price: "",
+  stock: "1",
   fandom: "",
 };
 
@@ -56,6 +57,7 @@ function SellPage() {
     values.name.trim() &&
     values.condition &&
     values.price &&
+    Number(values.stock) >= 1 &&
     values.fandom.trim() &&
     selectedTypes.length > 0;
 
@@ -70,6 +72,7 @@ function SellPage() {
         description: values.description,
         condition: values.condition,
         price: values.price,
+        stock: Number(values.stock),
         fandom: values.fandom,
         itemTypes: selectedTypes,
       },
@@ -143,7 +146,7 @@ function SellPage() {
             wrapperClassName="mb-4"
           />
 
-          <div className="flex gap-4">
+          <div className="flex flex-col gap-4 md:flex-row">
             {/* Condition */}
             <div className="relative flex-1">
               <FormField
@@ -178,6 +181,21 @@ function SellPage() {
                   d="m19 9-7 7-7-7"
                 />
               </svg>
+            </div>
+
+            {/* Stock */}
+            <div className="relative flex-1">
+              <FormField
+                label="Stock"
+                id="sell-stock"
+                name="stock"
+                type="number"
+                min="1"
+                step="1"
+                placeholder="1"
+                value={values.stock}
+                onChange={handleChange}
+              />
             </div>
 
             {/* Price */}

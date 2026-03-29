@@ -64,6 +64,7 @@ public class ProductsController(IMediator mediator, EzBias.Application.Common.In
         [FromForm(Name = "name")] public string Name { get; set; } = string.Empty;
         [FromForm(Name = "condition")] public string Condition { get; set; } = string.Empty;
         [FromForm(Name = "price")] public decimal Price { get; set; }
+        [FromForm(Name = "stock")] public int Stock { get; set; } = 1;
         [FromForm(Name = "fandom")] public string Fandom { get; set; } = string.Empty;
         [FromForm(Name = "itemTypes")] public List<string> ItemTypes { get; set; } = new();
         [FromForm(Name = "description")] public string? Description { get; set; }
@@ -104,6 +105,7 @@ public class ProductsController(IMediator mediator, EzBias.Application.Common.In
                 req.Name,
                 req.Condition,
                 req.Price,
+                req.Stock,
                 req.Fandom,
                 req.ItemTypes,
                 req.Description,

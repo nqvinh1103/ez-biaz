@@ -18,6 +18,8 @@ public class CreateListingCommandHandler(IProductRepository repo, IUserRepositor
             throw new ArgumentException("Please select the item condition.");
         if (req.Price <= 0)
             throw new ArgumentException("Please enter a valid price greater than $0.");
+        if (req.Stock <= 0)
+            throw new ArgumentException("Please enter a valid stock quantity (>= 1).");
         if (string.IsNullOrWhiteSpace(req.Fandom))
             throw new ArgumentException("Please specify the fandom / group.");
         if (req.ItemTypes is null || req.ItemTypes.Count == 0)
@@ -44,7 +46,7 @@ public class CreateListingCommandHandler(IProductRepository repo, IUserRepositor
             Type = req.ItemTypes[0],
             Condition = req.Condition,
             Price = decimal.Round(req.Price, 2),
-            Stock = 1,
+            Stock = req.Stock,
             SellerId = request.SellerId,
             Image = primaryImage,
             Description = req.Description ?? string.Empty,
