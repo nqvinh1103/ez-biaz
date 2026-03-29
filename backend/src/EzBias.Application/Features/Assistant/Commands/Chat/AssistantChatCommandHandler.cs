@@ -136,7 +136,8 @@ AuthAvailable: {{hasAuth}}
 
         string action = root.TryGetProperty("action", out var a) ? a.GetString() ?? "" : "";
         string? toolName = root.TryGetProperty("toolName", out var t) ? t.GetString() : null;
-        JsonElement? args = root.TryGetProperty("args", out var ar) && ar.ValueKind != JsonValueKind.Null ? ar : null;
+        // Clone args to detach from JsonDocument lifetime
+        JsonElement? args = root.TryGetProperty("args", out var ar) && ar.ValueKind != JsonValueKind.Null ? ar.Clone() : null;
         string? finalAnswer = root.TryGetProperty("finalAnswer", out var fa) ? fa.GetString() : null;
 
         return new ToolPlan(action, toolName, args, finalAnswer);
