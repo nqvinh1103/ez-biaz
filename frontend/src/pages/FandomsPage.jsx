@@ -4,6 +4,8 @@ import PageLayout from "../components/layout/PageLayout";
 import { getProducts } from "../lib/ezbiasApi";
 import { cn } from "../utils/cn";
 
+const ALL_TAB = "All";
+
 /* ─── FandomTabs ──────────────────────────────────────────────────────────── */
 const FandomTabs = memo(function FandomTabs({ tabs, active, onSelect }) {
   return (
@@ -36,6 +38,7 @@ const FandomTabs = memo(function FandomTabs({ tabs, active, onSelect }) {
 function FandomsPage() {
   const [tabs, setTabs] = useState([]);
   const [activeTab, setActiveTab] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -55,9 +58,11 @@ function FandomsPage() {
       }
 
       const list = res.data ?? [];
-      const fandoms = Array.from(new Set(list.map((p) => p.fandom))).sort();
-      setTabs(fandoms);
-      setActiveTab((prev) => prev || fandoms[0] || "");
+      const fandoms = Array.from(
+        new Set(list.map((p) => p.fandom).filter(Boolean)),
+      ).sort();
+      setTabs([ALL_TAB, ...fandoms]);
+      setActiveTab((prev) => prev || ALL_TAB);
       setLoading(false);
     })();
 
@@ -73,7 +78,8 @@ function FandomsPage() {
     (async () => {
       setLoading(true);
       setError(null);
-      const res = await getProducts({ fandom: activeTab });
+      const query = activeTab === ALL_TAB ? undefined : { fandom: activeTab };
+      const res = await getProducts(query);
       if (!mounted) return;
       if (res.success) setProducts(res.data ?? []);
       else setError(res.message ?? "Failed to load products.");
@@ -85,7 +91,15 @@ function FandomsPage() {
     };
   }, [activeTab]);
 
-  const filtered = useMemo(() => products, [products]);
+  const filtered = useMemo(() => {
+    const keyword = searchTerm.trim().toLowerCase();
+    if (!keyword) return products;
+    return products.filter((product) =>
+      String(product.name ?? "")
+        .toLowerCase()
+        .includes(keyword),
+    );
+  }, [products, searchTerm]);
 
   return (
     <PageLayout>
@@ -101,7 +115,27 @@ function FandomsPage() {
         </div>
 
         {tabs.length > 0 && (
-          <FandomTabs tabs={tabs} active={activeTab} onSelect={setActiveTab} />
+          <div className="mb-6">
+            <input
+              id="fandom-product-search"
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by product name..."
+              className="w-full rounded-xl border border-[#e6e6e6] bg-white px-4 py-2.5 text-sm text-[#121212] outline-none transition focus:border-[#ad93e6] focus:ring-2 focus:ring-[rgba(173,147,230,0.2)]"
+            />
+          </div>
+        )}
+
+        {tabs.length > 0 && (
+          <FandomTabs
+            tabs={tabs}
+            active={activeTab}
+            onSelect={(tab) => {
+              setSearchTerm("");
+              setActiveTab(tab);
+            }}
+          />
         )}
 
         {error && (
@@ -123,7 +157,11 @@ function FandomsPage() {
           </div>
         ) : (
           <p className="py-16 text-center text-sm text-[#737373]">
-            No products found for this fandom yet.
+            {searchTerm.trim()
+              ? "No products match your search in this fandom."
+              : activeTab === ALL_TAB
+                ? "No products found yet."
+                : "No products found for this fandom yet."}
           </p>
         )}
       </div>

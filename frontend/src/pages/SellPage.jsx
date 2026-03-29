@@ -42,7 +42,7 @@ const TagIcon = () => (
 function SellPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { values, handleChange, reset } = useForm(INITIAL_FORM);
+  const { values, handleChange } = useForm(INITIAL_FORM);
   const [selectedTypes, setSelectedTypes] = useState([]);
   const upload = useFileUpload(5);
   const [submitting, setSubmitting] = useState(false);
@@ -51,6 +51,24 @@ function SellPage() {
   const handleTypesChange = useCallback((updated) => {
     setSelectedTypes(updated);
   }, []);
+
+  const handlePriceChange = useCallback(
+    (e) => {
+      const raw = e.target.value;
+      const digitsOnly = raw.replace(/\D/g, "");
+      handleChange({
+        target: {
+          name: "price",
+          value: digitsOnly,
+        },
+      });
+    },
+    [handleChange],
+  );
+
+  const formattedPrice = values.price
+    ? Number(values.price).toLocaleString("vi-VN")
+    : "";
 
   const isValid =
     upload.previews.length > 0 &&
@@ -65,22 +83,23 @@ function SellPage() {
     if (!isValid || submitting) return;
     setSubmitting(true);
     setError(null);
+    const normalizedFandom = values.fandom.trim().toUpperCase();
     const res = await createListing(
       user?.id ?? "u1",
       {
         name: values.name,
         description: values.description,
         condition: values.condition,
-        price: values.price,
+        price: Number(values.price),
         stock: Number(values.stock),
-        fandom: values.fandom,
+        fandom: normalizedFandom,
         itemTypes: selectedTypes,
       },
       upload.files,
     );
     setSubmitting(false);
     if (res.success) {
-      navigate("/my-listings");
+      navigate("/profile/my-shop");
     } else {
       setError(res.message);
     }
@@ -204,12 +223,12 @@ function SellPage() {
                 label="Price"
                 id="sell-price"
                 name="price"
-                type="number"
-                min="0"
-                step="0.01"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="0.00"
-                value={values.price}
-                onChange={handleChange}
+                value={formattedPrice}
+                onChange={handlePriceChange}
                 className="pr-12"
               />
               <span className="absolute bottom-3 right-3 text-sm text-[#737373]">
