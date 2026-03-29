@@ -6,7 +6,7 @@ using MediatR;
 
 namespace EzBias.Application.Features.Products.Commands.CreateListing;
 
-public class CreateListingCommandHandler(IProductRepository repo, IUserRepository users) : IRequestHandler<CreateListingCommand, ProductDto>
+public class CreateListingCommandHandler(IProductRepository repo, IUserRepository users, ISubscriptionRepository subs) : IRequestHandler<CreateListingCommand, ProductDto>
 {
     public async Task<ProductDto> Handle(CreateListingCommand request, CancellationToken cancellationToken)
     {
@@ -28,6 +28,16 @@ public class CreateListingCommandHandler(IProductRepository repo, IUserRepositor
         var user = await users.GetByIdAsync(request.SellerId, cancellationToken);
         if (user is null)
             throw new ArgumentException("You must be logged in to create a listing.");
+
+        // Listing limits by subscription
+        // Free/normal: max 15 active listings. Premium: max 100.
+        var active = await subs.GetActiveAsync(request.SellerId, cancellationToken);
+        var isPremium = string.Equals(active?.PlanId, "premium", StringComparison.OrdinalIgnoreCase);
+        var limit = isPremium ? 100 : 15;
+
+        var activeCount = await repo.CountActiveListingsBySellerAsync(request.SellerId, cancellationToken);
+        if (activeCount >= limit)
+            throw new ArgumentException($"Listing limit reached ({limit}). Upgrade your plan to post more items.");
 
         var nextId = await repo.NextIdAsync(cancellationToken);
         var name = req.Name.Trim();

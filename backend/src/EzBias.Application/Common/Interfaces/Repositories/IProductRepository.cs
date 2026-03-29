@@ -19,6 +19,8 @@ public interface IProductRepository
 
     Task<IReadOnlyList<ProductDto>> GetBySellerDtoAsync(string sellerId, CancellationToken cancellationToken = default);
 
+    Task<int> CountActiveListingsBySellerAsync(string sellerId, CancellationToken cancellationToken = default);
+
     Task<Product?> GetByIdAsync(string id, CancellationToken cancellationToken = default);
 
     Task<string> NextIdAsync(CancellationToken cancellationToken = default);

@@ -4,7 +4,7 @@ using MediatR;
 
 namespace EzBias.Application.Features.Products.Commands.UpdateListing;
 
-public class UpdateListingCommandHandler(IProductRepository repo) : IRequestHandler<UpdateListingCommand, ProductDto?>
+public class UpdateListingCommandHandler(IProductRepository repo, ISubscriptionRepository subs) : IRequestHandler<UpdateListingCommand, ProductDto?>
 {
     public async Task<ProductDto?> Handle(UpdateListingCommand request, CancellationToken cancellationToken)
     {
@@ -17,7 +17,28 @@ public class UpdateListingCommandHandler(IProductRepository repo) : IRequestHand
         if (req.Description is not null) existing.Description = req.Description;
         if (req.Condition is not null) existing.Condition = req.Condition;
         if (req.Price is not null) existing.Price = decimal.Round(req.Price.Value, 2);
-        if (req.Stock is not null) existing.Stock = req.Stock.Value;
+
+        if (req.Stock is not null)
+        {
+            var newStock = req.Stock.Value;
+            var wasActive = existing.Stock > 0;
+            var willBeActive = newStock > 0;
+
+            // If re-activating a listing, enforce plan limit
+            if (!wasActive && willBeActive)
+            {
+                var active = await subs.GetActiveAsync(request.SellerId, cancellationToken);
+                var isPremium = string.Equals(active?.PlanId, "premium", StringComparison.OrdinalIgnoreCase);
+                var limit = isPremium ? 100 : 15;
+
+                var activeCount = await repo.CountActiveListingsBySellerAsync(request.SellerId, cancellationToken);
+                if (activeCount >= limit)
+                    throw new ArgumentException($"Listing limit reached ({limit}). Upgrade your plan to activate more items.");
+            }
+
+            existing.Stock = newStock;
+        }
+
         existing.UpdatedAt = DateTime.UtcNow;
 
         await repo.SaveChangesAsync(cancellationToken);

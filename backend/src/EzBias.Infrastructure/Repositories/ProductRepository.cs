@@ -122,6 +122,11 @@ public class ProductRepository(EzBiasDbContext db) : IProductRepository
     public Task<Product?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
         => db.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
+    public Task<int> CountActiveListingsBySellerAsync(string sellerId, CancellationToken cancellationToken = default)
+        => db.Products.AsNoTracking()
+            .Where(p => p.SellerId == sellerId && !p.IsAuction && p.Stock > 0)
+            .CountAsync(cancellationToken);
+
     public async Task<string> NextIdAsync(CancellationToken cancellationToken = default)
     {
         var list = await db.Products.AsNoTracking().Select(p => p.Id).ToListAsync(cancellationToken);
