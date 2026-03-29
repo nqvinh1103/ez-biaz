@@ -66,6 +66,7 @@ public class OrderRepository(EzBiasDbContext db) : IOrderRepository
             .AsNoTracking()
             .Where(o => o.UserId == userId)
             .OrderByDescending(o => o.CreatedAt)
+            .ThenByDescending(o => o.Id)
             .Select(o => new
             {
                 o.Id,
@@ -100,6 +101,7 @@ public class OrderRepository(EzBiasDbContext db) : IOrderRepository
 
         var orders = await q
             .OrderByDescending(o => o.CreatedAt)
+            .ThenByDescending(o => o.Id)
             .Select(o => new
             {
                 o.Id,
