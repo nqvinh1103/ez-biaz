@@ -153,32 +153,70 @@ public static class DataSeeder
         var orders = new List<Order>();
         var orderItems = new List<OrderItem>();
 
-        var productMap = products.ToDictionary(p => p.Id, p => p.Name);
+        var productMap = products.ToDictionary(p => p.Id, p => p);
+
+        // Orders + items
+        // NOTE: Orders now require SellerId (not-null) and checkout can be multi-seller.
+        // The legacy seed format may contain mixed-seller items in a single order. We split them by seller.
+        var existingOrderIds = new HashSet<string>(seed.ORDERS.Select(x => x.id));
+        var maxOrderNum = 0;
+        foreach (var id in existingOrderIds)
+        {
+            if (id.StartsWith("o", StringComparison.OrdinalIgnoreCase)
+                && int.TryParse(id[1..], out var n))
+                maxOrderNum = Math.Max(maxOrderNum, n);
+        }
 
         foreach (var o in seed.ORDERS)
         {
-            orders.Add(new Order
-            {
-                Id = o.id,
-                UserId = o.userId,
-                ShippingFee = o.shippingFee,
-                Total = o.total,
-                Status = o.status,
-                Payment = o.payment,
-                Address = o.address,
-                CreatedAt = DateOnly.Parse(o.createdAt)
-            });
+            var createdAt = DateOnly.Parse(o.createdAt);
 
-            foreach (var it in o.items)
-            {
-                orderItems.Add(new OrderItem
+            // Group items by seller
+            var groups = o.items
+                .Select(it =>
                 {
-                    OrderId = o.id,
-                    ProductId = it.productId,
-                    Name = productMap.TryGetValue(it.productId, out var n) ? n : string.Empty,
-                    Quantity = it.qty,
-                    Price = it.price
+                    var p = productMap.TryGetValue(it.productId, out var prod) ? prod : null;
+                    var sellerId = p?.SellerId ?? "u2"; // fallback to a seller id
+                    var name = p?.Name ?? string.Empty;
+                    return new { it, sellerId, name };
+                })
+                .GroupBy(x => x.sellerId)
+                .ToList();
+
+            foreach (var g in groups)
+            {
+                // keep original id for first group, generate new ids for additional seller groups
+                var orderId = g == groups.First() ? o.id : $"o{++maxOrderNum}";
+
+                var itemsForSeller = g.Select(x => x.it).ToList();
+                var subtotal = itemsForSeller.Sum(i => i.price * i.qty);
+                var shippingFee = o.shippingFee; // keep same fee per split order (demo)
+                var total = decimal.Round(subtotal + shippingFee, 2);
+
+                orders.Add(new Order
+                {
+                    Id = orderId,
+                    UserId = o.userId,
+                    SellerId = g.Key,
+                    ShippingFee = shippingFee,
+                    Total = total,
+                    Status = o.status,
+                    Payment = o.payment,
+                    Address = o.address,
+                    CreatedAt = createdAt
                 });
+
+                foreach (var it in g)
+                {
+                    orderItems.Add(new OrderItem
+                    {
+                        OrderId = orderId,
+                        ProductId = it.it.productId,
+                        Name = it.name,
+                        Quantity = it.it.qty,
+                        Price = it.it.price
+                    });
+                }
             }
         }
 
