@@ -21,9 +21,10 @@ public class GeminiChatClient(HttpClient http, IConfiguration config) : IChatMod
         // NOTE: If you see 404 model not found, set Gemini:Model to an available model id.
         // You can list models via: GET https://generativelanguage.googleapis.com/v1beta/models?key=API_KEY
 
+        // Gemini expects roles: user | model
         var contents = messages.Select(m => new
         {
-            role = m.Role, // user|model
+            role = m.Role,
             parts = new[] { new { text = m.Content } }
         });
 
@@ -32,8 +33,9 @@ public class GeminiChatClient(HttpClient http, IConfiguration config) : IChatMod
             contents,
             generationConfig = new
             {
-                temperature = 0.3,
-                maxOutputTokens = 512
+                temperature = 0.2,
+                maxOutputTokens = 512,
+                responseMimeType = "application/json"
             }
         };
 
