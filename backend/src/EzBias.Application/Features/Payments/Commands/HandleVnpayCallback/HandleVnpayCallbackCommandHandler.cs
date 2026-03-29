@@ -5,12 +5,21 @@ using MediatR;
 
 namespace EzBias.Application.Features.Payments.Commands.HandleVnpayCallback;
 
+using EzBias.Application.Features.Orders.Commands.Checkout;
+using EzBias.Application.Features.Orders.Models;
+using EzBias.Contracts.Features.Orders.Dtos;
+using MediatR;
+using System.Text.Json;
+
+file sealed record CheckoutPayload(ShippingInfo ShippingInfo, string? PaymentMethod);
+
 public class HandleVnpayCallbackCommandHandler(
     IVnpayService vnpay,
     IPaymentRepository payments,
     ISubscriptionRepository subs,
     IOrderRepository orders,
-    IEscrowRepository escrow) : IRequestHandler<HandleVnpayCallbackCommand, Unit>
+    IEscrowRepository escrow,
+    IMediator mediator) : IRequestHandler<HandleVnpayCallbackCommand, Unit>
 {
     public async Task<Unit> Handle(HandleVnpayCallbackCommand request, CancellationToken cancellationToken)
     {
@@ -39,21 +48,42 @@ public class HandleVnpayCallbackCommandHandler(
             return Unit.Value;
         }
 
-        payment.Status = "paid";
-        payment.PaidAt = DateTime.UtcNow;
-        payment.UpdatedAt = DateTime.UtcNow;
-        payment.ProviderOrderId = transactionNo;
-
+        // For order payments: create orders only AFTER successful payment (Option A)
         if (payment.Type == "order")
         {
-            var orderIds = await payments.GetOrderIdsForPaymentAsync(payment.Id, cancellationToken);
-            var trackedOrders = await orders.GetTrackedByIdsAsync(orderIds, cancellationToken);
+            if (string.IsNullOrWhiteSpace(payment.Payload))
+                throw new ArgumentException("Missing checkout payload for payment.");
 
-            foreach (var o in trackedOrders)
+            var payload = JsonSerializer.Deserialize<CheckoutPayload>(payment.Payload);
+            if (payload?.ShippingInfo is null)
+                throw new ArgumentException("Missing shipping info for payment.");
+
+            var shippingInfo = new ShippingInfoModel(
+                payload.ShippingInfo.FullName,
+                payload.ShippingInfo.Email,
+                payload.ShippingInfo.Address,
+                payload.ShippingInfo.City,
+                payload.ShippingInfo.Zip,
+                payload.ShippingInfo.Phone
+            );
+
+            var model = new CheckoutModel(
+                payment.UserId,
+                shippingInfo,
+                "vnpay",
+                null
+            );
+
+            var checkoutResult = await mediator.Send(new CheckoutCommand(model), cancellationToken);
+
+            // Attach payment -> orders mapping
+            payment.Orders = checkoutResult.Orders
+                .Select(o => new PaymentOrder { PaymentId = payment.Id, OrderId = o.Id })
+                .ToList();
+
+            // Escrow IN per order
+            foreach (var o in checkoutResult.Orders)
             {
-                o.Status = "paid";
-                o.UpdatedAt = DateTime.UtcNow;
-
                 await escrow.AddAsync(new EscrowTransaction
                 {
                     Id = await escrow.NextEscrowIdAsync(cancellationToken),
@@ -66,8 +96,11 @@ public class HandleVnpayCallbackCommandHandler(
                 }, cancellationToken);
             }
 
-            // Clear buyer cart AFTER successful payment
-            await orders.ClearCartAsync(payment.UserId, cancellationToken);
+            // Mark payment paid after order creation
+            payment.Status = "paid";
+            payment.PaidAt = DateTime.UtcNow;
+            payment.UpdatedAt = DateTime.UtcNow;
+            payment.ProviderOrderId = transactionNo;
         }
         else if (payment.Type == "subscription")
         {
