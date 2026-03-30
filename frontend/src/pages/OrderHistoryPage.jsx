@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import PageLayout from "../components/layout/PageLayout";
 import { formatDate, STATUS_CFG, StatusBadge, StatCard, PAYMENT_LABELS } from "../components/shared/OrderShared";
+import PaymentResultModal from "../components/shared/PaymentResultModal";
 import { useAuth } from "../hooks/useAuth";
 import { getOrders, receiveOrder } from "../lib/ezbiasApi";
 import { formatCurrency } from "../utils/formatters";
@@ -146,6 +148,16 @@ export default function OrderHistoryPage() {
   const [orders,  setOrders]  = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab,     setTab]     = useState("all");
+  const [searchParams] = useSearchParams();
+  const [paymentResult, setPaymentResult] = useState(null);
+
+  // Backend redirects VNPay returns here with ?payment=success|failed&code=XX
+  useEffect(() => {
+    const status = searchParams.get("payment");
+    if (!status) return;
+    setPaymentResult(Object.fromEntries(searchParams.entries()));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!isLoggedIn) { setLoading(false); return; }
@@ -203,6 +215,13 @@ export default function OrderHistoryPage() {
 
   return (
     <PageLayout>
+      {paymentResult && (
+        <PaymentResultModal
+          type={paymentResult.type ?? "checkout"}
+          params={paymentResult}
+          onClose={() => setPaymentResult(null)}
+        />
+      )}
       <div className="mx-auto w-full max-w-[860px] px-4 py-10 md:py-14">
 
         {/* Header */}
