@@ -1,5 +1,5 @@
 using EzBias.API.Models;
-using EzBias.API.Models;
+using EzBias.Application.Features.Payments.Commands.CreateVnpayAuctionPayment;
 using EzBias.Application.Features.Payments.Commands.CreateVnpayOrderPayment;
 using EzBias.Application.Features.Payments.Commands.CreateVnpaySubscriptionPayment;
 using EzBias.Application.Features.Payments.Commands.HandleVnpayCallback;
@@ -46,6 +46,28 @@ public class PaymentsController(IMediator mediator) : ControllerBase
 
             var res = await mediator.Send(new CreateVnpaySubscriptionPaymentCommand(userId, req, ip));
             return ApiResponse<PaymentRedirectResult>.Ok(res);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ApiResponse<PaymentRedirectResult>.Fail(ex.Message));
+        }
+    }
+
+    [Authorize]
+    [HttpPost("vnpay/auctions/create")]
+    public async Task<ActionResult<ApiResponse<PaymentRedirectResult>>> CreateVnpayAuctionPayment([FromBody] CreateVnpayAuctionPaymentRequest req)
+    {
+        try
+        {
+            var userId = GetUserId();
+            var ip = GetClientIp();
+
+            var res = await mediator.Send(new CreateVnpayAuctionPaymentCommand(userId, req, ip));
+            return ApiResponse<PaymentRedirectResult>.Ok(res);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
         }
         catch (ArgumentException ex)
         {

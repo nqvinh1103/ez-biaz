@@ -12,11 +12,14 @@ using MediatR;
 using System.Text.Json;
 
 file sealed record CheckoutPayload(ShippingInfo ShippingInfo, string? PaymentMethod);
+file sealed record AuctionShippingPayload(ShippingInfo ShippingInfo);
 
 public class HandleVnpayCallbackCommandHandler(
     IVnpayService vnpay,
     IPaymentRepository payments,
     ISubscriptionRepository subs,
+    IAuctionRepository auctions,
+    IProductRepository products,
     IOrderRepository orders,
     IEscrowRepository escrow,
     IMediator mediator) : IRequestHandler<HandleVnpayCallbackCommand, Unit>
@@ -129,6 +132,103 @@ public class HandleVnpayCallbackCommandHandler(
                 EndsAt = endsAt,
                 CreatedAt = now
             }, cancellationToken);
+
+            payment.Status = "paid";
+            payment.PaidAt = now;
+            payment.UpdatedAt = now;
+            payment.ProviderOrderId = transactionNo;
+        }
+        else if (payment.Type == "auction")
+        {
+            var now = DateTime.UtcNow;
+            var auctionId = (payment.Reference ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(auctionId))
+                throw new ArgumentException("Missing auction reference for payment.");
+
+            var a = await auctions.GetAuctionForBiddingAsync(auctionId, cancellationToken);
+            if (a is null)
+                throw new ArgumentException("Auction not found.");
+
+            if (a.IsLive)
+                throw new ArgumentException("Auction is still live.");
+
+            if (a.Status != "ended_pending_payment")
+                throw new ArgumentException("Auction is not awaiting payment.");
+
+            if (!string.Equals(a.WinnerId, payment.UserId, StringComparison.OrdinalIgnoreCase))
+                throw new UnauthorizedAccessException("Only the winner can pay.");
+
+            if (string.IsNullOrWhiteSpace(payment.Payload))
+                throw new ArgumentException("Missing shipping info for auction payment.");
+
+            var ship = JsonSerializer.Deserialize<ShippingInfo>(payment.Payload);
+            if (ship is null)
+                throw new ArgumentException("Missing shipping info for auction payment.");
+
+            if (string.IsNullOrWhiteSpace(a.ProductId))
+                throw new ArgumentException("Auction has no product.");
+
+            var product = await products.GetTrackedByIdAsync(a.ProductId, cancellationToken);
+            if (product is null)
+                throw new ArgumentException("Product not found for auction.");
+
+            // create order
+            var orderId = await orders.NextOrderIdAsync(cancellationToken);
+            var total = a.FinalPrice ?? a.CurrentBid;
+            var order = new EzBias.Domain.Entities.Order
+            {
+                Id = orderId,
+                UserId = payment.UserId,
+                SellerId = a.SellerId,
+                ShippingFee = 0m,
+                Total = total,
+                Status = "paid",
+                Payment = "vnpay",
+                Address = $"{ship.FullName} | {ship.Phone} | {ship.Address}, {ship.City} {ship.Zip}",
+                CreatedAt = DateOnly.FromDateTime(now)
+            };
+
+            order.Items.Add(new EzBias.Domain.Entities.OrderItem
+            {
+                OrderId = orderId,
+                ProductId = product.Id,
+                Name = product.Name,
+                Quantity = 1,
+                Price = total
+            });
+
+            await orders.AddOrderAsync(order, cancellationToken);
+
+            // link payment -> order
+            payment.Orders = new List<PaymentOrder> { new() { PaymentId = payment.Id, OrderId = orderId } };
+
+            // Escrow IN
+            await escrow.AddAsync(new EscrowTransaction
+            {
+                Id = await escrow.NextEscrowIdAsync(cancellationToken),
+                OrderId = orderId,
+                SellerId = a.SellerId,
+                Type = "IN",
+                Amount = total,
+                PaymentId = payment.Id,
+                CreatedAt = now
+            }, cancellationToken);
+
+            // finalize auction + product
+            a.Status = "sold";
+            a.UpdatedAt = now;
+
+            product.IsAuction = false;
+            product.UpdatedAt = now;
+
+            payment.Status = "paid";
+            payment.PaidAt = now;
+            payment.UpdatedAt = now;
+            payment.ProviderOrderId = transactionNo;
+
+            await orders.SaveChangesAsync(cancellationToken);
+            await products.SaveChangesAsync(cancellationToken);
+            await auctions.SaveChangesAsync(cancellationToken);
         }
 
         await payments.SaveChangesAsync(cancellationToken);

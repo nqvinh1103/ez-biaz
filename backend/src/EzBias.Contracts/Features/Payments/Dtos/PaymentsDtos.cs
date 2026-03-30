@@ -6,6 +6,11 @@ public record CreateVnpayOrderPaymentRequest(CheckoutRequest Checkout);
 
 public record CreateVnpaySubscriptionPaymentRequest(string PlanId);
 
+public record CreateVnpayAuctionPaymentRequest(
+    string AuctionId,
+    ShippingInfo ShippingInfo
+);
+
 public record PaymentRedirectResult(
     string PaymentId,
     string PayUrl,
