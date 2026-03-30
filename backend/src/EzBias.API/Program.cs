@@ -42,7 +42,7 @@ builder.Services.AddCors(options =>
             .WithOrigins(
                 "http://localhost:5173",
                 "http://127.0.0.1:5173",
-                "https://ez-biaz.vercel.app"
+                "https://ez-biaz-frontend.vercel.app/p"
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
