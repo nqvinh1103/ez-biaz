@@ -10,6 +10,14 @@ public class PlaceBidCommandHandler(
     IUserRepository users
 ) : IRequestHandler<PlaceBidCommand, BidDto>
 {
+    private static readonly TimeSpan BidCooldown = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan BidRateWindow = TimeSpan.FromMinutes(1);
+    private const int MaxBidsPerWindow = 12;
+
+    private static readonly TimeSpan AntiSnipingWindow = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan AntiSnipingExtend = TimeSpan.FromSeconds(30);
+    private const decimal MinBidIncrement = 50000m;
+
     public async Task<BidDto> Handle(PlaceBidCommand request, CancellationToken cancellationToken)
     {
         if (request.Amount <= 0)
@@ -31,9 +39,27 @@ public class PlaceBidCommandHandler(
         if (auction.SellerId == request.UserId)
             throw new ArgumentException("You cannot bid on your own auction.");
 
-        var minNext = auction.CurrentBid + 5;
+        var now = DateTime.UtcNow;
+
+        var userBids = auction.Bids
+            .Where(b => b.UserId == request.UserId)
+            .OrderByDescending(b => b.PlacedAt)
+            .ToList();
+
+        var lastUserBid = userBids.FirstOrDefault();
+        if (lastUserBid is not null && now - lastUserBid.PlacedAt < BidCooldown)
+        {
+            var waitSeconds = Math.Max(1, (int)Math.Ceiling((BidCooldown - (now - lastUserBid.PlacedAt)).TotalSeconds));
+            throw new ArgumentException($"You're bidding too fast. Please wait {waitSeconds}s and try again.");
+        }
+
+        var bidsInWindow = userBids.Count(b => now - b.PlacedAt <= BidRateWindow);
+        if (bidsInWindow >= MaxBidsPerWindow)
+            throw new ArgumentException("Bid rate limit reached: max 12 bids per minute for this auction.");
+
+        var minNext = auction.CurrentBid + MinBidIncrement;
         if (request.Amount < minNext)
-            throw new ArgumentException($"Bid must be at least ${minNext}.");
+            throw new ArgumentException($"Bid must be at least {minNext:0} VND.");
 
         // mark previous winning bids false
         foreach (var b in auction.Bids.Where(b => b.IsWinning))
@@ -49,12 +75,18 @@ public class PlaceBidCommandHandler(
             Avatar = user.Avatar,
             AvatarBg = user.AvatarBg,
             Amount = request.Amount,
-            PlacedAt = DateTime.UtcNow,
+            PlacedAt = now,
             IsWinning = true
         };
 
         auction.Bids.Add(bid);
         auction.CurrentBid = request.Amount;
+        auction.UpdatedAt = now;
+
+        // Anti-sniping: if bid arrives near the end, extend auction.
+        var remaining = auction.EndsAt - now;
+        if (remaining <= AntiSnipingWindow)
+            auction.EndsAt = auction.EndsAt.Add(AntiSnipingExtend);
 
         await auctions.SaveChangesAsync(cancellationToken);
 

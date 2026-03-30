@@ -88,8 +88,8 @@ function AuctionDetailPage() {
       if (!mounted) return;
       if (res.success) {
         setAuction(res.data);
-        const minBid = (res.data.currentBid ?? 0) + 5;
-        setBidInput(minBid.toFixed(2));
+        const minBid = (res.data.currentBid ?? 0) + 50000;
+        setBidInput(String(Math.round(minBid)));
       } else {
         setError(res.message ?? "Auction not found.");
       }
@@ -155,7 +155,7 @@ function AuctionDetailPage() {
     const refreshed = await getAuctionById(auction.id);
     if (refreshed.success) {
       setAuction(refreshed.data);
-      setBidInput(((refreshed.data.currentBid ?? 0) + 5).toFixed(2));
+      setBidInput(String(Math.round((refreshed.data.currentBid ?? 0) + 50000)));
     }
   };
 
@@ -228,11 +228,11 @@ function AuctionDetailPage() {
                   <div className="relative flex-1">
                     <input
                       type="number"
-                      min={(Number(auction.currentBid) + 5).toFixed(2)}
-                      step="0.01"
+                      min={Math.round(Number(auction.currentBid) + 50000)}
+                      step="50000"
                       value={bidInput}
                       onChange={(e) => setBidInput(e.target.value)}
-                      placeholder={`${formatCurrency(Number(auction.currentBid) + 5)} or higher`}
+                      placeholder={`${formatCurrency(Number(auction.currentBid) + 50000)} or higher`}
                       aria-label="Your bid amount"
                       className="h-10 w-full rounded-lg border border-[#e6e6e6] px-4 text-sm text-[#121212] placeholder-[#b3b3b3] outline-none focus:border-[#ad93e6] focus:ring-2 focus:ring-[rgba(173,147,230,0.2)]"
                     />
