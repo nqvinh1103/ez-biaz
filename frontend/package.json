@@ -9,6 +9,9 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "1.32.0"
+  },
   "dependencies": {
     "@microsoft/signalr": "^8.0.17",
     "@tailwindcss/vite": "^4.2.2",
