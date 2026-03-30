@@ -7,6 +7,7 @@ import Button from "../components/ui/Button";
 import FormField from "../components/ui/FormField";
 import { useAuth } from "../hooks/useAuth";
 import {
+  createProductBoostPayment,
   deleteListing,
   getListingsByUser,
   getSoldItems,
@@ -237,7 +238,7 @@ function DeleteModal({ listing, onClose, onDeleted }) {
 }
 
 /* ── Listing row card ───────────────────────────────────────────────────── */
-function ListingRow({ listing, onEdit, onDelete }) {
+function ListingRow({ listing, onEdit, onDelete, onBoost, boostingId }) {
   const { label, variant } = stockBadge(listing.stock);
   return (
     <div className="flex items-center gap-4 rounded-xl border border-[#e6e6e6] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-shadow hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
@@ -263,6 +264,9 @@ function ListingRow({ listing, onEdit, onDelete }) {
           <Badge variant={variant} className="text-[10px] px-2 py-0.5">
             {label}
           </Badge>
+          {listing.isBoosted && (
+            <Badge variant="live" className="text-[10px] px-2 py-0.5">Boosted</Badge>
+          )}
         </div>
         <p className="truncate text-sm font-semibold text-[#121212]">
           {listing.name}
@@ -284,6 +288,14 @@ function ListingRow({ listing, onEdit, onDelete }) {
               {listing.createdAt}
             </span>
           </span>
+          {listing.isBoosted && listing.boostEndsAt && (
+            <span>
+              Boost until:{" "}
+              <span className="font-medium text-[#7c3aed]">
+                {new Date(listing.boostEndsAt).toLocaleString("vi-VN")}
+              </span>
+            </span>
+          )}
         </div>
       </div>
 
@@ -294,6 +306,14 @@ function ListingRow({ listing, onEdit, onDelete }) {
 
       {/* Actions */}
       <div className="flex shrink-0 items-center gap-2">
+        <button
+          onClick={() => onBoost(listing)}
+          disabled={boostingId === listing.id || listing.stock <= 0 || listing.isAuction}
+          className="rounded-lg border border-[#ad93e6] px-2.5 py-1.5 text-xs font-semibold text-[#ad93e6] hover:bg-[rgba(173,147,230,0.1)] disabled:opacity-50"
+          title={listing.stock <= 0 ? "Only in-stock listing can be boosted" : "Boost this item for 24h"}
+        >
+          {boostingId === listing.id ? "Boosting..." : "Boost"}
+        </button>
         <button
           onClick={() => onEdit(listing)}
           className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#e6e6e6] text-[#737373] transition-colors hover:border-[#ad93e6] hover:text-[#ad93e6]"
@@ -421,6 +441,7 @@ export default function MyListingsPage() {
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState(null);
+  const [boostingId, setBoostingId] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [toast, setToast] = useState(null);
 
@@ -469,6 +490,26 @@ export default function MyListingsPage() {
     setListings((prev) => prev.filter((l) => l.id !== id));
     setDeleting(null);
     showToast("Listing deleted.", "error");
+  };
+
+  const handleBoost = async (listing) => {
+    if (!listing?.id || boostingId) return;
+    setBoostingId(listing.id);
+    const res = await createProductBoostPayment({ productId: listing.id });
+    setBoostingId(null);
+
+    if (!res.success) {
+      showToast(res.message ?? "Failed to create boost payment.", "error");
+      return;
+    }
+
+    const payUrl = res.data?.payUrl;
+    if (!payUrl) {
+      showToast("Missing VNPay payment URL.", "error");
+      return;
+    }
+
+    window.location.href = payUrl;
   };
 
   /* Filter + search */
@@ -685,6 +726,8 @@ export default function MyListingsPage() {
                   listing={l}
                   onEdit={setEditing}
                   onDelete={setDeleting}
+                  onBoost={handleBoost}
+                  boostingId={boostingId}
                 />
               ))}
             </div>

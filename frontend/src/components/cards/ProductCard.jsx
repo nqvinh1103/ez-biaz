@@ -10,7 +10,7 @@ function ConditionalLink({ to, children }) {
   return to ? <Link to={to}>{children}</Link> : <>{children}</>;
 }
 
-function ProductCard({ id, artist, name, price, image }) {
+function ProductCard({ id, artist, name, price, image, isBoosted, boostEndsAt }) {
   const { isLoggedIn } = useAuth();
   const { openLoginModal } = useLoginModal();
   const { addItem, items } = useCart();
@@ -46,6 +46,11 @@ function ProductCard({ id, artist, name, price, image }) {
       {/* Clickable image → detail page */}
       <ConditionalLink to={detailHref}>
         <div className="relative aspect-square w-full overflow-hidden">
+          {isBoosted && (
+            <span className="absolute left-2 top-2 z-10 rounded-full bg-[#7c3aed] px-2 py-0.5 text-[10px] font-semibold text-white shadow">
+              Boosted
+            </span>
+          )}
           <img
             className="absolute inset-0 h-full w-full object-contain p-3 sm:object-cover sm:p-0 transition-transform duration-200 hover:scale-105"
             src={image}

@@ -14,6 +14,7 @@ import Button from "../components/ui/Button";
 import FormField from "../components/ui/FormField";
 import { useAuth } from "../hooks/useAuth";
 import {
+  createProductBoostPayment,
   deleteListing,
   getListingsByUser,
   getSellerOrders,
@@ -138,7 +139,7 @@ function DeleteModal({ listing, onClose, onDeleted }) {
   );
 }
 
-function ListingRow({ listing, onEdit, onDelete }) {
+function ListingRow({ listing, onEdit, onDelete, onBoost, boostingId }) {
   const { label, variant } = stockBadge(listing.stock);
   return (
     <div className="flex items-center gap-4 rounded-xl border border-[#e6e6e6] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-shadow hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
@@ -151,6 +152,7 @@ function ListingRow({ listing, onEdit, onDelete }) {
           <span className="hidden text-[#e6e6e6] sm:inline">·</span>
           <span className="hidden text-xs text-[#737373] sm:inline">{listing.type}</span>
           <Badge variant={variant} className="text-[10px] px-2 py-0.5">{label}</Badge>
+          {listing.isBoosted && <Badge variant="live" className="text-[10px] px-2 py-0.5">Boosted</Badge>}
         </div>
         <p className="truncate text-sm font-semibold text-[#121212]">{listing.name}</p>
         <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-[#737373]">
@@ -161,6 +163,16 @@ function ListingRow({ listing, onEdit, onDelete }) {
       </div>
       <p className="hidden shrink-0 text-base font-bold text-[#121212] sm:block">{formatCurrency(listing.price)}</p>
       <div className="flex shrink-0 items-center gap-2">
+        {!listing.isBoosted && (
+          <button
+            onClick={() => onBoost(listing)}
+            disabled={boostingId === listing.id || listing.stock <= 0 || listing.isAuction}
+            className="rounded-lg border border-[#ad93e6] px-2.5 py-1.5 text-xs font-semibold text-[#ad93e6] hover:bg-[rgba(173,147,230,0.1)] disabled:opacity-50"
+            title={listing.stock <= 0 ? "Only in-stock listing can be boosted" : "Boost this item for 24h"}
+          >
+            {boostingId === listing.id ? "Boosting..." : "Boost"}
+          </button>
+        )}
         <button onClick={() => onEdit(listing)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#e6e6e6] text-[#737373] hover:border-[#ad93e6] hover:text-[#ad93e6]">
           <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
@@ -214,6 +226,7 @@ function ListingsTab({ user }) {
   const [search, setSearch]           = useState("");
   const [editing, setEditing]         = useState(null);
   const [deleting, setDeleting]       = useState(null);
+  const [boostingId, setBoostingId]   = useState(null);
   const [toast, setToast]             = useState(null);
 
   const showToast = (message, type = "success") => {
@@ -256,6 +269,26 @@ function ListingsTab({ user }) {
     setListings((prev) => prev.filter((l) => l.id !== id));
     setDeleting(null);
     showToast("Listing deleted.", "error");
+  };
+
+  const handleBoost = async (listing) => {
+    if (!listing?.id || boostingId) return;
+    setBoostingId(listing.id);
+    const res = await createProductBoostPayment({ productId: listing.id });
+    setBoostingId(null);
+
+    if (!res.success) {
+      showToast(res.message ?? "Failed to create boost payment.", "error");
+      return;
+    }
+
+    const payUrl = res.data?.payUrl;
+    if (!payUrl) {
+      showToast("Missing VNPay payment URL.", "error");
+      return;
+    }
+
+    window.location.href = payUrl;
   };
 
   const visible = listings.filter((l) => {
@@ -331,7 +364,7 @@ function ListingsTab({ user }) {
       {subTab === "listings" && (
         loading ? <Spinner /> : visible.length === 0
           ? <EmptyState message={listings.length === 0 ? "You haven't listed anything yet." : "No listings match your search."} />
-          : <div className="flex flex-col gap-3">{visible.map((l) => <ListingRow key={l.id} listing={l} onEdit={setEditing} onDelete={setDeleting} />)}</div>
+          : <div className="flex flex-col gap-3">{visible.map((l) => <ListingRow key={l.id} listing={l} onEdit={setEditing} onDelete={setDeleting} onBoost={handleBoost} boostingId={boostingId} />)}</div>
       )}
 
       {/* Sold items */}

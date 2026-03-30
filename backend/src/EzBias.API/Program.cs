@@ -101,6 +101,7 @@ builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPayoutRepository, PayoutRepository>();
 builder.Services.AddScoped<IEscrowRepository, EscrowRepository>();
+builder.Services.AddScoped<IProductBoostRepository, ProductBoostRepository>();
 builder.Services.AddScoped<IAuctionRealtimePublisher, SignalRAuctionRealtimePublisher>();
 
 // Assistant (Gemini)

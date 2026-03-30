@@ -217,7 +217,7 @@ const FAQS = [
   },
   {
     q: "How does Boost work?",
-    a: "Boost pushes your active listings to the top of search results for 24 hours. It's a one-time purchase, not a recurring subscription.",
+    a: "Boost is purchased per listing. Go to My Listings, choose an item, then buy a 24h boost for that item.",
   },
   {
     q: "What happens when I hit the listing limit?",
@@ -271,6 +271,13 @@ export default function SubscriptionPage() {
       showToast("Please sign in to subscribe.", "error");
       return;
     }
+
+    if (planId === "boost") {
+      showToast("Choose a listing to boost in My Listings.", "success");
+      navigate("/profile/my-shop?tab=listings");
+      return;
+    }
+
     setLoading(planId);
     try {
       const res = await subscribe(planId);
@@ -280,7 +287,7 @@ export default function SubscriptionPage() {
           window.location.href = payUrl;
           return;
         }
-        showToast("Missing MoMo payUrl.", "error");
+        showToast("Missing VNPay payUrl.", "error");
       } else {
         showToast(
           res.message ?? "Subscription failed. Please try again.",
