@@ -10,7 +10,7 @@ namespace EzBias.API.Services;
 public class AuctionExpiryHostedService(IServiceScopeFactory scopeFactory) : BackgroundService
 {
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(5);
-    private static readonly TimeSpan WinnerPaymentWindow = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan WinnerPaymentWindow = TimeSpan.FromMinutes(30);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
