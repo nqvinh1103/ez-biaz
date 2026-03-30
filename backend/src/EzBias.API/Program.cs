@@ -17,6 +17,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+// Background jobs
+builder.Services.AddHostedService<EzBias.API.Services.AuctionEndHostedService>();
+builder.Services.AddHostedService<EzBias.API.Services.AuctionExpiryHostedService>();
+
 builder.Services.AddHttpClient();
 
 builder.Services.Configure<EzBias.Infrastructure.Payments.VnpaySettings>(

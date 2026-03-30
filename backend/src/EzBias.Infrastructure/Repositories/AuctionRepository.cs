@@ -61,7 +61,11 @@ public class AuctionRepository(EzBiasDbContext db) : IAuctionRepository
                 a.Image,
                 a.IsUrgent,
                 a.IsLive,
-                a.ContainImage
+                a.ContainImage,
+                a.Status,
+                a.WinnerId,
+                a.FinalPrice,
+                a.EndedAt
             ))
             .ToListAsync(cancellationToken);
     }
@@ -86,6 +90,10 @@ public class AuctionRepository(EzBiasDbContext db) : IAuctionRepository
                 a.IsUrgent,
                 a.IsLive,
                 a.ContainImage,
+                a.Status,
+                a.WinnerId,
+                a.FinalPrice,
+                a.EndedAt,
                 a.Bids
                     .OrderByDescending(b => b.Amount)
                     .Select(b => new BidDto(
@@ -102,6 +110,70 @@ public class AuctionRepository(EzBiasDbContext db) : IAuctionRepository
                     .ToList()
             ))
             .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<AuctionDto>> GetSellerAuctionsDtoAsync(string sellerId, string? status, CancellationToken cancellationToken = default)
+    {
+        var q = db.Auctions.AsNoTracking().Where(a => a.SellerId == sellerId).AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(status))
+            q = q.Where(a => a.Status == status);
+
+        return await q
+            .OrderByDescending(a => a.CreatedAt)
+            .Select(a => new AuctionDto(
+                a.Id,
+                a.ProductId,
+                a.Fandom,
+                a.Artist,
+                a.Name,
+                a.Description,
+                a.FloorPrice,
+                a.CurrentBid,
+                a.SellerId,
+                a.EndsAt,
+                a.Image,
+                a.IsUrgent,
+                a.IsLive,
+                a.ContainImage,
+                a.Status,
+                a.WinnerId,
+                a.FinalPrice,
+                a.EndedAt
+            ))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<AuctionDto>> GetMyWonAuctionsDtoAsync(string userId, bool pendingPaymentOnly, CancellationToken cancellationToken = default)
+    {
+        var q = db.Auctions.AsNoTracking().Where(a => a.WinnerId == userId).AsQueryable();
+
+        if (pendingPaymentOnly)
+            q = q.Where(a => a.Status == "ended_pending_payment");
+
+        return await q
+            .OrderByDescending(a => a.EndsAt)
+            .Select(a => new AuctionDto(
+                a.Id,
+                a.ProductId,
+                a.Fandom,
+                a.Artist,
+                a.Name,
+                a.Description,
+                a.FloorPrice,
+                a.CurrentBid,
+                a.SellerId,
+                a.EndsAt,
+                a.Image,
+                a.IsUrgent,
+                a.IsLive,
+                a.ContainImage,
+                a.Status,
+                a.WinnerId,
+                a.FinalPrice,
+                a.EndedAt
+            ))
+            .ToListAsync(cancellationToken);
     }
 
     // (removed) entity-returning query methods; use *DtoAsync for reads

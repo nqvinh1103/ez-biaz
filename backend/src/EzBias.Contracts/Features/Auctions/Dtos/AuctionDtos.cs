@@ -14,7 +14,11 @@ public record AuctionDto(
     string Image,
     bool IsUrgent,
     bool IsLive,
-    bool ContainImage
+    bool ContainImage,
+    string Status,
+    string? WinnerId,
+    decimal? FinalPrice,
+    DateTime? EndedAt
 );
 
 public record BidDto(
@@ -52,5 +56,9 @@ public record AuctionDetailDto(
     bool IsUrgent,
     bool IsLive,
     bool ContainImage,
+    string Status,
+    string? WinnerId,
+    decimal? FinalPrice,
+    DateTime? EndedAt,
     IReadOnlyList<BidDto> Bids
 );

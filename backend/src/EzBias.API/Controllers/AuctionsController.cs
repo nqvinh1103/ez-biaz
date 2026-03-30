@@ -1,8 +1,11 @@
 using EzBias.API.Models;
 using EzBias.Application.Features.Auctions.Commands.CreateAuction;
 using EzBias.Application.Features.Auctions.Commands.PlaceBid;
+using EzBias.Application.Features.Auctions.Commands.RelistAuction;
 using EzBias.Application.Features.Auctions.Queries.GetAuctionById;
 using EzBias.Application.Features.Auctions.Queries.GetAuctions;
+using EzBias.Application.Features.Auctions.Queries.GetMyWonAuctions;
+using EzBias.Application.Features.Auctions.Queries.GetSellerAuctions;
 using EzBias.Contracts.Features.Auctions.Dtos;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -56,6 +59,26 @@ public class AuctionsController(IMediator mediator) : ControllerBase
         return ApiResponse<AuctionDetailDto>.Ok(dto);
     }
 
+    /// <summary>
+    /// Seller: list auctions for this seller.
+    /// </summary>
+    [HttpGet("seller/{sellerId}")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<AuctionDto>>>> GetSellerAuctions([FromRoute] string sellerId, [FromQuery] string? status)
+    {
+        var list = await mediator.Send(new GetSellerAuctionsQuery(sellerId, status));
+        return ApiResponse<IReadOnlyList<AuctionDto>>.Ok(list);
+    }
+
+    /// <summary>
+    /// Buyer: list auctions won by user. Optional pendingPaymentOnly=true to show those awaiting payment.
+    /// </summary>
+    [HttpGet("won/{userId}")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<AuctionDto>>>> GetWonAuctions([FromRoute] string userId, [FromQuery] bool? pendingPaymentOnly)
+    {
+        var list = await mediator.Send(new GetMyWonAuctionsQuery(userId, pendingPaymentOnly == true));
+        return ApiResponse<IReadOnlyList<AuctionDto>>.Ok(list);
+    }
+
     public record PlaceBidRequest(string UserId, decimal Amount);
 
     /// <summary>
@@ -76,6 +99,26 @@ public class AuctionsController(IMediator mediator) : ControllerBase
         catch (ArgumentException ex)
         {
             return BadRequest(ApiResponse<BidDto>.Fail(ex.Message));
+        }
+    }
+
+    public record RelistRequest(string SellerId, int? DurationHours, int? DurationSeconds, bool IsUrgent);
+
+    [HttpPost("{auctionId}/relist")]
+    public async Task<ActionResult<ApiResponse<object>>> Relist([FromRoute] string auctionId, [FromBody] RelistRequest req)
+    {
+        try
+        {
+            var newId = await mediator.Send(new RelistAuctionCommand(auctionId, req.SellerId, req.DurationHours, req.DurationSeconds, req.IsUrgent));
+            return ApiResponse<object>.Ok(new { auctionId = newId }, "Auction relisted.");
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 }

@@ -8,6 +8,10 @@ public interface IAuctionRepository
     // READ (query): projection to DTO
     Task<IReadOnlyList<AuctionDto>> GetAuctionsDtoAsync(string? fandom, bool? isLive, bool? isUrgent, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<AuctionDto>> GetSellerAuctionsDtoAsync(string sellerId, string? status, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<AuctionDto>> GetMyWonAuctionsDtoAsync(string userId, bool pendingPaymentOnly, CancellationToken cancellationToken = default);
+
     Task<AuctionDetailDto?> GetAuctionDetailDtoAsync(string id, CancellationToken cancellationToken = default);
 
     // (removed) entity-returning query methods; use *DtoAsync for reads

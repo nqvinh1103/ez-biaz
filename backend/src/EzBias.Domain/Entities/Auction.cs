@@ -26,6 +26,13 @@ public class Auction
     public bool IsLive { get; set; }
     public bool ContainImage { get; set; }
 
+    // Lifecycle: live | ended_no_winner | ended_pending_payment | winner_failed | sold | canceled
+    public string Status { get; set; } = "live";
+
+    public string? WinnerId { get; set; }
+    public decimal? FinalPrice { get; set; }
+    public DateTime? EndedAt { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 

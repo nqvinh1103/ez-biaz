@@ -86,8 +86,15 @@ public class CreateAuctionCommandHandler(
             CreatedAt = DateTime.UtcNow
         };
 
-        // Mark product as auction to prevent cart/checkout.
+        // Reserve 1 unit for auction and prevent cart/checkout.
+        product.Stock -= 1;
         product.IsAuction = true;
+        product.UpdatedAt = now;
+
+        auction.Status = "live";
+        auction.EndedAt = null;
+        auction.WinnerId = null;
+        auction.FinalPrice = null;
 
         await auctions.AddAuctionAsync(auction, cancellationToken);
         await auctions.SaveChangesAsync(cancellationToken);
@@ -107,6 +114,10 @@ public class CreateAuctionCommandHandler(
             auction.IsUrgent,
             auction.IsLive,
             auction.ContainImage,
+            auction.Status,
+            auction.WinnerId,
+            auction.FinalPrice,
+            auction.EndedAt,
             Array.Empty<BidDto>()
         );
     }
