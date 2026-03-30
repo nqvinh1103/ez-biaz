@@ -14,7 +14,9 @@ public record ProductDto(
     IReadOnlyList<string> Images,
     string Description,
     string CreatedAt,
-    bool IsAuction
+    bool IsAuction,
+    bool IsBoosted,
+    string? BoostEndsAt
 );
 
 public record CartItemDto(

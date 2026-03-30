@@ -37,87 +37,126 @@ public class ProductRepository(EzBiasDbContext db) : IProductRepository
 
         var now = DateTime.UtcNow;
 
+        var activeBoosts = db.ProductBoosts.AsNoTracking()
+            .Where(b => b.Status == "active" && b.EndsAt > now);
+
+        var withBoost = q.GroupJoin(
+            activeBoosts,
+            p => p.Id,
+            b => b.ProductId,
+            (p, bs) => new { p, boost = bs.OrderByDescending(x => x.EndsAt).FirstOrDefault() }
+        );
+
         if (boostedFirst == true)
         {
-            var boostedSellerIds = db.UserSubscriptions.AsNoTracking()
-                .Where(s => s.PlanId == "boost" && s.Status == "active" && s.EndsAt > now)
-                .Select(s => s.UserId)
-                .Distinct();
-
-            // Order boosted sellers first; within each group keep newest first.
-            q = from p in q
-                join b in boostedSellerIds on p.SellerId equals b into pb
-                from b in pb.DefaultIfEmpty()
-                orderby (b != null) descending, p.CreatedAt descending
-                select p;
+            withBoost = withBoost
+                .OrderByDescending(x => x.boost != null)
+                .ThenByDescending(x => x.p.CreatedAt)
+                .ThenByDescending(x => x.p.Id.Length)
+                .ThenByDescending(x => x.p.Id);
         }
         else
         {
-            q = q.OrderByDescending(p => p.CreatedAt);
+            withBoost = withBoost
+                .OrderByDescending(x => x.p.CreatedAt)
+                .ThenByDescending(x => x.p.Id.Length)
+                .ThenByDescending(x => x.p.Id);
         }
 
-        return await q
-            .Select(p => new ProductDto(
-                p.Id,
-                p.Fandom,
-                p.Artist,
-                p.Name,
-                p.Type,
-                p.Condition,
-                p.Price,
-                p.Stock,
-                p.SellerId,
-                p.Image,
-                p.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).ToList(),
-                p.Description,
-                p.CreatedAt.ToString("yyyy-MM-dd"),
-                p.IsAuction
+        return await withBoost
+            .Select(x => new ProductDto(
+                x.p.Id,
+                x.p.Fandom,
+                x.p.Artist,
+                x.p.Name,
+                x.p.Type,
+                x.p.Condition,
+                x.p.Price,
+                x.p.Stock,
+                x.p.SellerId,
+                x.p.Image,
+                x.p.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).ToList(),
+                x.p.Description,
+                x.p.CreatedAt.ToString("yyyy-MM-dd"),
+                x.p.IsAuction,
+                x.boost != null,
+                x.boost != null ? x.boost.EndsAt.ToString("o") : null
             ))
             .ToListAsync(cancellationToken);
     }
 
     public Task<ProductDto?> GetByIdDtoAsync(string id, CancellationToken cancellationToken = default)
-        => db.Products.AsNoTracking()
+    {
+        var now = DateTime.UtcNow;
+        var activeBoosts = db.ProductBoosts.AsNoTracking()
+            .Where(b => b.Status == "active" && b.EndsAt > now);
+
+        return db.Products.AsNoTracking()
             .Where(p => p.Id == id)
-            .Select(p => new ProductDto(
-                p.Id,
-                p.Fandom,
-                p.Artist,
-                p.Name,
-                p.Type,
-                p.Condition,
-                p.Price,
-                p.Stock,
-                p.SellerId,
-                p.Image,
-                p.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).ToList(),
-                p.Description,
-                p.CreatedAt.ToString("yyyy-MM-dd"),
-                p.IsAuction
+            .GroupJoin(
+                activeBoosts,
+                p => p.Id,
+                b => b.ProductId,
+                (p, bs) => new { p, boost = bs.OrderByDescending(x => x.EndsAt).FirstOrDefault() }
+            )
+            .Select(x => new ProductDto(
+                x.p.Id,
+                x.p.Fandom,
+                x.p.Artist,
+                x.p.Name,
+                x.p.Type,
+                x.p.Condition,
+                x.p.Price,
+                x.p.Stock,
+                x.p.SellerId,
+                x.p.Image,
+                x.p.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).ToList(),
+                x.p.Description,
+                x.p.CreatedAt.ToString("yyyy-MM-dd"),
+                x.p.IsAuction,
+                x.boost != null,
+                x.boost != null ? x.boost.EndsAt.ToString("o") : null
             ))
             .FirstOrDefaultAsync(cancellationToken);
+    }
 
     public async Task<IReadOnlyList<ProductDto>> GetBySellerDtoAsync(string sellerId, CancellationToken cancellationToken = default)
-        => await db.Products.AsNoTracking()
+    {
+        var now = DateTime.UtcNow;
+        var activeBoosts = db.ProductBoosts.AsNoTracking()
+            .Where(b => b.Status == "active" && b.EndsAt > now);
+
+        return await db.Products.AsNoTracking()
             .Where(p => p.SellerId == sellerId)
             .OrderByDescending(p => p.CreatedAt)
-            .Select(p => new ProductDto(
-                p.Id,
-                p.Fandom,
-                p.Artist,
-                p.Name,
-                p.Type,
-                p.Condition,
-                p.Price,
-                p.Stock,
-                p.SellerId,
-                p.Image,
-                p.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).ToList(),
-                p.Description,
-                p.CreatedAt.ToString("yyyy-MM-dd"),
-                p.IsAuction
+            .ThenByDescending(p => p.Id.Length)
+            .ThenByDescending(p => p.Id)
+            .GroupJoin(
+                activeBoosts,
+                p => p.Id,
+                b => b.ProductId,
+                (p, bs) => new { p, boost = bs.OrderByDescending(x => x.EndsAt).FirstOrDefault() }
+            )
+            .Select(x => new ProductDto(
+                x.p.Id,
+                x.p.Fandom,
+                x.p.Artist,
+                x.p.Name,
+                x.p.Type,
+                x.p.Condition,
+                x.p.Price,
+                x.p.Stock,
+                x.p.SellerId,
+                x.p.Image,
+                x.p.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).ToList(),
+                x.p.Description,
+                x.p.CreatedAt.ToString("yyyy-MM-dd"),
+                x.p.IsAuction,
+                x.boost != null,
+                x.boost != null ? x.boost.EndsAt.ToString("o") : null
             ))
             .ToListAsync(cancellationToken);
+    }
 
     public Task<Product?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
         => db.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id, cancellationToken);

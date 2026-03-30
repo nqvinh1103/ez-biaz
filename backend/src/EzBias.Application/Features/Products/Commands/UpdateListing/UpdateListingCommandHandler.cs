@@ -57,7 +57,9 @@ public class UpdateListingCommandHandler(IProductRepository repo, ISubscriptionR
             existing.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).ToList(),
             existing.Description,
             existing.CreatedAt.ToString("yyyy-MM-dd"),
-            existing.IsAuction
+            existing.IsAuction,
+            false,
+            null
         );
     }
 }
