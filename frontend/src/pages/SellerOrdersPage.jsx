@@ -17,6 +17,7 @@ function formatDate(iso) {
 /* ── Status config ─────────────────────────────────────────────────────── */
 const STATUS_CFG = {
   pending:  { label: "Pending", badge: "bg-[#fffbeb] text-[#92400e] border-[#fde68a]",  dot: "bg-[#f59e0b]" },
+  paid:     { label: "Paid",    badge: "bg-[#ecfeff] text-[#155e75] border-[#a5f3fc]",  dot: "bg-[#06b6d4]" },
   shipping: { label: "Shipping",    badge: "bg-[rgba(173,147,230,0.12)] text-[#5b3f9e] border-[#d4c6f5]", dot: "bg-[#ad93e6]" },
   delivered:{ label: "Delivered",      badge: "bg-[#f0fdf4] text-[#166534] border-[#bbf7d0]",  dot: "bg-[#22c55e]" },
   cancelled:{ label: "Cancelled",       badge: "bg-[#fef2f2] text-[#991b1b] border-[#fecaca]",  dot: "bg-[#ef4444]" },
@@ -31,7 +32,7 @@ const PAYMENT_LABELS = {
 
 const TABS = [
   { key: "all",       label: "All" },
-  { key: "pending",   label: "To Ship" },
+  { key: "toShip",    label: "To Ship" },
   { key: "shipping",  label: "Shipping" },
   { key: "delivered", label: "Completed" },
 ];
@@ -131,7 +132,7 @@ function SellerOrderCard({ order, onShip }) {
         )}
 
         {/* Action: seller ships */}
-        {order.status === "pending" && (
+        {(order.status === "pending" || order.status === "paid") && (
           <button
             onClick={handleShip}
             disabled={loading}
@@ -216,12 +217,13 @@ export default function SellerOrdersPage() {
     }
   };
 
-  const filtered = useMemo(() =>
-    tab === "all" ? orders : orders.filter((o) => o.status === tab),
-    [orders, tab]
-  );
+  const filtered = useMemo(() => {
+    if (tab === "all") return orders;
+    if (tab === "toShip") return orders.filter((o) => o.status === "pending" || o.status === "paid");
+    return orders.filter((o) => o.status === tab);
+  }, [orders, tab]);
 
-  const pendingCount  = orders.filter((o) => o.status === "pending").length;
+  const pendingCount  = orders.filter((o) => o.status === "pending" || o.status === "paid").length;
   const receivedCount = orders.filter((o) => o.status === "delivered").length;
   const totalRevenue  = orders
     .filter((o) => o.status === "delivered")

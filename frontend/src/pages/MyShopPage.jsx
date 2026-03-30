@@ -370,7 +370,7 @@ function ListingsTab({ user }) {
    ════════════════════════════════════════════════════ */
 const ORDER_TABS = [
   { key: "all",       label: "All" },
-  { key: "pending",   label: "To Ship" },
+  { key: "toShip",    label: "To Ship" },
   { key: "shipping",  label: "Shipping" },
   { key: "delivered", label: "Completed" },
 ];
@@ -432,7 +432,7 @@ function SellerOrderCard({ order, onShip }) {
           </ul>
         )}
 
-        {order.status === "pending" && (
+        {(order.status === "pending" || order.status === "paid") && (
           <button onClick={handleShip} disabled={loading}
             className="w-full rounded-lg bg-[#ad93e6] py-2 text-sm font-semibold text-white hover:bg-[#9d7ed9] disabled:opacity-60 flex items-center justify-center gap-2">
             {loading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" /> : (
@@ -490,8 +490,13 @@ function OrdersTab({ user }) {
     if (res.success) setOrders((prev) => prev.map((o) => o.id === orderId ? { ...o, status: "shipping" } : o));
   };
 
-  const filtered      = useMemo(() => tab === "all" ? orders : orders.filter((o) => o.status === tab), [orders, tab]);
-  const pendingCount  = orders.filter((o) => o.status === "pending").length;
+  const filtered = useMemo(() => {
+    if (tab === "all") return orders;
+    if (tab === "toShip") return orders.filter((o) => o.status === "pending" || o.status === "paid");
+    return orders.filter((o) => o.status === tab);
+  }, [orders, tab]);
+
+  const pendingCount  = orders.filter((o) => o.status === "pending" || o.status === "paid").length;
   const deliveredCount = orders.filter((o) => o.status === "delivered").length;
   const totalRevenue  = orders.filter((o) => o.status === "delivered").reduce((s, o) => s + (o.total ?? 0), 0);
 
@@ -508,7 +513,11 @@ function OrdersTab({ user }) {
       {/* Sub-tabs */}
       <div className="mb-5 flex gap-1 rounded-xl border border-[#e6e6e6] bg-[#fafafa] p-1">
         {ORDER_TABS.map((t) => {
-          const count = t.key === "all" ? orders.length : orders.filter((o) => o.status === t.key).length;
+          const count = t.key === "all"
+            ? orders.length
+            : t.key === "toShip"
+              ? orders.filter((o) => o.status === "pending" || o.status === "paid").length
+              : orders.filter((o) => o.status === t.key).length;
           return (
             <button key={t.key} onClick={() => setTab(t.key)}
               className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-colors ${tab === t.key ? "bg-white text-[#121212] shadow-sm" : "text-[#737373] hover:text-[#121212]"}`}>
@@ -522,7 +531,7 @@ function OrdersTab({ user }) {
       </div>
 
       {/* Pending alert */}
-      {pendingCount > 0 && (tab === "all" || tab === "pending") && (
+      {pendingCount > 0 && (tab === "all" || tab === "toShip") && (
         <div className="mb-4 flex items-center gap-2 rounded-xl border border-[#fde68a] bg-[#fffbeb] px-4 py-3 text-sm text-[#92400e]">
           <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />

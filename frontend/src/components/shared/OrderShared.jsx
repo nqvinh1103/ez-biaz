@@ -11,6 +11,7 @@ export function formatDate(iso) {
 
 export const STATUS_CFG = {
   pending:   { label: "Pending",   badge: "bg-[#fffbeb] text-[#92400e] border-[#fde68a]",                    dot: "bg-[#f59e0b]" },
+  paid:      { label: "Paid",      badge: "bg-[#ecfeff] text-[#155e75] border-[#a5f3fc]",                   dot: "bg-[#06b6d4]" },
   shipping:  { label: "Shipping",  badge: "bg-[rgba(173,147,230,0.12)] text-[#5b3f9e] border-[#d4c6f5]",    dot: "bg-[#ad93e6]" },
   delivered: { label: "Delivered", badge: "bg-[#f0fdf4] text-[#166534] border-[#bbf7d0]",                   dot: "bg-[#22c55e]" },
   cancelled: { label: "Cancelled", badge: "bg-[#fef2f2] text-[#991b1b] border-[#fecaca]",                   dot: "bg-[#ef4444]" },
