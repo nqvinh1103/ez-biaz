@@ -5,7 +5,7 @@ const VARIANTS = {
   primary:
     "bg-[#ad93e6] text-white hover:bg-[#9d7ed9] disabled:opacity-50 disabled:cursor-not-allowed",
   outline:
-    "border border-[#ad93e6] text-[#ad93e6] hover:bg-[rgba(173,147,230,0.06)]",
+    "bg-[#ad93e6] text-white hover:bg-[#9d7ed9] disabled:opacity-50 disabled:cursor-not-allowed",
   ghost: "text-[#737373] hover:text-[#121212]",
   danger: "bg-[#ef4343] text-white hover:bg-[#d63e3e]",
 };

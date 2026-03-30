@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import PageLayout from "../components/layout/PageLayout";
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../hooks/useAuth";
 import { subscribe } from "../lib/api/subscriptions";
+import { formatCurrency } from "../utils/formatters";
 
 /* ── Plan definitions ─────────────────────────────────────────────────── */
 const PLANS = [
@@ -28,7 +28,7 @@ const PLANS = [
   {
     id: "boost",
     name: "Boost",
-    price: { monthly: 2.99, yearly: 1.99 },
+    price: { monthly: 19000, yearly: 1.99 },
     priceUnit: "/ day",
     badge: "Quick Boost",
     description: "Push your listings to the top for one full day.",
@@ -47,7 +47,7 @@ const PLANS = [
   {
     id: "premium",
     name: "Premium",
-    price: { monthly: 14.99, yearly: 9.99 },
+    price: { monthly: 99000, yearly: 9.99 },
     priceUnit: "/ month",
     badge: "Most Popular",
     description: "Everything you need to sell like a pro every month.",
@@ -164,7 +164,7 @@ function PlanCard({ plan, billing, onSelect, loading }) {
           ) : (
             <>
               <span className={`text-4xl font-extrabold ${priceCls}`}>
-                ${price.toFixed(2)}
+                {formatCurrency(price)}
               </span>
               <span className={`mb-1 text-sm ${unitCls}`}>
                 {plan.priceUnit}
@@ -263,7 +263,6 @@ function FaqItem({ q, a }) {
 export default function SubscriptionPage() {
   const { isLoggedIn } = useAuth();
   const { showToast } = useToast();
-  const navigate = useNavigate();
   const [billing, setBilling] = useState("monthly"); // "monthly" | "yearly"
   const [loading, setLoading] = useState(null); // planId being subscribed
 
@@ -290,7 +289,10 @@ export default function SubscriptionPage() {
         }
         showToast("Missing VNPay payUrl.", "error");
       } else {
-        showToast(res.message ?? "Subscription failed. Please try again.", "error");
+        showToast(
+          res.message ?? "Subscription failed. Please try again.",
+          "error",
+        );
       }
     } catch {
       showToast("Something went wrong. Please try again.", "error");
@@ -325,7 +327,7 @@ export default function SubscriptionPage() {
           </p>
 
           {/* Billing toggle */}
-          <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-[#e6e6e6] bg-white p-1 shadow-sm">
+          {/* <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-[#e6e6e6] bg-white p-1 shadow-sm">
             <button
               onClick={() => setBilling("monthly")}
               className={`rounded-full px-5 py-2 text-sm font-medium transition-colors ${
@@ -355,7 +357,7 @@ export default function SubscriptionPage() {
                 −33%
               </span>
             </button>
-          </div>
+          </div> */}
         </div>
       </section>
 

@@ -4,7 +4,7 @@
  * @returns {string}  e.g. "8.000.000 VNĐ"
  */
 export const formatCurrency = (amount) =>
-  `${Math.round(Number(amount)).toLocaleString("vi-VN")} VNĐ`;
+  `${Math.round(Number(amount)).toLocaleString("vi-VN")} VND`;
 
 /**
  * Left-pads a number with zeros to a minimum width of 2.
