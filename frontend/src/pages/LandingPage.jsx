@@ -8,9 +8,10 @@ import PaymentResultModal from "../components/shared/PaymentResultModal";
 import { useLoginModal } from "../context/LoginModalContext";
 import { getAuctions, getProducts } from "../lib/ezbiasApi";
 
-function formatTimer(endsAt) {
-  const diff = Math.max(0, new Date(endsAt).getTime() - Date.now());
+function formatTimer(endsAt, nowMs) {
+  const diff = Math.max(0, new Date(endsAt).getTime() - nowMs);
   const totalSeconds = Math.floor(diff / 1000);
+  if (totalSeconds <= 0) return "Ended";
   const h = Math.floor(totalSeconds / 3600);
   const m = Math.floor((totalSeconds % 3600) / 60);
   const s = totalSeconds % 60;
@@ -23,6 +24,7 @@ function LandingPage() {
   const [trending, setTrending] = useState([]);
   const [auctions, setAuctions] = useState([]);
   const [paymentResult, setPaymentResult] = useState(null);
+  const [nowMs, setNowMs] = useState(Date.now());
 
   useEffect(() => {
     let mounted = true;
@@ -45,6 +47,11 @@ function LandingPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    const timer = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const trendingCards = useMemo(
     () => trending.map((p) => ({
       id: p.id,
@@ -61,10 +68,10 @@ function LandingPage() {
   const auctionCards = useMemo(
     () => auctions.map((a) => ({
       id: a.id, artist: a.artist, name: a.name,
-      currentBid: a.currentBid, timer: formatTimer(a.endsAt),
+      currentBid: a.currentBid, timer: formatTimer(a.endsAt, nowMs),
       isUrgent: a.isUrgent, image: a.image, containImage: a.containImage,
     })),
-    [auctions],
+    [auctions, nowMs],
   );
 
   return (

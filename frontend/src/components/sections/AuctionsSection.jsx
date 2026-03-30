@@ -41,7 +41,7 @@ function AuctionsSection({ auctions }) {
               artist={auction.artist}
               name={auction.name}
               currentBid={formatCurrency(auction.currentBid)}
-              timer="Live"
+              timer={auction.timer ?? "Live"}
               isUrgent={auction.isUrgent}
               image={auction.image}
               containImage={auction.containImage ?? false}

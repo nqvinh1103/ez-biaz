@@ -3,10 +3,11 @@ import AuctionCard from "../components/cards/AuctionCard";
 import PageLayout from "../components/layout/PageLayout";
 import { getAuctions } from "../lib/ezbiasApi";
 
-function formatTimer(endsAt) {
+function formatTimer(endsAt, nowMs) {
   const end = new Date(endsAt).getTime();
-  const diff = Math.max(0, end - Date.now());
+  const diff = Math.max(0, end - nowMs);
   const totalSeconds = Math.floor(diff / 1000);
+  if (totalSeconds <= 0) return "Ended";
   const h = Math.floor(totalSeconds / 3600);
   const m = Math.floor((totalSeconds % 3600) / 60);
   const s = totalSeconds % 60;
@@ -17,6 +18,7 @@ function AuctionPage() {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [nowMs, setNowMs] = useState(Date.now());
 
   useEffect(() => {
     let mounted = true;
@@ -34,6 +36,11 @@ function AuctionPage() {
     };
   }, []);
 
+  useEffect(() => {
+    const timer = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const cards = useMemo(
     () =>
       auctions.map((a) => ({
@@ -41,12 +48,12 @@ function AuctionPage() {
         artist: a.artist,
         name: a.name,
         currentBid: a.currentBid,
-        timer: formatTimer(a.endsAt),
+        timer: formatTimer(a.endsAt, nowMs),
         isUrgent: a.isUrgent,
         image: a.image,
         containImage: a.containImage,
       })),
-    [auctions],
+    [auctions, nowMs],
   );
 
   return (
