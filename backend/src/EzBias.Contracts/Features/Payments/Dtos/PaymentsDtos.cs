@@ -11,6 +11,10 @@ public record CreateVnpayAuctionPaymentRequest(
     ShippingInfo ShippingInfo
 );
 
+public record CreateVnpayProductBoostPaymentRequest(
+    string ProductId
+);
+
 public record PaymentRedirectResult(
     string PaymentId,
     string PayUrl,

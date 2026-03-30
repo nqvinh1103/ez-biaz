@@ -20,6 +20,7 @@ public class HandleVnpayCallbackCommandHandler(
     ISubscriptionRepository subs,
     IAuctionRepository auctions,
     IProductRepository products,
+    IProductBoostRepository boosts,
     IOrderRepository orders,
     IEscrowRepository escrow,
     IMediator mediator) : IRequestHandler<HandleVnpayCallbackCommand, Unit>
@@ -229,6 +230,43 @@ public class HandleVnpayCallbackCommandHandler(
             await orders.SaveChangesAsync(cancellationToken);
             await products.SaveChangesAsync(cancellationToken);
             await auctions.SaveChangesAsync(cancellationToken);
+        }
+        else if (payment.Type == "product_boost")
+        {
+            var now = DateTime.UtcNow;
+            var productId = (payment.Reference ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(productId))
+                throw new ArgumentException("Missing product reference for boost payment.");
+
+            var product = await products.GetByIdAsync(productId, cancellationToken);
+            if (product is null)
+                throw new ArgumentException("Product not found for boost.");
+
+            if (!string.Equals(product.SellerId, payment.UserId, StringComparison.OrdinalIgnoreCase))
+                throw new UnauthorizedAccessException("You can only boost your own listing.");
+
+            var hasActive = await boosts.HasActiveBoostAsync(productId, now, cancellationToken);
+            if (hasActive)
+                throw new ArgumentException("This listing is already boosted.");
+
+            var boostId = await boosts.NextIdAsync(cancellationToken);
+            await boosts.AddAsync(new EzBias.Domain.Entities.ProductBoost
+            {
+                Id = boostId,
+                ProductId = productId,
+                UserId = payment.UserId,
+                Status = "active",
+                StartsAt = now,
+                EndsAt = now.AddHours(24),
+                PaymentId = payment.Id,
+                CreatedAt = now
+            }, cancellationToken);
+            await boosts.SaveChangesAsync(cancellationToken);
+
+            payment.Status = "paid";
+            payment.PaidAt = now;
+            payment.UpdatedAt = now;
+            payment.ProviderOrderId = transactionNo;
         }
 
         await payments.SaveChangesAsync(cancellationToken);
