@@ -24,7 +24,7 @@ function LandingPage() {
     let mounted = true;
     (async () => {
       const [productsRes, auctionsRes] = await Promise.all([
-        getProducts({ inStockOnly: true }),
+        getProducts({ inStockOnly: true, boostedFirst: true }),
         getAuctions({ isLive: true }),
       ]);
       if (!mounted) return;
@@ -35,7 +35,15 @@ function LandingPage() {
   }, []);
 
   const trendingCards = useMemo(
-    () => trending.map((p) => ({ id: p.id, artist: p.artist, name: p.name, price: p.price, image: p.image })),
+    () => trending.map((p) => ({
+      id: p.id,
+      artist: p.artist,
+      name: p.name,
+      price: p.price,
+      image: p.image,
+      isBoosted: p.isBoosted,
+      boostEndsAt: p.boostEndsAt,
+    })),
     [trending],
   );
 

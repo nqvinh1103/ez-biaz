@@ -7,6 +7,7 @@ export function getProducts(filters = {}) {
   if (filters.minPrice != null) params.set("minPrice", String(filters.minPrice));
   if (filters.maxPrice != null) params.set("maxPrice", String(filters.maxPrice));
   if (filters.inStockOnly) params.set("inStockOnly", "true");
+  if (filters.boostedFirst) params.set("boostedFirst", "true");
 
   const qs = params.toString();
   return api.get(`/api/products${qs ? `?${qs}` : ""}`);
