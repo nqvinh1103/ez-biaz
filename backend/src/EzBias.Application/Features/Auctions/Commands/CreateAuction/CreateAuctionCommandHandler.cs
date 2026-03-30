@@ -17,13 +17,34 @@ public class CreateAuctionCommandHandler(
         if (string.IsNullOrWhiteSpace(request.SellerId))
             throw new ArgumentException("sellerId is required.");
 
-        if (request.DurationHours < 1)
-            throw new ArgumentException("Auction duration must be at least 1 hour.");
+        // Duration: allow seconds for testing, otherwise hours for normal use.
+        var now = DateTime.UtcNow;
+        TimeSpan duration;
 
-        // A reasonable upper bound to avoid abuse (can be adjusted later)
-        const int maxHours = 24 * 14;
-        if (request.DurationHours > maxHours)
-            throw new ArgumentException($"Auction duration must be <= {maxHours} hours.");
+        if (request.DurationSeconds is not null)
+        {
+            if (request.DurationSeconds < 30)
+                throw new ArgumentException("Auction duration must be at least 30 seconds.");
+
+            const int maxSeconds = 14 * 24 * 60 * 60;
+            if (request.DurationSeconds > maxSeconds)
+                throw new ArgumentException($"Auction duration must be <= {maxSeconds} seconds.");
+
+            duration = TimeSpan.FromSeconds(request.DurationSeconds.Value);
+        }
+        else
+        {
+            var hours = request.DurationHours ?? 0;
+            if (hours < 1)
+                throw new ArgumentException("Auction duration must be at least 1 hour.");
+
+            // A reasonable upper bound to avoid abuse (can be adjusted later)
+            const int maxHours = 24 * 14;
+            if (hours > maxHours)
+                throw new ArgumentException($"Auction duration must be <= {maxHours} hours.");
+
+            duration = TimeSpan.FromHours(hours);
+        }
 
         // Load product tracked, because we will mark it as auction
         var product = await products.GetTrackedByIdAsync(request.ProductId, cancellationToken);
@@ -57,7 +78,7 @@ public class CreateAuctionCommandHandler(
             FloorPrice = floor,
             CurrentBid = floor,
             SellerId = request.SellerId,
-            EndsAt = DateTime.UtcNow.AddHours(request.DurationHours),
+            EndsAt = now.Add(duration),
             Image = product.Image,
             IsUrgent = request.IsUrgent,
             IsLive = true,

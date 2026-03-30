@@ -126,12 +126,18 @@ function AuctionDetailPage() {
     }));
   }, [auction]);
 
+  const isOwner = !!auction && !!user?.id && auction.sellerId === user.id;
+
   const handlePlaceBid = async () => {
     if (!isLoggedIn) {
       openLoginModal();
       return;
     }
     if (!auction || placing) return;
+    if (isOwner) {
+      setError("You cannot bid on your own auction.");
+      return;
+    }
     const amount = Number(bidInput);
     if (!amount || Number.isNaN(amount)) return;
 
@@ -231,9 +237,9 @@ function AuctionDetailPage() {
                       className="h-10 w-full rounded-lg border border-[#e6e6e6] px-4 text-sm text-[#121212] placeholder-[#b3b3b3] outline-none focus:border-[#ad93e6] focus:ring-2 focus:ring-[rgba(173,147,230,0.2)]"
                     />
                   </div>
-                  <Button type="button" disabled={placing || !auction.isLive} onClick={handlePlaceBid}>
+                  <Button type="button" disabled={placing || !auction.isLive || isOwner} onClick={handlePlaceBid}>
                     <RocketIcon />
-                    {placing ? "Placing…" : "Place Bid"}
+                    {isOwner ? "Your Auction" : (placing ? "Placing…" : "Place Bid")}
                   </Button>
                 </div>
               </div>

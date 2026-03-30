@@ -11,6 +11,10 @@ import { formatCurrency } from "../utils/formatters";
 
 /* ── Constants ──────────────────────────────────────────────────────────── */
 const DURATIONS = [
+  // Testing
+  { label: "30s (Test)", seconds: 30 },
+
+  // Normal
   { label: "1 Day", hours: 24 },
   { label: "3 Days", hours: 72 },
   { label: "7 Days", hours: 168 },
@@ -186,7 +190,8 @@ export default function CreateAuctionPage() {
   const [fetchError, setFetchError] = useState(null);
 
   const [selectedId, setSelectedId] = useState(null);
-  const [durationHours, setDuration] = useState(72); // default 3 days
+  const [durationHours, setDurationHours] = useState(72); // default 3 days
+  const [durationSeconds, setDurationSeconds] = useState(null); // test-only
   const [isUrgent, setIsUrgent] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
@@ -208,7 +213,10 @@ export default function CreateAuctionPage() {
   }, [user?.id]);
 
   const selectedProduct = listings.find((p) => p.id === selectedId) ?? null;
-  const isValid = !!selectedId && durationHours >= 1 && durationHours <= 336;
+  const isValid = !!selectedId && (
+    (durationSeconds != null && durationSeconds >= 30) ||
+    (durationSeconds == null && durationHours >= 1 && durationHours <= 336)
+  );
 
   const handleSubmit = async () => {
     if (!isValid || submitting) return;
@@ -218,7 +226,8 @@ export default function CreateAuctionPage() {
     const res = await createAuction({
       productId: selectedId,
       sellerId: user.id,
-      durationHours,
+      durationHours: durationSeconds == null ? durationHours : null,
+      durationSeconds,
       isUrgent,
     });
 
@@ -300,27 +309,39 @@ export default function CreateAuctionPage() {
                 Duration
               </p>
               <div className="flex flex-wrap gap-2">
-                {DURATIONS.map(({ label, hours }) => (
-                  <button
-                    key={hours}
-                    type="button"
-                    onClick={() => setDuration(hours)}
-                    className={cn(
-                      "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
-                      durationHours === hours
-                        ? "border-[#ad93e6] bg-[#ad93e6] text-white"
-                        : "border-[#e6e6e6] text-[#737373] hover:border-[#ad93e6] hover:text-[#ad93e6]",
-                    )}
-                  >
-                    {label}
-                  </button>
-                ))}
+                {DURATIONS.map(({ label, hours, seconds }) => {
+                  const active = seconds != null
+                    ? durationSeconds === seconds
+                    : durationSeconds == null && durationHours === hours;
+
+                  return (
+                    <button
+                      key={seconds != null ? `s${seconds}` : `h${hours}`}
+                      type="button"
+                      onClick={() => {
+                        if (seconds != null) {
+                          setDurationSeconds(seconds);
+                        } else {
+                          setDurationSeconds(null);
+                          setDurationHours(hours);
+                        }
+                      }}
+                      className={cn(
+                        "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+                        active
+                          ? "border-[#ad93e6] bg-[#ad93e6] text-white"
+                          : "border-[#e6e6e6] text-[#737373] hover:border-[#ad93e6] hover:text-[#ad93e6]",
+                      )}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
               </div>
               <p className="mt-1.5 text-[11px] text-[#b3b3b3]">
-                Auction ends in {durationHours}h (
-                {DURATIONS.find((d) => d.hours === durationHours)?.label ??
-                  `${durationHours}h`}
-                )
+                {durationSeconds != null
+                  ? `Auction ends in ${durationSeconds}s (${DURATIONS.find((d) => d.seconds === durationSeconds)?.label ?? `${durationSeconds}s`})`
+                  : `Auction ends in ${durationHours}h (${DURATIONS.find((d) => d.hours === durationHours)?.label ?? `${durationHours}h`})`}
               </p>
             </div>
 
@@ -386,7 +407,9 @@ export default function CreateAuctionPage() {
                   </span>
                   {" · "}Duration:{" "}
                   <span className="font-semibold text-[#121212]">
-                    {DURATIONS.find((d) => d.hours === durationHours)?.label}
+                    {durationSeconds != null
+                    ? (DURATIONS.find((d) => d.seconds === durationSeconds)?.label ?? `${durationSeconds}s`)
+                    : (DURATIONS.find((d) => d.hours === durationHours)?.label ?? `${durationHours}h`)}
                   </span>
                   {isUrgent && (
                     <span className="ml-2 text-[#ef4343] font-semibold">

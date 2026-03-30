@@ -18,7 +18,7 @@ public class AuctionsController(IMediator mediator) : ControllerBase
     {
         try
         {
-            var dto = await mediator.Send(new CreateAuctionCommand(req.SellerId, req.ProductId, req.DurationHours, req.IsUrgent));
+            var dto = await mediator.Send(new CreateAuctionCommand(req.SellerId, req.ProductId, req.DurationHours, req.DurationSeconds, req.IsUrgent));
             return ApiResponse<AuctionDetailDto>.Ok(dto, "Auction created.");
         }
         catch (UnauthorizedAccessException)

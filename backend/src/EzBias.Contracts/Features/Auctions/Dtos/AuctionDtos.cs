@@ -32,7 +32,8 @@ public record BidDto(
 public record CreateAuctionRequest(
     string SellerId,
     string ProductId,
-    int DurationHours,
+    int? DurationHours,
+    int? DurationSeconds,
     bool IsUrgent
 );
 

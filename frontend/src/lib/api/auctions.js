@@ -26,12 +26,14 @@ export function createAuction({
   productId,
   sellerId,
   durationHours,
+  durationSeconds,
   isUrgent = false,
 }) {
   return api.post("/api/auctions", {
     productId,
     sellerId,
     durationHours,
+    durationSeconds,
     isUrgent,
   });
 }

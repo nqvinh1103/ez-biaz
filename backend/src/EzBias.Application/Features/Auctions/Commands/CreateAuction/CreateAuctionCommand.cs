@@ -3,4 +3,4 @@ using MediatR;
 
 namespace EzBias.Application.Features.Auctions.Commands.CreateAuction;
 
-public record CreateAuctionCommand(string SellerId, string ProductId, int DurationHours, bool IsUrgent) : IRequest<AuctionDetailDto>;
+public record CreateAuctionCommand(string SellerId, string ProductId, int? DurationHours, int? DurationSeconds, bool IsUrgent) : IRequest<AuctionDetailDto>;
