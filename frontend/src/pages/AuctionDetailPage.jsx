@@ -303,16 +303,6 @@ function AuctionDetailPage() {
                     minutes={timer.minutes}
                     secs={timer.secs}
                   />
-                  <p
-                    className={`text-xs ${realtimeState === "connected" ? "text-emerald-600" : realtimeState === "connecting" ? "text-amber-600" : "text-[#737373]"}`}
-                  >
-                    Realtime:{" "}
-                    {realtimeState === "connected"
-                      ? "Connected"
-                      : realtimeState === "connecting"
-                        ? "Reconnecting..."
-                        : "Offline"}
-                  </p>
                 </div>
 
                 <div className="flex items-end gap-10">

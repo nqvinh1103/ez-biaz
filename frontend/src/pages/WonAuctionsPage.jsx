@@ -8,6 +8,19 @@ import FormField from "../components/ui/FormField";
 import { useAuth } from "../hooks/useAuth";
 import { createAuctionPayment, getMe, getWonAuctions } from "../lib/ezbiasApi";
 
+const STATUS_TRANSLATIONS = {
+  live: "Live",
+  ended_no_winner: "Ended - No Winner",
+  ended_pending_payment: "Pending Payment",
+  winner_failed: "Winner Failed",
+  sold: "Sold",
+  canceled: "Canceled",
+};
+
+const getStatusLabel = (status) => {
+  return STATUS_TRANSLATIONS[status] || status;
+};
+
 function PayModal({ auction, onClose, onPaid }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -56,7 +69,10 @@ function PayModal({ auction, onClose, onPaid }) {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await createAuctionPayment({ auctionId: auction.id, shippingInfo: form });
+      const res = await createAuctionPayment({
+        auctionId: auction.id,
+        shippingInfo: form,
+      });
       if (res.success) {
         const payUrl = res.data?.payUrl;
         if (payUrl) {
@@ -76,20 +92,40 @@ function PayModal({ auction, onClose, onPaid }) {
   };
 
   return (
-    <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/45 px-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div
+      className="fixed inset-0 z-200 flex items-center justify-center bg-black/45 px-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-[#e6e6e6] px-6 py-4">
-          <h2 className="text-base font-bold text-[#121212]">Pay for auction</h2>
-          <button onClick={onClose} className="flex h-7 w-7 items-center justify-center rounded-full text-[#737373] hover:bg-[#f0f0f0]" aria-label="Close">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+          <h2 className="text-base font-bold text-[#121212]">
+            Pay for auction
+          </h2>
+          <button
+            onClick={onClose}
+            className="flex h-7 w-7 items-center justify-center rounded-full text-[#737373] hover:bg-[#f0f0f0]"
+            aria-label="Close"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18 18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
 
         <div className="px-6 py-5">
           <p className="mb-4 text-sm text-[#737373]">
-            Auction: <span className="font-semibold text-[#121212]">{auction.name}</span>
+            Auction:{" "}
+            <span className="font-semibold text-[#121212]">{auction.name}</span>
           </p>
 
           {loading ? (
@@ -98,14 +134,50 @@ function PayModal({ auction, onClose, onPaid }) {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField label="Full Name" id="pay-fullName" name="fullName" value={form.fullName} onChange={handleChange} />
-              <FormField label="Email" id="pay-email" name="email" value={form.email} onChange={handleChange} />
+              <FormField
+                label="Full Name"
+                id="pay-fullName"
+                name="fullName"
+                value={form.fullName}
+                onChange={handleChange}
+              />
+              <FormField
+                label="Email"
+                id="pay-email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+              />
               <div className="sm:col-span-2">
-                <FormField label="Address" id="pay-address" name="address" value={form.address} onChange={handleChange} />
+                <FormField
+                  label="Address"
+                  id="pay-address"
+                  name="address"
+                  value={form.address}
+                  onChange={handleChange}
+                />
               </div>
-              <FormField label="City" id="pay-city" name="city" value={form.city} onChange={handleChange} />
-              <FormField label="Zip" id="pay-zip" name="zip" value={form.zip} onChange={handleChange} />
-              <FormField label="Phone" id="pay-phone" name="phone" value={form.phone} onChange={handleChange} />
+              <FormField
+                label="City"
+                id="pay-city"
+                name="city"
+                value={form.city}
+                onChange={handleChange}
+              />
+              <FormField
+                label="Zip"
+                id="pay-zip"
+                name="zip"
+                value={form.zip}
+                onChange={handleChange}
+              />
+              <FormField
+                label="Phone"
+                id="pay-phone"
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+              />
             </div>
           )}
 
@@ -113,8 +185,17 @@ function PayModal({ auction, onClose, onPaid }) {
         </div>
 
         <div className="flex justify-end gap-3 border-t border-[#e6e6e6] px-6 py-4">
-          <button onClick={onClose} className="h-10 rounded-lg border border-[#e6e6e6] px-5 text-sm font-medium text-[#737373] hover:bg-[#f9f9f9]">Cancel</button>
-          <Button type="button" disabled={submitting || loading} onClick={handlePay}>
+          <button
+            onClick={onClose}
+            className="h-10 rounded-lg border border-[#e6e6e6] px-5 text-sm font-medium text-[#737373] hover:bg-[#f9f9f9]"
+          >
+            Cancel
+          </button>
+          <Button
+            type="button"
+            disabled={submitting || loading}
+            onClick={handlePay}
+          >
             {submitting ? "Redirecting…" : "Pay with VNPay"}
           </Button>
         </div>
@@ -137,7 +218,9 @@ export default function WonAuctionsPage() {
     (async () => {
       setLoading(true);
       setError(null);
-      const res = await getWonAuctions(user.id, { pendingPaymentOnly: pendingOnly });
+      const res = await getWonAuctions(user.id, {
+        pendingPaymentOnly: pendingOnly,
+      });
       if (!mounted) return;
       if (res.success) setList(res.data ?? []);
       else setError(res.message ?? "Failed to load won auctions.");
@@ -157,7 +240,9 @@ export default function WonAuctionsPage() {
 
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-[#121212]">Won Auctions</h1>
-          <p className="mt-1 text-sm text-[#737373]">Pay for auctions you won and track status.</p>
+          <p className="mt-1 text-sm text-[#737373]">
+            Pay for auctions you won and track status.
+          </p>
         </div>
 
         <div className="mb-4 flex items-center gap-2">
@@ -185,36 +270,62 @@ export default function WonAuctionsPage() {
           </button>
         </div>
 
-        {error && <p className="py-4 text-center text-sm text-[#ef4343]">{error}</p>}
+        {error && (
+          <p className="py-4 text-center text-sm text-[#ef4343]">{error}</p>
+        )}
 
         {loading ? (
           <div className="flex justify-center py-20">
             <span className="h-8 w-8 animate-spin rounded-full border-2 border-[#e6e6e6] border-t-[#ad93e6]" />
           </div>
         ) : rows.length === 0 ? (
-          <p className="py-16 text-center text-sm text-[#737373]">No auctions found.</p>
+          <p className="py-16 text-center text-sm text-[#737373]">
+            No auctions found.
+          </p>
         ) : (
           <div className="flex flex-col gap-3">
             {rows.map((a) => (
-              <div key={a.id} className="flex items-center gap-4 rounded-xl border border-[#e6e6e6] bg-white p-4">
+              <div
+                key={a.id}
+                className="flex items-center gap-4 rounded-xl border border-[#e6e6e6] bg-white p-4"
+              >
                 <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-[#f0f0f0] bg-[#f7f6fb]">
-                  <img src={a.image} alt={a.name} className="h-full w-full object-cover" />
+                  <img
+                    src={a.image}
+                    alt={a.name}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
 
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex items-center gap-2">
-                    <Badge variant={a.status === "ended_pending_payment" ? "urgent" : "default"} dot>
-                      {a.status}
+                    <Badge
+                      variant={
+                        a.status === "ended_pending_payment"
+                          ? "urgent"
+                          : "default"
+                      }
+                      dot
+                    >
+                      {getStatusLabel(a.status)}
                     </Badge>
                   </div>
-                  <p className="truncate text-sm font-semibold text-[#121212]">{a.name}</p>
+                  <p className="truncate text-sm font-semibold text-[#121212]">
+                    {a.name}
+                  </p>
                   <p className="mt-1 text-xs text-[#737373]">
-                    Final: <span className="font-medium text-[#121212]">{a.finalPrice ?? a.currentBid}</span>
+                    Final:{" "}
+                    <span className="font-medium text-[#121212]">
+                      {a.finalPrice ?? a.currentBid}
+                    </span>
                   </p>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <Link to={`/auction/${a.id}`} className="text-sm font-semibold text-[#ad93e6] hover:underline">
+                  <Link
+                    to={`/auction/${a.id}`}
+                    className="text-sm font-semibold text-[#ad93e6] hover:underline"
+                  >
                     View
                   </Link>
                   {a.status === "ended_pending_payment" && (
