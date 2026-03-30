@@ -17,6 +17,10 @@ public class VnpayService(IOptions<VnpaySettings> options) : IVnpayService
         // VNPay amount is VND * 100
         var amountX100 = request.AmountVnd * 100;
 
+        var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+        var vnNow = TimeZoneInfo.ConvertTimeFromUtc(request.CreateDateUtc, vnTimeZone);
+        var vnExpire = vnNow.AddMinutes(15);
+
         var vnpParams = new SortedDictionary<string, string>(StringComparer.Ordinal)
         {
             ["vnp_Version"] = _settings.Version,
@@ -33,7 +37,8 @@ public class VnpayService(IOptions<VnpaySettings> options) : IVnpayService
             // not passed as vnp_IpnUrl in the payment URL. Passing it can trigger checksum issues.
             //["vnp_IpnUrl"] = _settings.IpnUrl,
             ["vnp_IpAddr"] = request.IpAddress,
-            ["vnp_CreateDate"] = request.CreateDateUtc.ToString("yyyyMMddHHmmss")
+            ["vnp_CreateDate"] = vnNow.ToString("yyyyMMddHHmmss"),
+            ["vnp_ExpireDate"] = vnExpire.ToString("yyyyMMddHHmmss")
         };
 
         // IMPORTANT: VNPay computes HMAC over URL-encoded key/value pairs (same format as query string)

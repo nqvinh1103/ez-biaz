@@ -4,6 +4,7 @@ using EzBias.Application.Features.Payments.Commands.CreateVnpayOrderPayment;
 using EzBias.Application.Features.Payments.Commands.CreateVnpayProductBoostPayment;
 using EzBias.Application.Features.Payments.Commands.CreateVnpaySubscriptionPayment;
 using EzBias.Application.Features.Payments.Commands.HandleVnpayCallback;
+using EzBias.Application.Common.Interfaces.Repositories;
 using EzBias.Contracts.Features.Payments.Dtos;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -15,7 +16,7 @@ namespace EzBias.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class PaymentsController(IMediator mediator) : ControllerBase
+public class PaymentsController(IMediator mediator, IPaymentRepository payments) : ControllerBase
 {
     [Authorize]
     [HttpPost("vnpay/orders/create")]
@@ -102,9 +103,17 @@ public class PaymentsController(IMediator mediator) : ControllerBase
     [HttpGet("vnpay-return")]
     public async Task<IActionResult> VnpayReturn()
     {
+        string? paymentType = null;
         try
         {
             var dict = Request.Query.ToDictionary(k => k.Key, v => (string?)v.Value);
+
+            if (dict.TryGetValue("vnp_TxnRef", out var txnRef) && !string.IsNullOrWhiteSpace(txnRef))
+            {
+                var payment = await payments.GetByIdAsync(txnRef!, HttpContext.RequestAborted);
+                paymentType = payment?.Type;
+            }
+
             await mediator.Send(new HandleVnpayCallbackCommand(dict));
         }
         catch
@@ -114,7 +123,29 @@ public class PaymentsController(IMediator mediator) : ControllerBase
 
         var code = Request.Query["vnp_ResponseCode"].ToString();
         var status = string.Equals(code, "00", StringComparison.OrdinalIgnoreCase) ? "success" : "failed";
-        var redirect = $"http://localhost:5173/order-history?payment={status}&code={code}";
+
+        var modalType = paymentType switch
+        {
+            "order" => "checkout",
+            "subscription" => "subscription",
+            "auction" => "auction",
+            "product_boost" => "boost",
+            _ => "checkout"
+        };
+
+        var query = System.Web.HttpUtility.ParseQueryString(string.Empty);
+        query["payment"] = status;
+        query["code"] = code;
+        query["type"] = modalType;
+
+        // Keep useful VNPay fields for modal details.
+        foreach (var key in new[] { "vnp_Amount", "vnp_TransactionNo", "vnp_BankCode", "vnp_PayDate", "vnp_TxnRef" })
+        {
+            var val = Request.Query[key].ToString();
+            if (!string.IsNullOrWhiteSpace(val)) query[key] = val;
+        }
+
+        var redirect = $"http://localhost:5173/?{query}";
         return Redirect(redirect);
     }
 

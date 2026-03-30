@@ -51,6 +51,15 @@ const TYPE_CFG = {
       { label: "Won Auctions", to: "/profile/won-auctions", primary: false },
     ],
   },
+  boost: {
+    successTitle: "Boost Activated!",
+    successDesc: "Your listing boost is now active for 24 hours.",
+    failureDesc: "Your boost payment could not be completed. Please try again.",
+    successActions: [
+      { label: "Go to My Shop", to: "/profile/my-shop?tab=listings", primary: true },
+      { label: "Go to Home", to: "/", primary: false },
+    ],
+  },
 };
 
 /* ── Component ──────────────────────────────────────────────────────────── */

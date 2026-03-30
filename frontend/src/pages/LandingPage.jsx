@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import PageLayout from "../components/layout/PageLayout";
 import AuctionsSection from "../components/sections/AuctionsSection";
 import HeroSection from "../components/sections/HeroSection";
 import TrendingSection from "../components/sections/TrendingSection";
+import PaymentResultModal from "../components/shared/PaymentResultModal";
 import { useLoginModal } from "../context/LoginModalContext";
 import { getAuctions, getProducts } from "../lib/ezbiasApi";
 
@@ -17,8 +19,10 @@ function formatTimer(endsAt) {
 
 function LandingPage() {
   const { openLoginModal } = useLoginModal();
+  const [searchParams] = useSearchParams();
   const [trending, setTrending] = useState([]);
   const [auctions, setAuctions] = useState([]);
+  const [paymentResult, setPaymentResult] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -32,6 +36,13 @@ function LandingPage() {
       if (auctionsRes.success) setAuctions((auctionsRes.data ?? []).slice(0, 3));
     })();
     return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    const status = searchParams.get("payment");
+    if (!status) return;
+    setPaymentResult(Object.fromEntries(searchParams.entries()));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const trendingCards = useMemo(
@@ -58,6 +69,13 @@ function LandingPage() {
 
   return (
     <PageLayout onOpenLoginModal={openLoginModal}>
+      {paymentResult && (
+        <PaymentResultModal
+          type={paymentResult.type ?? "checkout"}
+          params={paymentResult}
+          onClose={() => setPaymentResult(null)}
+        />
+      )}
       <HeroSection />
       <TrendingSection products={trendingCards} />
       <AuctionsSection auctions={auctionCards} />
