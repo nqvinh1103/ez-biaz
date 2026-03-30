@@ -8,6 +8,7 @@ import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import { useLoginModal } from "../context/LoginModalContext";
 import { useAuth } from "../hooks/useAuth";
+import { createAuctionHubConnection } from "../lib/auctionRealtime";
 import { getAuctionById, placeBid } from "../lib/ezbiasApi";
 import { formatCurrency } from "../utils/formatters";
 
@@ -86,6 +87,7 @@ function AuctionDetailPage() {
     const digitsOnly = raw.replace(/\D/g, "");
     setBidInput(digitsOnly);
   };
+  const [realtimeState, setRealtimeState] = useState("connecting");
 
   // fetch auction
   useEffect(() => {
@@ -108,6 +110,99 @@ function AuctionDetailPage() {
 
     return () => {
       mounted = false;
+    };
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    const conn = createAuctionHubConnection();
+
+    conn.on("bid_placed", (payload) => {
+      const data = payload ?? {};
+      const incomingAuctionId = data.auctionId ?? data.AuctionId;
+      if (incomingAuctionId !== id) return;
+
+      setAuction((prev) => {
+        if (!prev) return prev;
+        const incomingBidRaw = data.bid ?? data.Bid;
+        const nextEndsAt = data.endsAt ?? data.EndsAt ?? prev.endsAt;
+        const nextCurrent =
+          data.currentBid ?? data.CurrentBid ?? prev.currentBid;
+
+        if (!incomingBidRaw) {
+          return {
+            ...prev,
+            currentBid: nextCurrent,
+            endsAt: nextEndsAt,
+          };
+        }
+
+        const incomingBid = {
+          ...incomingBidRaw,
+          id: incomingBidRaw.id ?? incomingBidRaw.Id,
+          auctionId: incomingBidRaw.auctionId ?? incomingBidRaw.AuctionId,
+          userId: incomingBidRaw.userId ?? incomingBidRaw.UserId,
+          username: incomingBidRaw.username ?? incomingBidRaw.Username,
+          avatar: incomingBidRaw.avatar ?? incomingBidRaw.Avatar,
+          avatarBg: incomingBidRaw.avatarBg ?? incomingBidRaw.AvatarBg,
+          amount: incomingBidRaw.amount ?? incomingBidRaw.Amount,
+          placedAt: incomingBidRaw.placedAt ?? incomingBidRaw.PlacedAt,
+          isWinning: true,
+        };
+
+        const nextBids = [
+          incomingBid,
+          ...(prev.bids ?? [])
+            .filter((b) => (b.id ?? b.Id) !== incomingBid.id)
+            .map((b) => ({ ...b, isWinning: false })),
+        ];
+
+        return {
+          ...prev,
+          currentBid: nextCurrent,
+          endsAt: nextEndsAt,
+          bids: nextBids,
+        };
+      });
+
+      const nextMin = Number(data.currentBid ?? data.CurrentBid ?? 0) + 50000;
+      if (nextMin > 0) setBidInput(String(Math.round(nextMin)));
+    });
+
+    conn.on("auction_extended", (payload) => {
+      const data = payload ?? {};
+      const incomingAuctionId = data.auctionId ?? data.AuctionId;
+      if (incomingAuctionId !== id) return;
+
+      const nextEndsAt = data.endsAt ?? data.EndsAt;
+      if (!nextEndsAt) return;
+      setAuction((prev) => (prev ? { ...prev, endsAt: nextEndsAt } : prev));
+    });
+
+    (async () => {
+      try {
+        await conn.start();
+        setRealtimeState("connected");
+        await conn.invoke("JoinAuction", id);
+      } catch {
+        setRealtimeState("offline");
+      }
+    })();
+
+    conn.onreconnecting(() => setRealtimeState("connecting"));
+    conn.onreconnected(async () => {
+      setRealtimeState("connected");
+      try {
+        await conn.invoke("JoinAuction", id);
+      } catch {
+        // ignore
+      }
+    });
+    conn.onclose(() => setRealtimeState("offline"));
+
+    return () => {
+      conn.invoke("LeaveAuction", id).catch(() => {});
+      conn.stop().catch(() => {});
     };
   }, [id]);
 
@@ -202,11 +297,23 @@ function AuctionDetailPage() {
                   {auction.description}
                 </p>
 
-                <CountdownTimer
-                  hours={timer.hours}
-                  minutes={timer.minutes}
-                  secs={timer.secs}
-                />
+                <div className="space-y-2">
+                  <CountdownTimer
+                    hours={timer.hours}
+                    minutes={timer.minutes}
+                    secs={timer.secs}
+                  />
+                  <p
+                    className={`text-xs ${realtimeState === "connected" ? "text-emerald-600" : realtimeState === "connecting" ? "text-amber-600" : "text-[#737373]"}`}
+                  >
+                    Realtime:{" "}
+                    {realtimeState === "connected"
+                      ? "Connected"
+                      : realtimeState === "connecting"
+                        ? "Reconnecting..."
+                        : "Offline"}
+                  </p>
+                </div>
 
                 <div className="flex items-end gap-10">
                   <div>
