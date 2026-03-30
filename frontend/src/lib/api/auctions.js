@@ -37,3 +37,30 @@ export function createAuction({
     isUrgent,
   });
 }
+
+export function getSellerAuctions(sellerId, { status } = {}) {
+  const params = new URLSearchParams();
+  if (status) params.set("status", status);
+  const qs = params.toString();
+  return api.get(
+    `/api/auctions/seller/${encodeURIComponent(sellerId)}${qs ? `?${qs}` : ""}`,
+  );
+}
+
+export function getWonAuctions(userId, { pendingPaymentOnly } = {}) {
+  const params = new URLSearchParams();
+  if (pendingPaymentOnly) params.set("pendingPaymentOnly", "true");
+  const qs = params.toString();
+  return api.get(
+    `/api/auctions/won/${encodeURIComponent(userId)}${qs ? `?${qs}` : ""}`,
+  );
+}
+
+export function relistAuction(auctionId, { sellerId, durationHours, durationSeconds, isUrgent = false }) {
+  return api.post(`/api/auctions/${encodeURIComponent(auctionId)}/relist`, {
+    sellerId,
+    durationHours,
+    durationSeconds,
+    isUrgent,
+  });
+}

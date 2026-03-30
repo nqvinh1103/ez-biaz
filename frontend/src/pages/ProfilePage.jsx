@@ -85,6 +85,24 @@ const NAV_ITEMS = [
     ),
   },
   {
+    label: "My Auctions",
+    to: "/profile/my-auctions",
+    icon: (
+      <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12M8.25 17.25h12M3.75 6.75h.008v.008H3.75V6.75Zm0 5.25h.008v.008H3.75V12Zm0 5.25h.008v.008H3.75v-.008Z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Won Auctions",
+    to: "/profile/won-auctions",
+    icon: (
+      <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    ),
+  },
+  {
     label: "Upgrade Plan",
     to: "/subscription",
     highlight: true,
