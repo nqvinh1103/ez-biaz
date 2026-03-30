@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
 
@@ -11,7 +11,6 @@ const Header = forwardRef(function Header(
   const wrapperRef = useRef(null);
   const { user, logout, isLoggedIn } = useAuth();
   const { count } = useCart();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -33,8 +32,8 @@ const Header = forwardRef(function Header(
         <div className="mx-auto flex h-16 w-full max-w-480 items-center justify-between px-4 md:px-6 lg:px-24 xl:px-65">
           <Link to="/" className="flex items-center" aria-label="EZBias Home">
             <img
-              className="h-14.5 w-18 object-contain mt-3"
-              src="https://www.figma.com/api/mcp/asset/cf2b261e-fdfd-4fdc-ab07-b0105425e386"
+              className="h-14.5 w-18 object-contain"
+              src="logo.png"
               alt="EZBias logo"
             />
           </Link>
@@ -103,11 +102,20 @@ const Header = forwardRef(function Header(
               className="relative flex h-9.25 w-9.25 items-center justify-center"
               aria-label={`View cart (${count} items)`}
             >
-              <img
-                src="https://www.figma.com/api/mcp/asset/206ee4f9-6927-48ea-9ad1-952f8c50c097"
-                alt="Cart"
-                className="h-9.25 w-9.25"
-              />
+              <svg
+                className="h-7 w-7 text-[#ad93e6]"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="9" cy="20" r="1.5" />
+                <circle cx="18" cy="20" r="1.5" />
+                <path d="M3 4.5h2.2a1 1 0 0 1 .98.8l1.5 8.2a1 1 0 0 0 .98.8h8.5a1 1 0 0 0 .96-.72l1.4-4.95a1 1 0 0 0-.96-1.28H7.2" />
+              </svg>
               {count > 0 && (
                 <span className="absolute -right-1 -top-1 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[#ad93e6] text-[10px] font-bold leading-none text-white">
                   {count > 99 ? "99+" : count}
