@@ -1,3 +1,4 @@
+using EzBias.Application.Common.Interfaces.Realtime;
 using EzBias.Application.Common.Interfaces.Repositories;
 using EzBias.Contracts.Features.Auctions.Dtos;
 using EzBias.Domain.Entities;
@@ -7,7 +8,8 @@ namespace EzBias.Application.Features.Auctions.Commands.PlaceBid;
 
 public class PlaceBidCommandHandler(
     IAuctionRepository auctions,
-    IUserRepository users
+    IUserRepository users,
+    IAuctionRealtimePublisher realtime
 ) : IRequestHandler<PlaceBidCommand, BidDto>
 {
     private static readonly TimeSpan BidCooldown = TimeSpan.FromSeconds(2);
@@ -84,13 +86,17 @@ public class PlaceBidCommandHandler(
         auction.UpdatedAt = now;
 
         // Anti-sniping: if bid arrives near the end, extend auction.
+        var wasExtended = false;
         var remaining = auction.EndsAt - now;
         if (remaining <= AntiSnipingWindow)
+        {
             auction.EndsAt = auction.EndsAt.Add(AntiSnipingExtend);
+            wasExtended = true;
+        }
 
         await auctions.SaveChangesAsync(cancellationToken);
 
-        return new BidDto(
+        var dto = new BidDto(
             bid.Id,
             bid.AuctionId,
             bid.UserId,
@@ -101,5 +107,18 @@ public class PlaceBidCommandHandler(
             bid.PlacedAt,
             bid.IsWinning
         );
+
+        try
+        {
+            await realtime.PublishBidPlacedAsync(auction.Id, auction.CurrentBid, auction.EndsAt, dto, cancellationToken);
+            if (wasExtended)
+                await realtime.PublishAuctionExtendedAsync(auction.Id, auction.EndsAt, cancellationToken);
+        }
+        catch
+        {
+            // Realtime failure must not break bid placement.
+        }
+
+        return dto;
     }
 }

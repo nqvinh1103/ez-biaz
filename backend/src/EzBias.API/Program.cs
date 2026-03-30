@@ -1,9 +1,12 @@
+using EzBias.API.Hubs;
+using EzBias.API.Realtime;
+using EzBias.Application.Common.Interfaces.Realtime;
 using EzBias.Application.Common.Interfaces.Repositories;
 // (removed) services moved to CQRS handlers
 using EzBias.Application.Services.Auth;
 using EzBias.Infrastructure.Data;
-using EzBias.Infrastructure.Repositories;
 using EzBias.Infrastructure.Payments;
+using EzBias.Infrastructure.Repositories;
 using EzBias.Infrastructure.Seeding;
 // (removed) Application feature services migrated to MediatR handlers
 using EzBias.Infrastructure.Services.Auth;
@@ -16,6 +19,7 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 
 // Background jobs
 builder.Services.AddHostedService<EzBias.API.Services.AuctionEndHostedService>();
@@ -41,7 +45,8 @@ builder.Services.AddCors(options =>
                 "https://ez-biaz.vercel.app"
             )
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
@@ -96,6 +101,7 @@ builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPayoutRepository, PayoutRepository>();
 builder.Services.AddScoped<IEscrowRepository, EscrowRepository>();
+builder.Services.AddScoped<IAuctionRealtimePublisher, SignalRAuctionRealtimePublisher>();
 
 // Assistant (Gemini)
 builder.Services.AddHttpClient<EzBias.Application.Common.Interfaces.AI.IChatModelClient, EzBias.Infrastructure.AI.GeminiChatClient>();
@@ -155,5 +161,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<AuctionHub>("/hubs/auctions");
 
 app.Run();
