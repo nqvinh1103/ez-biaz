@@ -130,7 +130,7 @@ function ProductPickerCard({ product, selected, onSelect }) {
           {product.name}
         </p>
         <p className="mt-1 text-sm font-bold text-[#121212]">
-          ${Number(product.price).toFixed(2)}
+          {formatCurrency(product.price)}
         </p>
         <p
           className={cn(
@@ -408,8 +408,8 @@ export default function CreateAuctionPage() {
                   {" · "}Duration:{" "}
                   <span className="font-semibold text-[#121212]">
                     {durationSeconds != null
-                    ? (DURATIONS.find((d) => d.seconds === durationSeconds)?.label ?? `${durationSeconds}s`)
-                    : (DURATIONS.find((d) => d.hours === durationHours)?.label ?? `${durationHours}h`)}
+                      ? (DURATIONS.find((d) => d.seconds === durationSeconds)?.label ?? `${durationSeconds}s`)
+                      : (DURATIONS.find((d) => d.hours === durationHours)?.label ?? `${durationHours}h`)}
                   </span>
                   {isUrgent && (
                     <span className="ml-2 text-[#ef4343] font-semibold">
