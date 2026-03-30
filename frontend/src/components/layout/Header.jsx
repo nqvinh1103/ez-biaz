@@ -33,7 +33,7 @@ const Header = forwardRef(function Header(
           <Link to="/" className="flex items-center" aria-label="EZBias Home">
             <img
               className="h-14.5 w-18 object-contain"
-              src="logo.png"
+              src="/logo.png"
               alt="EZBias logo"
             />
           </Link>
