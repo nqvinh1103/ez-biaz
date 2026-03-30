@@ -8,6 +8,9 @@ namespace EzBias.Infrastructure.Repositories;
 
 public class OrderRepository(EzBiasDbContext db) : IOrderRepository
 {
+    private static string NormalizeOrderStatus(string status)
+        => string.Equals(status, "paid", StringComparison.OrdinalIgnoreCase) ? "pending" : status;
+
     private static OrderDto ToDto(
         dynamic o,
         IReadOnlyDictionary<string, string> imageMap)
@@ -26,7 +29,7 @@ public class OrderRepository(EzBiasDbContext db) : IOrderRepository
             )).ToList(),
             (decimal)o.ShippingFee,
             (decimal)o.Total,
-            (string)o.Status,
+            NormalizeOrderStatus((string)o.Status),
             (string)o.Payment,
             (string)o.Address,
             ((DateOnly)o.CreatedAt).ToString("yyyy-MM-dd"),
@@ -97,7 +100,12 @@ public class OrderRepository(EzBiasDbContext db) : IOrderRepository
     {
         var q = db.Orders.AsNoTracking().Where(o => o.SellerId == sellerId);
         if (!string.IsNullOrWhiteSpace(status))
-            q = q.Where(o => o.Status == status);
+        {
+            if (string.Equals(status, "pending", StringComparison.OrdinalIgnoreCase))
+                q = q.Where(o => o.Status == "pending" || o.Status == "paid");
+            else
+                q = q.Where(o => o.Status == status);
+        }
 
         var orders = await q
             .OrderByDescending(o => o.CreatedAt)

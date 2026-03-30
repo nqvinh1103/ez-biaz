@@ -408,6 +408,10 @@ const ORDER_TABS = [
   { key: "delivered", label: "Completed" },
 ];
 
+function normalizeSellerOrderStatus(status) {
+  return status === "paid" ? "pending" : status;
+}
+
 function SellerOrderCard({ order, onShip }) {
   const [loading, setLoading] = useState(false);
   const first = order.items?.[0];
@@ -510,7 +514,9 @@ function OrdersTab({ user }) {
     getSellerOrders(user.id).then((res) => {
       if (!mounted) return;
       if (res.success) {
-        const list = Array.isArray(res.data) ? res.data : [];
+        const list = Array.isArray(res.data)
+          ? res.data.map((o) => ({ ...o, status: normalizeSellerOrderStatus(o.status) }))
+          : [];
         setOrders(list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
       }
       setLoading(false);

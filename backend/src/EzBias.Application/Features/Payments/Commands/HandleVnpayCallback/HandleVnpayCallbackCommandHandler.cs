@@ -183,7 +183,7 @@ public class HandleVnpayCallbackCommandHandler(
                 SellerId = a.SellerId,
                 ShippingFee = 0m,
                 Total = total,
-                Status = "paid",
+                Status = "pending",
                 Payment = "vnpay",
                 Address = $"{ship.FullName} | {ship.Phone} | {ship.Address}, {ship.City} {ship.Zip}",
                 CreatedAt = DateOnly.FromDateTime(now)

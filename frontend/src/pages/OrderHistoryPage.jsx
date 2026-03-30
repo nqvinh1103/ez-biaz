@@ -9,6 +9,10 @@ import { formatCurrency } from "../utils/formatters";
 
 const FLOW_STEPS = ["pending", "shipping", "delivered"];
 
+function normalizeOrderStatus(status) {
+  return status === "paid" ? "pending" : status;
+}
+
 const TABS = [
   { key: "all",       label: "All" },
   { key: "pending",   label: "Pending" },
@@ -165,7 +169,9 @@ export default function OrderHistoryPage() {
     getOrders(user.id).then((res) => {
       if (!mounted) return;
       if (res.success) {
-        const list = Array.isArray(res.data) ? res.data : [];
+        const list = Array.isArray(res.data)
+          ? res.data.map((o) => ({ ...o, status: normalizeOrderStatus(o.status) }))
+          : [];
         setOrders(list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
       }
       setLoading(false);
