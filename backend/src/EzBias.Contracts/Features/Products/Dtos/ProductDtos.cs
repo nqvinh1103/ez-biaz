@@ -16,7 +16,23 @@ public record ProductDto(
     string CreatedAt,
     bool IsAuction,
     bool IsBoosted,
-    string? BoostEndsAt
+    string? BoostEndsAt,
+    SellerSummaryDto? SellerInfo = null,
+    SellerRatingSummaryDto? SellerRatingSummary = null
+);
+
+public record SellerSummaryDto(
+    string Id,
+    string Username,
+    string FullName,
+    string Avatar,
+    string JoinedAt
+);
+
+public record SellerRatingSummaryDto(
+    decimal Average,
+    int TotalReviews,
+    IReadOnlyDictionary<int, int> Breakdown
 );
 
 public record CartItemDto(
