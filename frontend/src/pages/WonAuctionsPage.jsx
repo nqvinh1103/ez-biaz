@@ -31,19 +31,38 @@ export default function WonAuctionsPage() {
   useEffect(() => {
     if (!isLoggedIn || !user?.id) return;
     let mounted = true;
-    (async () => {
-      setLoading(true);
-      setError(null);
+
+    const fetchWonAuctions = async ({ silent = false } = {}) => {
+      if (!silent) {
+        setLoading(true);
+        setError(null);
+      }
+
       const res = await getWonAuctions(user.id, {
         pendingPaymentOnly: pendingOnly,
       });
+
       if (!mounted) return;
-      if (res.success) setList(res.data ?? []);
-      else setError(res.message ?? "Failed to load won auctions.");
-      setLoading(false);
-    })();
+
+      if (res.success) {
+        setList(res.data ?? []);
+        if (!silent) setError(null);
+      } else if (!silent) {
+        setError(res.message ?? "Failed to load won auctions.");
+      }
+
+      if (!silent) setLoading(false);
+    };
+
+    fetchWonAuctions();
+
+    const intervalId = setInterval(() => {
+      fetchWonAuctions({ silent: true });
+    }, 5000);
+
     return () => {
       mounted = false;
+      clearInterval(intervalId);
     };
   }, [isLoggedIn, user?.id, pendingOnly]);
 
