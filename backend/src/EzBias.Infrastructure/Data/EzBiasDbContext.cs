@@ -23,6 +23,7 @@ public class EzBiasDbContext : DbContext
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<Rating> Ratings => Set<Rating>();
 
     // Payments / Escrow
     public DbSet<EzBias.Domain.Entities.Payments.Payment> Payments => Set<EzBias.Domain.Entities.Payments.Payment>();
@@ -240,6 +241,32 @@ public class EzBiasDbContext : DbContext
                 .WithMany(u => u.RefreshTokens)
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Rating>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Id).ValueGeneratedNever();
+            b.HasIndex(x => x.OrderId).IsUnique();
+            b.HasIndex(x => x.SellerId);
+            b.HasIndex(x => x.BuyerId);
+            b.Property(x => x.TagsJson).HasMaxLength(2048);
+            b.Property(x => x.Comment).HasMaxLength(2000);
+
+            b.HasOne(x => x.Order)
+                .WithMany()
+                .HasForeignKey(x => x.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasOne(x => x.Buyer)
+                .WithMany()
+                .HasForeignKey(x => x.BuyerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasOne(x => x.Seller)
+                .WithMany()
+                .HasForeignKey(x => x.SellerId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
