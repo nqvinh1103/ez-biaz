@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import PageLayout from "../components/layout/PageLayout";
+import { StarDisplay } from "../components/shared/StarRating";
 import { NestedLayoutContext } from "../context/NestedLayoutContext";
 import { useAuth } from "../hooks/useAuth";
-import { getMe, updateBankInfo } from "../lib/ezbiasApi";
+import { getMe, updateBankInfo, getSellerRatings } from "../lib/ezbiasApi";
 
 /* ── Nav items ─────────────────────────────────────────────────────────── */
 const NAV_ITEMS = [
@@ -66,6 +67,25 @@ const NAV_ITEMS = [
     ),
   },
   {
+    label: "My Reviews",
+    to: "/profile/my-reviews",
+    icon: (
+      <svg
+        className="h-4 w-4 shrink-0"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.601a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
+        />
+      </svg>
+    ),
+  },
+  {
     label: "Create Auction",
     to: "/profile/create-auction",
     icon: (
@@ -115,6 +135,22 @@ const NAV_ITEMS = [
 ];
 
 /* ── Sidebar ───────────────────────────────────────────────────────────── */
+const TIER_LABELS = {
+  New: { label: "New", color: "text-[#6b7280] bg-[#f3f4f6] border-[#e5e7eb]" },
+  Rising: { label: "Rising", color: "text-[#1d4ed8] bg-[#eff6ff] border-[#bfdbfe]" },
+  Trusted: { label: "Trusted Seller", color: "text-[#166534] bg-[#f0fdf4] border-[#bbf7d0]" },
+  "Pro Seller": { label: "Pro Seller", color: "text-[#5b3f9e] bg-[rgba(173,147,230,0.12)] border-[#d4c6f5]" },
+  Elite: { label: "Elite Seller", color: "text-[#854d0e] bg-[#fefce8] border-[#fde68a]" },
+};
+
+function getTier(count, avg) {
+  if (count >= 100 && avg >= 4.7) return "Elite";
+  if (count >= 51  && avg >= 4.3) return "Pro Seller";
+  if (count >= 21  && avg >= 4.0) return "Trusted";
+  if (count >= 5   && avg >= 3.5) return "Rising";
+  return "New";
+}
+
 function Sidebar({ user, profile, onLogout }) {
   const { pathname } = useLocation();
   const isActive = (to, exact) =>
@@ -125,6 +161,21 @@ function Sidebar({ user, profile, onLogout }) {
   const avatarBg = profile?.avatarBg ?? user.avatarBg ?? "#ad93e6";
   const avatarChar =
     profile?.avatar ?? user.avatar ?? displayName?.[0]?.toUpperCase() ?? "?";
+
+  const [ratingInfo, setRatingInfo] = useState(null);
+  useEffect(() => {
+    if (!user?.id) return;
+    getSellerRatings(user.id).then((res) => {
+      if (!res.success) return;
+      const items = res.data?.items ?? [];
+      const count = res.data?.totalCount ?? items.length;
+      const avg   = res.data?.averageRating ?? (count ? items.reduce((s, r) => s + (r.sellerRating ?? 0), 0) / count : 0);
+      setRatingInfo({ avg: Math.round(avg * 10) / 10, count });
+    });
+  }, [user?.id]);
+
+  const tier = ratingInfo ? getTier(ratingInfo.count, ratingInfo.avg) : null;
+  const tierCfg = tier ? TIER_LABELS[tier] : null;
 
   return (
     <aside className="w-full lg:w-56 lg:shrink-0">
@@ -141,6 +192,20 @@ function Sidebar({ user, profile, onLogout }) {
           <p className="mt-0.5 max-w-[160px] truncate text-xs text-[#737373]">
             {displayEmail}
           </p>
+          {ratingInfo && ratingInfo.count > 0 && (
+            <div className="mt-2 flex flex-col items-center gap-1">
+              <div className="flex items-center gap-1">
+                <StarDisplay rating={ratingInfo.avg} size="sm" />
+                <span className="text-xs font-semibold text-[#121212]">{ratingInfo.avg.toFixed(1)}</span>
+                <span className="text-xs text-[#b3b3b3]">({ratingInfo.count})</span>
+              </div>
+              {tierCfg && (
+                <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${tierCfg.color}`}>
+                  {tierCfg.label}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

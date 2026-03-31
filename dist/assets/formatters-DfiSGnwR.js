@@ -1,0 +1,1 @@
+var e=e=>new Intl.NumberFormat(`en-US`,{style:`currency`,currency:`USD`,minimumFractionDigits:2}).format(e),t=e=>String(Math.max(0,e)).padStart(2,`0`);export{t as n,e as t};

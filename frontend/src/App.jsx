@@ -25,6 +25,7 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const CreateAuctionPage = lazy(() => import("./pages/CreateAuctionPage"));
 const MyAuctionsPage = lazy(() => import("./pages/MyAuctionsPage"));
 const WonAuctionsPage = lazy(() => import("./pages/WonAuctionsPage"));
+const MyReviewsPage = lazy(() => import("./pages/MyReviewsPage"));
 const ProductDetailPage = lazy(() => import("./pages/ProductDetailPage"));
 const SubscriptionPage = lazy(() => import("./pages/SubscriptionPage"));
 
@@ -103,6 +104,7 @@ function App() {
                     />
                     <Route path="my-auctions" element={<MyAuctionsPage />} />
                     <Route path="won-auctions" element={<WonAuctionsPage />} />
+                    <Route path="my-reviews" element={<MyReviewsPage />} />
                   </Route>
                   <Route
                     path="/sell"

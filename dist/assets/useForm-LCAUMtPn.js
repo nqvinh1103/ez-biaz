@@ -1,0 +1,1 @@
+import{_ as e,g as t}from"./index-CjdmcsI4.js";var n=e(t(),1);function r(e){let[t,r]=(0,n.useState)(e);return{values:t,handleChange:(0,n.useCallback)(e=>{let{name:t,value:n}=e.target;r(e=>({...e,[t]:n}))},[]),reset:(0,n.useCallback)(()=>r(e),[e]),setValues:r}}export{r as t};
