@@ -4,10 +4,11 @@ import PageLayout from "../components/layout/PageLayout";
 import BackLink from "../components/ui/BackLink";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
-import FormField from "../components/ui/FormField";
+import AuctionWonModal from "../components/shared/AuctionWonModal";
 import { useAuth } from "../hooks/useAuth";
-import { createAuctionPayment, getMe, getWonAuctions } from "../lib/ezbiasApi";
+import { getWonAuctions } from "../lib/ezbiasApi";
 
+/* STATUS ──────────────────────────────────────────────────────────────────── */
 const STATUS_TRANSLATIONS = {
   live: "Live",
   ended_no_winner: "Ended - No Winner",
@@ -17,192 +18,7 @@ const STATUS_TRANSLATIONS = {
   canceled: "Canceled",
 };
 
-const getStatusLabel = (status) => {
-  return STATUS_TRANSLATIONS[status] || status;
-};
-
-function PayModal({ auction, onClose, onPaid }) {
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    address: "",
-    city: "",
-    zip: "",
-    phone: "",
-  });
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      setLoading(true);
-      const res = await getMe();
-      if (!mounted) return;
-      if (res.success) {
-        setProfile(res.data);
-        setForm({
-          fullName: res.data?.fullName ?? "",
-          email: res.data?.email ?? "",
-          address: res.data?.address ?? "",
-          city: res.data?.city ?? "",
-          zip: res.data?.zip ?? "",
-          phone: res.data?.phone ?? "",
-        });
-      }
-      setLoading(false);
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const handleChange = (e) => {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
-    setError(null);
-  };
-
-  const handlePay = async () => {
-    if (submitting) return;
-    setSubmitting(true);
-    setError(null);
-    try {
-      const res = await createAuctionPayment({
-        auctionId: auction.id,
-        shippingInfo: form,
-      });
-      if (res.success) {
-        const payUrl = res.data?.payUrl;
-        if (payUrl) {
-          onPaid?.();
-          window.location.href = payUrl;
-          return;
-        }
-        setError("Missing VNPay payUrl.");
-      } else {
-        setError(res.message ?? "Payment failed.");
-      }
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div
-      className="fixed inset-0 z-200 flex items-center justify-center bg-black/45 px-4"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-[#e6e6e6] px-6 py-4">
-          <h2 className="text-base font-bold text-[#121212]">
-            Pay for auction
-          </h2>
-          <button
-            onClick={onClose}
-            className="flex h-7 w-7 items-center justify-center rounded-full text-[#737373] hover:bg-[#f0f0f0]"
-            aria-label="Close"
-          >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18 18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-
-        <div className="px-6 py-5">
-          <p className="mb-4 text-sm text-[#737373]">
-            Auction:{" "}
-            <span className="font-semibold text-[#121212]">{auction.name}</span>
-          </p>
-
-          {loading ? (
-            <div className="flex justify-center py-10">
-              <span className="h-8 w-8 animate-spin rounded-full border-2 border-[#e6e6e6] border-t-[#ad93e6]" />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField
-                label="Full Name"
-                id="pay-fullName"
-                name="fullName"
-                value={form.fullName}
-                onChange={handleChange}
-              />
-              <FormField
-                label="Email"
-                id="pay-email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-              />
-              <div className="sm:col-span-2">
-                <FormField
-                  label="Address"
-                  id="pay-address"
-                  name="address"
-                  value={form.address}
-                  onChange={handleChange}
-                />
-              </div>
-              <FormField
-                label="City"
-                id="pay-city"
-                name="city"
-                value={form.city}
-                onChange={handleChange}
-              />
-              <FormField
-                label="Zip"
-                id="pay-zip"
-                name="zip"
-                value={form.zip}
-                onChange={handleChange}
-              />
-              <FormField
-                label="Phone"
-                id="pay-phone"
-                name="phone"
-                value={form.phone}
-                onChange={handleChange}
-              />
-            </div>
-          )}
-
-          {error && <p className="mt-4 text-sm text-[#ef4343]">{error}</p>}
-        </div>
-
-        <div className="flex justify-end gap-3 border-t border-[#e6e6e6] px-6 py-4">
-          <button
-            onClick={onClose}
-            className="h-10 rounded-lg border border-[#e6e6e6] px-5 text-sm font-medium text-[#737373] hover:bg-[#f9f9f9]"
-          >
-            Cancel
-          </button>
-          <Button
-            type="button"
-            disabled={submitting || loading}
-            onClick={handlePay}
-          >
-            {submitting ? "Redirecting…" : "Pay with VNPay"}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
+const getStatusLabel = (status) => STATUS_TRANSLATIONS[status] || status;
 
 export default function WonAuctionsPage() {
   const { user, isLoggedIn } = useAuth();
@@ -340,10 +156,9 @@ export default function WonAuctionsPage() {
         )}
 
         {paying && (
-          <PayModal
+          <AuctionWonModal
             auction={paying}
             onClose={() => setPaying(null)}
-            onPaid={() => {}}
           />
         )}
       </div>
