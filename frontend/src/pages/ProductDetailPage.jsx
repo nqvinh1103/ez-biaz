@@ -251,12 +251,14 @@ function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError]   = useState(null);
   const [added, setAdded]   = useState(false);
+  const [qty, setQty]       = useState(1);
 
   useEffect(() => {
     if (!id) return;
     let mounted = true;
     setLoading(true);
     setError(null);
+    setQty(1);
 
     getProductById(id).then((res) => {
       if (!mounted) return;
@@ -287,7 +289,8 @@ function ProductDetailPage() {
       name: product.name,
       price: Number(product.price),
       image: images[0],
-      qty: 1,
+      stock: product.stock,
+      qty,
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
@@ -352,6 +355,53 @@ function ProductDetailPage() {
                   </p>
                 )}
 
+                {/* Quantity selector — only when in stock and not yet in cart */}
+                {product.stock > 0 && !inCart && (
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-[#737373]">Quantity</span>
+                      <div className={cn(
+                        "flex items-center rounded-xl border bg-white transition-colors",
+                        qty >= product.stock ? "border-amber-300" : "border-[#e6e6e6]",
+                      )}>
+                        <button
+                          type="button"
+                          onClick={() => setQty((q) => Math.max(1, q - 1))}
+                          disabled={qty <= 1}
+                          className="flex h-9 w-9 items-center justify-center rounded-l-xl text-[#737373] transition-colors hover:bg-[#f4f3f7] disabled:cursor-not-allowed disabled:opacity-30"
+                          aria-label="Decrease quantity"
+                        >
+                          <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 10a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1Z" clipRule="evenodd" /></svg>
+                        </button>
+                        <span className="min-w-[2rem] select-none text-center text-sm font-semibold text-[#121212]">
+                          {qty}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setQty((q) => Math.min(product.stock, q + 1))}
+                          disabled={qty >= product.stock}
+                          className="flex h-9 w-9 items-center justify-center rounded-r-xl text-[#737373] transition-colors hover:bg-[#f4f3f7] disabled:cursor-not-allowed disabled:opacity-30"
+                          aria-label="Increase quantity"
+                        >
+                          <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H4a1 1 0 0 1 1-1Z" clipRule="evenodd" /></svg>
+                        </button>
+                      </div>
+                      <span className={cn(
+                        "text-xs font-medium",
+                        product.stock <= 3 ? "text-amber-500" : "text-[#b3b3b3]",
+                      )}>
+                        {product.stock} in stock
+                      </span>
+                    </div>
+                    {qty >= product.stock && (
+                      <p className="flex items-center gap-1 text-xs font-medium text-amber-500">
+                        <svg className="h-3.5 w-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 6a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 6Zm0 8a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clipRule="evenodd" /></svg>
+                        Maximum quantity reached — only {product.stock} available
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {/* Details grid */}
                 <div className="flex flex-col gap-2 rounded-xl border border-[#e6e6e6] bg-[#fafafa] p-4">
                   <InfoRow label="Fandom"    value={product.fandom ?? product.artist} />
@@ -373,7 +423,7 @@ function ProductDetailPage() {
                   }
                 >
                   {added ? <CheckIcon /> : <CartIcon />}
-                  {added ? "Added to Cart!" : inCart ? "Already in Cart" : "Add to Cart"}
+                  {added ? "Added to Cart!" : inCart ? "Already in Cart" : `Add ${qty > 1 ? `${qty} × ` : ""}to Cart`}
                 </Button>
 
                 {!isLoggedIn && (
