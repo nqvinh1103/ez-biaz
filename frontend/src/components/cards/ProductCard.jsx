@@ -10,7 +10,7 @@ function ConditionalLink({ to, children }) {
   return to ? <Link to={to}>{children}</Link> : <>{children}</>;
 }
 
-function ProductCard({ id, artist, name, price, image, isBoosted, boostEndsAt }) {
+function ProductCard({ id, artist, name, price, image, isBoosted, boostEndsAt, stock }) {
   const { isLoggedIn } = useAuth();
   const { openLoginModal } = useLoginModal();
   const { addItem, items } = useCart();
@@ -19,6 +19,7 @@ function ProductCard({ id, artist, name, price, image, isBoosted, boostEndsAt })
   // Fallback to name if id is missing (legacy static data without id)
   const itemKey = id ?? name;
   const inCart = items.some((i) => (i.id ?? i.name) === itemKey);
+  const outOfStock = stock != null && stock === 0;
 
   const numericPrice = typeof price === "number"
     ? price
@@ -31,7 +32,7 @@ function ProductCard({ id, artist, name, price, image, isBoosted, boostEndsAt })
       openLoginModal();
       return;
     }
-    addItem({ id: itemKey, artist, name, price: numericPrice, image, qty: 1 });
+    addItem({ id: itemKey, artist, name, price: numericPrice, image, stock, qty: 1 });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
@@ -49,6 +50,11 @@ function ProductCard({ id, artist, name, price, image, isBoosted, boostEndsAt })
           {isBoosted && (
             <span className="absolute left-2 top-2 z-10 rounded-full bg-[#7c3aed] px-2 py-0.5 text-[10px] font-semibold text-white shadow">
               Boosted
+            </span>
+          )}
+          {outOfStock && (
+            <span className="absolute right-2 top-2 z-10 rounded-full bg-[#f0f0f0] px-2 py-0.5 text-[10px] font-semibold text-[#737373]">
+              Out of stock
             </span>
           )}
           <img
@@ -73,15 +79,23 @@ function ProductCard({ id, artist, name, price, image, isBoosted, boostEndsAt })
             {name}
           </h3>
         </ConditionalLink>
+
+        {/* Stock badge */}
+        {stock != null && !outOfStock && (
+          <p className={`text-[11px] font-medium ${stock <= 3 ? "text-amber-500" : "text-[#b3b3b3]"}`}>
+            {stock <= 3 ? `Only ${stock} left` : `${stock} in stock`}
+          </p>
+        )}
+
         <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center sm:justify-between xl:pt-0.5">
           <span className="text-[30px] font-bold leading-none text-[#121212] sm:text-lg sm:leading-7 xl:text-[13px]">
             {displayPrice}
           </span>
           <button
             onClick={handleAdd}
-            disabled={inCart}
+            disabled={inCart || outOfStock}
             className="inline-flex h-8 shrink-0 items-center justify-center gap-1 self-end whitespace-nowrap rounded-full px-3 text-xs font-medium text-white transition-colors sm:self-auto xl:h-8 xl:gap-1 xl:px-2 xl:text-[11px] disabled:cursor-not-allowed disabled:opacity-70"
-            style={{ backgroundColor: added ? "#22c55e" : inCart ? "#b3b3b3" : "#ad93e6" }}
+            style={{ backgroundColor: added ? "#22c55e" : inCart || outOfStock ? "#b3b3b3" : "#ad93e6" }}
             aria-label={`Add ${name} to cart`}
           >
             <img
@@ -90,7 +104,7 @@ function ProductCard({ id, artist, name, price, image, isBoosted, boostEndsAt })
               aria-hidden="true"
               className="h-3 w-3 shrink-0 xl:h-3.5 xl:w-3.5"
             />
-            {added ? "Added!" : inCart ? "In cart" : "Add to cart"}
+            {added ? "Added!" : inCart ? "In cart" : outOfStock ? "Sold out" : "Add to cart"}
           </button>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import BidHistory from "../components/auction/BidHistory";
 import CountdownTimer from "../components/auction/CountdownTimer";
@@ -6,10 +6,11 @@ import PageLayout from "../components/layout/PageLayout";
 import BackLink from "../components/ui/BackLink";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
+import AuctionWonModal from "../components/shared/AuctionWonModal";
 import { useLoginModal } from "../context/LoginModalContext";
 import { useAuth } from "../hooks/useAuth";
 import { createAuctionHubConnection } from "../lib/auctionRealtime";
-import { getAuctionById, placeBid } from "../lib/ezbiasApi";
+import { getAuctionById, getWonAuctions, placeBid } from "../lib/ezbiasApi";
 import { formatCurrency } from "../utils/formatters";
 
 const TrendIcon = () => (
@@ -77,6 +78,8 @@ function AuctionDetailPage() {
 
   const [bidInput, setBidInput] = useState("");
   const [placing, setPlacing] = useState(false);
+  const [paying, setPaying] = useState(null);
+  const dismissedPayModalRef = useRef(new Set());
 
   const formattedBidInput = bidInput
     ? Number(bidInput).toLocaleString("vi-VN")
@@ -217,6 +220,49 @@ function AuctionDetailPage() {
     if (!auction?.endsAt) return { hours: 0, minutes: 0, secs: 0 };
     return diffToHms(new Date(auction.endsAt).getTime() - now);
   }, [auction?.endsAt, now]);
+
+  useEffect(() => {
+    if (!isLoggedIn || !user?.id || !auction?.id || paying) return;
+    if (dismissedPayModalRef.current.has(String(auction.id))) return;
+
+    const isEnded = timer.hours === 0 && timer.minutes === 0 && timer.secs === 0;
+    if (!isEnded) return;
+
+    let mounted = true;
+
+    const checkWonAuction = async () => {
+      const res = await getWonAuctions(user.id, { pendingPaymentOnly: true });
+      if (!mounted || !res.success) return false;
+
+      const won = (res.data ?? []).find(
+        (a) => String(a?.id) === String(auction.id),
+      );
+
+      if (won) {
+        setPaying(won);
+        return true;
+      }
+
+      return false;
+    };
+
+    let intervalId;
+
+    checkWonAuction().then((found) => {
+      if (!found && mounted) {
+        intervalId = setInterval(() => {
+          checkWonAuction().then((matched) => {
+            if (matched && intervalId) clearInterval(intervalId);
+          });
+        }, 5000);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isLoggedIn, user?.id, auction?.id, timer.hours, timer.minutes, timer.secs, paying]);
 
   const bids = useMemo(() => {
     const list = auction?.bids ?? [];
@@ -359,6 +405,18 @@ function AuctionDetailPage() {
             </div>
 
             <BidHistory bids={bids} />
+
+            {paying && (
+              <AuctionWonModal
+                auction={paying}
+                onClose={() => {
+                  if (paying?.id) {
+                    dismissedPayModalRef.current.add(String(paying.id));
+                  }
+                  setPaying(null);
+                }}
+              />
+            )}
           </>
         ) : (
           <p className="py-16 text-center text-sm text-[#737373]">

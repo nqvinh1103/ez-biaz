@@ -80,44 +80,94 @@ public class ProductRepository(EzBiasDbContext db) : IProductRepository
                 x.p.CreatedAt.ToString("yyyy-MM-dd"),
                 x.p.IsAuction,
                 x.boost != null,
-                x.boost != null ? x.boost.EndsAt.ToString("o") : null
+                x.boost != null ? x.boost.EndsAt.ToString("o") : null,
+                null,
+                null
             ))
             .ToListAsync(cancellationToken);
     }
 
-    public Task<ProductDto?> GetByIdDtoAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<ProductDto?> GetByIdDtoAsync(string id, CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;
-        var activeBoosts = db.ProductBoosts.AsNoTracking()
-            .Where(b => b.Status == "active" && b.EndsAt > now);
 
-        return db.Products.AsNoTracking()
+        var row = await db.Products.AsNoTracking()
             .Where(p => p.Id == id)
-            .GroupJoin(
-                activeBoosts,
-                p => p.Id,
-                b => b.ProductId,
-                (p, bs) => new { p, boost = bs.OrderByDescending(x => x.EndsAt).FirstOrDefault() }
-            )
-            .Select(x => new ProductDto(
-                x.p.Id,
-                x.p.Fandom,
-                x.p.Artist,
-                x.p.Name,
-                x.p.Type,
-                x.p.Condition,
-                x.p.Price,
-                x.p.Stock,
-                x.p.SellerId,
-                x.p.Image,
-                x.p.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).ToList(),
-                x.p.Description,
-                x.p.CreatedAt.ToString("yyyy-MM-dd"),
-                x.p.IsAuction,
-                x.boost != null,
-                x.boost != null ? x.boost.EndsAt.ToString("o") : null
-            ))
+            .Select(p => new
+            {
+                Product = p,
+                Boost = db.ProductBoosts.AsNoTracking()
+                    .Where(b => b.ProductId == p.Id && b.Status == "active" && b.EndsAt > now)
+                    .OrderByDescending(b => b.EndsAt)
+                    .FirstOrDefault(),
+                Seller = db.Users.AsNoTracking()
+                    .Where(u => u.Id == p.SellerId)
+                    .Select(u => new
+                    {
+                        u.Id,
+                        u.Username,
+                        u.FullName,
+                        u.Avatar,
+                        u.JoinedAt
+                    })
+                    .FirstOrDefault()
+            })
             .FirstOrDefaultAsync(cancellationToken);
+
+        if (row is null) return null;
+
+        var ratingRows = await db.Ratings.AsNoTracking()
+            .Where(r => r.SellerId == row.Product.SellerId)
+            .Select(r => r.SellerRating)
+            .ToListAsync(cancellationToken);
+
+        var totalReviews = ratingRows.Count;
+        var average = totalReviews == 0 ? 0m : Math.Round((decimal)ratingRows.Average(), 1);
+
+        var breakdown = new Dictionary<int, int>
+        {
+            [1] = 0,
+            [2] = 0,
+            [3] = 0,
+            [4] = 0,
+            [5] = 0
+        };
+
+        foreach (var star in ratingRows.Where(x => x is >= 1 and <= 5))
+            breakdown[star]++;
+
+        var sellerDto = row.Seller is null
+            ? null
+            : new SellerSummaryDto(
+                row.Seller.Id,
+                row.Seller.Username,
+                row.Seller.FullName,
+                row.Seller.Avatar,
+                row.Seller.JoinedAt.ToString("yyyy-MM-dd")
+            );
+
+        var sellerRatingDto = new SellerRatingSummaryDto(average, totalReviews, breakdown);
+
+        return new ProductDto(
+            row.Product.Id,
+            row.Product.Fandom,
+            row.Product.Artist,
+            row.Product.Name,
+            row.Product.Type,
+            row.Product.Condition,
+            row.Product.Price,
+            row.Product.Stock,
+            row.Product.SellerId,
+            row.Product.Image,
+            row.Product.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).ToList(),
+            row.Product.Description,
+            row.Product.CreatedAt.ToString("yyyy-MM-dd"),
+            row.Product.IsAuction,
+            row.Boost != null,
+            row.Boost != null ? row.Boost.EndsAt.ToString("o") : null,
+            sellerDto,
+            sellerRatingDto
+        );
     }
 
     public async Task<IReadOnlyList<ProductDto>> GetBySellerDtoAsync(string sellerId, CancellationToken cancellationToken = default)
@@ -153,7 +203,9 @@ public class ProductRepository(EzBiasDbContext db) : IProductRepository
                 x.p.CreatedAt.ToString("yyyy-MM-dd"),
                 x.p.IsAuction,
                 x.boost != null,
-                x.boost != null ? x.boost.EndsAt.ToString("o") : null
+                x.boost != null ? x.boost.EndsAt.ToString("o") : null,
+                null,
+                null
             ))
             .ToListAsync(cancellationToken);
     }
