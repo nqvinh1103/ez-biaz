@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../context/ToastContext";
+import { useAuth } from "../../hooks/useAuth";
 import { CloseIcon, FacebookIcon, GoogleIcon } from "../ui/Icons";
 
 function LoginModal({
@@ -98,11 +98,16 @@ function LoginModal({
           isOpen ? "translate-y-0 scale-100" : "translate-y-4 scale-[0.98]"
         }`}
       >
-        <div
-          className="relative h-35 w-full shrink-0 overflow-hidden md:h-auto md:w-74.25 bg-gradient-to-br from-[#9b84ec] via-[#ad93e6] to-[#7c3aed]"
-          aria-hidden="true"
-        />
-
+        <div className="relative h-35 w-full shrink-0 overflow-hidden bg-[#d9d9d9] md:h-auto md:w-74.25">
+          <img
+            className="h-full w-full object-cover object-left"
+            src="/background.jpg"
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
 
         <form
           onSubmit={handleSubmit}
