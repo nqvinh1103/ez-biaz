@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../context/ToastContext";
+import { CloseIcon, FacebookIcon, GoogleIcon } from "../ui/Icons";
 
 function LoginModal({
   isOpen,
@@ -97,13 +98,11 @@ function LoginModal({
           isOpen ? "translate-y-0 scale-100" : "translate-y-4 scale-[0.98]"
         }`}
       >
-        <div className="relative h-35 w-full shrink-0 overflow-hidden bg-[#d9d9d9] md:h-auto md:w-74.25">
-          <img
-            className="h-full w-full object-cover object-left"
-            src="https://www.figma.com/api/mcp/asset/8df5cd39-ac72-49df-852e-0a15da548014"
-            alt="K-pop merchandise collage"
-          />
-        </div>
+        <div
+          className="relative h-35 w-full shrink-0 overflow-hidden md:h-auto md:w-74.25 bg-gradient-to-br from-[#9b84ec] via-[#ad93e6] to-[#7c3aed]"
+          aria-hidden="true"
+        />
+
 
         <form
           onSubmit={handleSubmit}
@@ -111,15 +110,12 @@ function LoginModal({
         >
           <button
             ref={closeButtonRef}
-            className="absolute right-3.25 top-4.25 flex h-4.25 w-4.5 items-center justify-center p-0"
+            type="button"
+            className="absolute right-3.25 top-4.25 flex h-4.25 w-4.5 items-center justify-center p-0 text-[#7c838a]"
             aria-label="Close login modal"
             onClick={onClose}
           >
-            <img
-              src="https://www.figma.com/api/mcp/asset/43e47ff3-bb45-4573-9c04-6da88513d632"
-              alt="Close"
-              className="h-full w-full object-contain"
-            />
+            <CloseIcon className="h-full w-full" />
           </button>
 
           <h2
@@ -200,11 +196,7 @@ function LoginModal({
               type="button"
               className="inline-flex h-9 w-full items-center justify-center gap-1.75 rounded-[7.5px] border border-[#7c838a] px-2 text-[10px] font-medium text-[#7c838a] transition-colors hover:bg-[rgba(176,186,195,0.15)] md:h-6.75 md:w-auto md:justify-start md:text-[7px]"
             >
-              <img
-                src="https://www.figma.com/api/mcp/asset/8ce41974-1cb2-4b1b-9e76-0697d64e3edf"
-                alt="Google logo"
-                className="h-5.25 w-5.25 shrink-0 object-contain"
-              />
+              <GoogleIcon className="h-5.25 w-5.25 shrink-0" />
               Sign up with Google
             </button>
             <p className="mb-4 font-['Poppins'] text-[13px] font-medium text-[#b0bac3]">
@@ -214,11 +206,7 @@ function LoginModal({
               type="button"
               className="inline-flex h-9 w-full items-center justify-center gap-1.75 rounded-[7.5px] border border-[#7c838a] px-2 text-[10px] font-medium text-[#7c838a] transition-colors hover:bg-[rgba(176,186,195,0.15)] md:h-6.75 md:w-auto md:justify-start md:text-[7px]"
             >
-              <img
-                src="https://www.figma.com/api/mcp/asset/b44f0ac1-d43b-472e-a499-1789fcfa7f5a"
-                alt="Facebook logo"
-                className="h-5.25 w-5.25 shrink-0 object-contain"
-              />
+              <FacebookIcon className="h-5.25 w-5.25 shrink-0" />
               Sign up with Facebook
             </button>
           </div>

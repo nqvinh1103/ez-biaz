@@ -52,6 +52,11 @@ function ImageGallery({ images }) {
           src={images[active]}
           alt={`Product image ${active + 1}`}
           className="h-full w-full object-contain p-4 transition-opacity duration-200"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+          width="600"
+          height="600"
         />
 
         {/* Prev / Next arrows — only when multiple images */}
@@ -105,7 +110,7 @@ function ImageGallery({ images }) {
               )}
               aria-label={`View image ${i + 1}`}
             >
-              <img src={src} alt="" className="h-full w-full object-contain p-1" />
+              <img src={src} alt="" className="h-full w-full object-contain p-1" loading="lazy" decoding="async" />
             </button>
           ))}
         </div>

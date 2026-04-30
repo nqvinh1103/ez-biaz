@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import ProductCard from "../cards/ProductCard";
+import { ArrowRightIcon } from "../ui/Icons";
 
 function TrendingSection({ products }) {
   return (
@@ -17,12 +18,7 @@ function TrendingSection({ products }) {
             className="flex items-center gap-1 text-sm font-semibold text-[#ad93e6]"
           >
             View All
-            <img
-              src="https://www.figma.com/api/mcp/asset/848cbe91-fa3a-4f7e-bfd1-fd84a13d21be"
-              alt=""
-              aria-hidden="true"
-              className="h-4 w-4"
-            />
+            <ArrowRightIcon className="h-4 w-4" />
           </Link>
         </div>
 

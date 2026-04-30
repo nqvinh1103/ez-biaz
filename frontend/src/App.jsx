@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import ErrorBoundary from "./components/layout/ErrorBoundary";
 import RequireAuth from "./components/layout/RequireAuth";
 import LoginModal from "./components/modals/LoginModal";
 import RegisterModal from "./components/modals/RegisterModal";
@@ -28,6 +29,7 @@ const WonAuctionsPage = lazy(() => import("./pages/WonAuctionsPage"));
 const MyReviewsPage = lazy(() => import("./pages/MyReviewsPage"));
 const ProductDetailPage = lazy(() => import("./pages/ProductDetailPage"));
 const SubscriptionPage = lazy(() => import("./pages/SubscriptionPage"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 function PageLoader() {
   return (
@@ -67,14 +69,15 @@ function GlobalAuthModals() {
 /* ─── Root ────────────────────────────────────────────────────────────────── */
 function App() {
   return (
-    <BrowserRouter>
-      <ToastProvider>
-        <LoginModalProvider>
-          <AuthProvider>
-            <CartProvider initialItems={[]}>
-              <GlobalAuthModals />
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <ToastProvider>
+          <LoginModalProvider>
+            <AuthProvider>
+              <CartProvider initialItems={[]}>
+                <GlobalAuthModals />
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
                   {/* Public */}
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/about" element={<AboutPage />} />
@@ -147,13 +150,17 @@ function App() {
                     }
                   />
                   <Route path="/subscription" element={<SubscriptionPage />} />
+
+                  {/* 404 */}
+                  <Route path="*" element={<NotFoundPage />} />
                 </Routes>
-              </Suspense>
-            </CartProvider>
-          </AuthProvider>
-        </LoginModalProvider>
-      </ToastProvider>
-    </BrowserRouter>
+                </Suspense>
+              </CartProvider>
+            </AuthProvider>
+          </LoginModalProvider>
+        </ToastProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 

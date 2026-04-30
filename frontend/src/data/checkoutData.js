@@ -7,7 +7,7 @@ export const DEFAULT_CART_ITEMS = [
     price: 59.99,
     qty: 1,
     image:
-      "https://www.figma.com/api/mcp/asset/8ebd7d06-ae8a-4953-9ec0-e99078d5de0a",
+      "/placeholder.jpg",
   },
   {
     id: 2,
@@ -16,7 +16,7 @@ export const DEFAULT_CART_ITEMS = [
     price: 59.98,
     qty: 2,
     image:
-      "https://www.figma.com/api/mcp/asset/9fe35220-d95a-49bb-b07e-d8cb59533f7c",
+      "/placeholder.jpg",
   },
   {
     id: 3,
@@ -25,6 +25,6 @@ export const DEFAULT_CART_ITEMS = [
     price: 24.99,
     qty: 1,
     image:
-      "https://www.figma.com/api/mcp/asset/5fffa136-f8d4-4436-bb78-33ec4048a320",
+      "/placeholder.jpg",
   },
 ];

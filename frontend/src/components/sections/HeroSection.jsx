@@ -1,3 +1,6 @@
+import { Link } from "react-router-dom";
+import { SparkleIcon } from "../ui/Icons";
+
 function HeroSection() {
   return (
     <section
@@ -6,8 +9,12 @@ function HeroSection() {
     >
       <img
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-        src="background.jpg"
-        alt="K-pop merchandise background"
+        src="/background.jpg"
+        alt=""
+        aria-hidden="true"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
       />
       <div
         className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[rgba(173,147,230,0.1)] blur-3xl"
@@ -20,12 +27,7 @@ function HeroSection() {
 
       <div className="relative mx-auto flex w-full max-w-350 flex-col items-center gap-6 px-4 py-15 md:py-20 xl:py-32">
         <div className="inline-flex items-center gap-2 rounded-full bg-[rgba(147,183,230,0.73)] px-4 py-1.5">
-          <img
-            className="h-3.5 w-3.5"
-            src="https://www.figma.com/api/mcp/asset/9dcc5db7-76ae-4b7e-95bc-b37df4b3946a"
-            alt=""
-            aria-hidden="true"
-          />
+          <SparkleIcon className="h-3.5 w-3.5 text-[#9d73f9]" />
           <span className="whitespace-nowrap text-xs font-semibold text-[#9d73f9]">
             Your #1 K-pop Merch Destination
           </span>
@@ -44,18 +46,18 @@ function HeroSection() {
         </p>
 
         <div className="flex w-full flex-col gap-3 pt-2 sm:w-auto sm:flex-row">
-          <a
-            href="#"
+          <Link
+            to="/fandoms"
             className="inline-flex h-11 items-center justify-center rounded-full bg-[#ad93e6] px-8 text-sm font-semibold text-white transition-colors hover:bg-[#9d7ed9]"
           >
             Shop Now
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            to="/auction"
             className="inline-flex h-11 items-center justify-center rounded-full border border-[#ad93e6] bg-white px-8 text-sm font-semibold text-[#ad93e6] transition-colors hover:bg-[#ad93e6] hover:text-white"
           >
             Live Auctions
-          </a>
+          </Link>
         </div>
       </div>
     </section>

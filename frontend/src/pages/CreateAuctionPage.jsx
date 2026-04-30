@@ -118,6 +118,8 @@ function ProductPickerCard({ product, selected, onSelect }) {
           src={product.image}
           alt={product.name}
           className="h-full w-full object-contain p-2"
+          loading="lazy"
+          decoding="async"
         />
       </div>
 
@@ -391,6 +393,8 @@ export default function CreateAuctionPage() {
                   src={selectedProduct.image}
                   alt={selectedProduct.name}
                   className="h-full w-full object-contain p-1"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
               <div className="flex-1 min-w-0">

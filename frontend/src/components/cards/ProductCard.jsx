@@ -4,6 +4,7 @@ import { useLoginModal } from "../../context/LoginModalContext";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
 import { formatCurrency } from "../../utils/formatters";
+import { CartIcon } from "../ui/Icons";
 
 /** Renders a Link only when `to` is non-null, otherwise a plain fragment. */
 function ConditionalLink({ to, children }) {
@@ -61,6 +62,10 @@ function ProductCard({ id, artist, name, price, image, isBoosted, boostEndsAt, s
             className="absolute inset-0 h-full w-full object-contain p-3 sm:object-cover sm:p-0 transition-transform duration-200 hover:scale-105"
             src={image}
             alt={name}
+            loading="lazy"
+            decoding="async"
+            width="400"
+            height="400"
           />
           <div
             className="pointer-events-none absolute inset-0 bg-linear-to-b from-[rgba(244,243,247,0)] to-[rgba(143,143,145,0.11)]"
@@ -98,12 +103,7 @@ function ProductCard({ id, artist, name, price, image, isBoosted, boostEndsAt, s
             style={{ backgroundColor: added ? "#22c55e" : inCart || outOfStock ? "#b3b3b3" : "#ad93e6" }}
             aria-label={`Add ${name} to cart`}
           >
-            <img
-              src="https://www.figma.com/api/mcp/asset/82477c67-1233-4111-bd0d-9c38a332680e"
-              alt=""
-              aria-hidden="true"
-              className="h-3 w-3 shrink-0 xl:h-3.5 xl:w-3.5"
-            />
+            <CartIcon className="h-3 w-3 shrink-0 xl:h-3.5 xl:w-3.5" />
             {added ? "Added!" : inCart ? "In cart" : outOfStock ? "Sold out" : "Add to cart"}
           </button>
         </div>

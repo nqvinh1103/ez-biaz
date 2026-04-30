@@ -2,6 +2,7 @@ import { memo } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "../../utils/cn";
 import { formatCurrency } from "../../utils/formatters";
+import { ClockIcon, FlameIcon } from "../ui/Icons";
 
 /**
  * Card displaying a single auction item with timer, current bid, and bid CTA.
@@ -44,6 +45,10 @@ const AuctionCard = memo(function AuctionCard({
           )}
           src={image}
           alt={name}
+          loading="lazy"
+          decoding="async"
+          width="400"
+          height="400"
         />
         {/* Subtle gradient overlay */}
         <div
@@ -61,16 +66,7 @@ const AuctionCard = memo(function AuctionCard({
           )}
           aria-label={`Time remaining: ${timer}`}
         >
-          <img
-            src={
-              isUrgent
-                ? "https://www.figma.com/api/mcp/asset/ff3303cc-24af-4e17-ab4f-372ca82615e9"
-                : "https://www.figma.com/api/mcp/asset/5e44fef9-dd3d-48b2-bfea-20ee06c2cc5e"
-            }
-            alt=""
-            aria-hidden="true"
-            className="h-3 w-3 shrink-0"
-          />
+          <FlameIcon className="h-3 w-3 shrink-0" />
           {timer}
         </div>
       </div>
@@ -100,12 +96,7 @@ const AuctionCard = memo(function AuctionCard({
             className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 self-end whitespace-nowrap rounded-full bg-[#ad93e6] px-3 text-xs font-medium text-white transition-colors hover:bg-[#9d7ed9] sm:self-auto"
             aria-label={`Place bid on ${name}`}
           >
-            <img
-              src="https://www.figma.com/api/mcp/asset/2199744a-e3f3-49e5-ad38-0cd5df4f9509"
-              alt=""
-              aria-hidden="true"
-              className="h-4 w-4 shrink-0"
-            />
+            <ClockIcon className="h-4 w-4 shrink-0" />
             Place Bid
           </Link>
         </div>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../context/ToastContext";
+import { CloseIcon } from "../ui/Icons";
 
 function RegisterModal({
   isOpen,
@@ -131,26 +132,24 @@ function RegisterModal({
           isOpen ? "translate-y-0 scale-100" : "translate-y-4 scale-[0.98]"
         }`}
       >
-        <div className="relative h-35 w-full shrink-0 overflow-hidden bg-[#d9d9d9] md:h-auto md:w-74.25">
-          <img
-            className="h-full w-full object-cover object-left"
-            src="https://www.figma.com/api/mcp/asset/8df5cd39-ac72-49df-852e-0a15da548014"
-            alt="K-pop merchandise collage"
-          />
-        </div>
+        <div
+          className="relative h-35 w-full shrink-0 overflow-hidden md:h-auto md:w-74.25 bg-gradient-to-br from-[#9b84ec] via-[#ad93e6] to-[#7c3aed]"
+          aria-hidden="true"
+        />
 
-        <div className="relative flex flex-1 flex-col items-center justify-center rounded-b-xl bg-[#fcfeff] px-6 pb-7 pt-8 md:rounded-r-xl md:rounded-bl-none md:px-10 md:pb-9 md:pt-12">
+
+        <form
+          onSubmit={handleSubmit}
+          className="relative flex flex-1 flex-col items-center justify-center rounded-b-xl bg-[#fcfeff] px-6 pb-7 pt-8 md:rounded-r-xl md:rounded-bl-none md:px-10 md:pb-9 md:pt-12"
+        >
           <button
             ref={closeButtonRef}
-            className="absolute right-3.25 top-4.25 flex h-4.25 w-4.5 items-center justify-center p-0"
+            type="button"
+            className="absolute right-3.25 top-4.25 flex h-4.25 w-4.5 items-center justify-center p-0 text-[#7c838a]"
             aria-label="Close register modal"
             onClick={onClose}
           >
-            <img
-              src="https://www.figma.com/api/mcp/asset/43e47ff3-bb45-4573-9c04-6da88513d632"
-              alt="Close"
-              className="h-full w-full object-contain"
-            />
+            <CloseIcon className="h-full w-full" />
           </button>
 
           <h2
@@ -243,8 +242,7 @@ function RegisterModal({
           )}
 
           <button
-            type="button"
-            onClick={handleSubmit}
+            type="submit"
             disabled={loading}
             className="mb-5 mt-2 h-7.5 w-full rounded-[5px] bg-[#9b84ec] font-['Poppins'] text-[13px] font-medium text-black transition-colors hover:bg-[#8a72db] disabled:opacity-60 md:w-42.5 mx-auto"
           >
@@ -264,7 +262,7 @@ function RegisterModal({
               Login
             </button>
           </p>
-        </div>
+        </form>
       </div>
     </div>
   );

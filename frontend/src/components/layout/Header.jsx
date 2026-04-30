@@ -35,6 +35,10 @@ const Header = forwardRef(function Header(
               className="h-14.5 w-18 object-contain"
               src="/logo.png"
               alt="EZBias logo"
+              width="72"
+              height="58"
+              loading="eager"
+              decoding="async"
             />
           </Link>
 

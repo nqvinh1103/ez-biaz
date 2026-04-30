@@ -85,6 +85,8 @@ const PhotoUploader = memo(function PhotoUploader({
                 src={url}
                 alt={`Upload preview ${i + 1}`}
                 className="h-full w-full object-cover"
+                loading="lazy"
+                decoding="async"
               />
               <button
                 type="button"

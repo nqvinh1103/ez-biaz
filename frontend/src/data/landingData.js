@@ -11,56 +11,56 @@ export const trendingProducts = [
     name: "BTS Army Bomb Ver.4",
     price: "59.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/8ebd7d06-ae8a-4953-9ec0-e99078d5de0a",
+      "/placeholder.jpg",
   },
   {
     artist: "BTS",
     name: "BTS Proof Album",
     price: "34.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/289a36ad-9a7d-4b88-ba02-28db16a8e88a",
+      "/placeholder.jpg",
   },
   {
     artist: "CORTIS",
     name: "COLOR OUTSIDE THE LINES (Vinyl)",
     price: "37.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/8a6f8e99-0a66-43a5-b1d6-8a86a0423996",
+      "/placeholder.jpg",
   },
   {
     artist: "Blackpink",
     name: "Blackpink Lightstick Ver.2",
     price: "64.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/9fe35220-d95a-49bb-b07e-d8cb59533f7c",
+      "/placeholder.jpg",
   },
   {
     artist: "ILLIT",
     name: "ILLIT - 3rd Mini Album bomb (Merch ver.)",
     price: "79.52 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/bc467203-917b-4f4c-ae01-6a5bf06f189b",
+      "/placeholder.jpg",
   },
   {
     artist: "HYUKOH",
     name: "23",
     price: "16.01 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/55105c78-c6fb-4992-b687-3e8b6a802add",
+      "/placeholder.jpg",
   },
   {
     artist: "NewJeans",
     name: "NewJeans OMG Album",
     price: "31.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/5fffa136-f8d4-4436-bb78-33ec4048a320",
+      "/placeholder.jpg",
   },
   {
     artist: "BIGBANG",
     name: "Always 1st Mini Album CD",
     price: "14.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/cf97ff01-6552-46d9-9053-bdc6c904ec76",
+      "/placeholder.jpg",
   },
 ];
 
@@ -72,7 +72,7 @@ export const liveAuctions = [
     timer: "1h 59m 56s",
     isUrgent: false,
     image:
-      "https://www.figma.com/api/mcp/asset/6e9f9a2d-96ef-49a8-84b5-33e0218c2f8d",
+      "/placeholder.jpg",
     containImage: false,
   },
   {
@@ -82,7 +82,7 @@ export const liveAuctions = [
     timer: "4h 59m 56s",
     isUrgent: false,
     image:
-      "https://www.figma.com/api/mcp/asset/869cc25b-0e9c-45d5-8c69-19ca1a65a941",
+      "/placeholder.jpg",
     containImage: true,
   },
   {
@@ -92,7 +92,7 @@ export const liveAuctions = [
     timer: "0h 44m 56s",
     isUrgent: true,
     image:
-      "https://www.figma.com/api/mcp/asset/2496d53d-d5ae-453f-808c-5fb137c8bb9a",
+      "/placeholder.jpg",
     containImage: false,
   },
 ];
@@ -105,7 +105,7 @@ export const allAuctions = [
     timer: "1h 59m 56s",
     isUrgent: false,
     image:
-      "https://www.figma.com/api/mcp/asset/6e9f9a2d-96ef-49a8-84b5-33e0218c2f8d",
+      "/placeholder.jpg",
     containImage: false,
   },
   {
@@ -115,7 +115,7 @@ export const allAuctions = [
     timer: "4h 44m 56s",
     isUrgent: false,
     image:
-      "https://www.figma.com/api/mcp/asset/9fe35220-d95a-49bb-b07e-d8cb59533f7c",
+      "/placeholder.jpg",
     containImage: false,
   },
   {
@@ -125,7 +125,7 @@ export const allAuctions = [
     timer: "0h 44m 56s",
     isUrgent: true,
     image:
-      "https://www.figma.com/api/mcp/asset/2496d53d-d5ae-453f-808c-5fb137c8bb9a",
+      "/placeholder.jpg",
     containImage: false,
   },
   {
@@ -135,7 +135,7 @@ export const allAuctions = [
     timer: "2h 15m 00s",
     isUrgent: false,
     image:
-      "https://www.figma.com/api/mcp/asset/bc467203-917b-4f4c-ae01-6a5bf06f189b",
+      "/placeholder.jpg",
     containImage: false,
   },
   {
@@ -145,7 +145,7 @@ export const allAuctions = [
     timer: "3h 30m 12s",
     isUrgent: false,
     image:
-      "https://www.figma.com/api/mcp/asset/8a6f8e99-0a66-43a5-b1d6-8a86a0423996",
+      "/placeholder.jpg",
     containImage: false,
   },
   {
@@ -155,7 +155,7 @@ export const allAuctions = [
     timer: "5h 00m 00s",
     isUrgent: false,
     image:
-      "https://www.figma.com/api/mcp/asset/289a36ad-9a7d-4b88-ba02-28db16a8e88a",
+      "/placeholder.jpg",
     containImage: false,
   },
 ];
@@ -178,7 +178,7 @@ export const fandomProducts = [
     name: "BTS Army Bomb Ver.4",
     price: "59.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/8ebd7d06-ae8a-4953-9ec0-e99078d5de0a",
+      "/placeholder.jpg",
   },
   {
     fandom: "BTS",
@@ -186,7 +186,7 @@ export const fandomProducts = [
     name: "BTS Proof Album",
     price: "34.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/289a36ad-9a7d-4b88-ba02-28db16a8e88a",
+      "/placeholder.jpg",
   },
   {
     fandom: "BTS",
@@ -194,7 +194,7 @@ export const fandomProducts = [
     name: "BTS Photo Card Set",
     price: "12.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/5fffa136-f8d4-4436-bb78-33ec4048a320",
+      "/placeholder.jpg",
   },
   {
     fandom: "Blackpink",
@@ -202,7 +202,7 @@ export const fandomProducts = [
     name: "Blackpink Lightstick Ver.2",
     price: "64.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/9fe35220-d95a-49bb-b07e-d8cb59533f7c",
+      "/placeholder.jpg",
   },
   {
     fandom: "Blackpink",
@@ -210,7 +210,7 @@ export const fandomProducts = [
     name: "Blackpink Born Pink Album",
     price: "29.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/cf97ff01-6552-46d9-9053-bdc6c904ec76",
+      "/placeholder.jpg",
   },
   {
     fandom: "Blackpink",
@@ -218,7 +218,7 @@ export const fandomProducts = [
     name: "Blackpink Fan Poster Set",
     price: "18.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/bc467203-917b-4f4c-ae01-6a5bf06f189b",
+      "/placeholder.jpg",
   },
   {
     fandom: "Newjeans",
@@ -226,7 +226,7 @@ export const fandomProducts = [
     name: "NewJeans OMG Album",
     price: "24.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/5fffa136-f8d4-4436-bb78-33ec4048a320",
+      "/placeholder.jpg",
   },
   {
     fandom: "Newjeans",
@@ -234,7 +234,7 @@ export const fandomProducts = [
     name: "NewJeans Got Up Album",
     price: "22.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/2496d53d-d5ae-453f-808c-5fb137c8bb9a",
+      "/placeholder.jpg",
   },
   {
     fandom: "SEVENTEEN",
@@ -242,7 +242,7 @@ export const fandomProducts = [
     name: "SEVENTEEN Carat Dung Ver.3",
     price: "54.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/8ebd7d06-ae8a-4953-9ec0-e99078d5de0a",
+      "/placeholder.jpg",
   },
   {
     fandom: "SEVENTEEN",
@@ -250,7 +250,7 @@ export const fandomProducts = [
     name: "SEVENTEEN FM Album",
     price: "27.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/289a36ad-9a7d-4b88-ba02-28db16a8e88a",
+      "/placeholder.jpg",
   },
   {
     fandom: "Stray Kids",
@@ -258,7 +258,7 @@ export const fandomProducts = [
     name: "Stray Kids Nachintong",
     price: "49.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/8a6f8e99-0a66-43a5-b1d6-8a86a0423996",
+      "/placeholder.jpg",
   },
   {
     fandom: "Stray Kids",
@@ -266,7 +266,7 @@ export const fandomProducts = [
     name: "Stray Kids K-STAR Album",
     price: "31.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/cf97ff01-6552-46d9-9053-bdc6c904ec76",
+      "/placeholder.jpg",
   },
   {
     fandom: "aespa",
@@ -274,7 +274,7 @@ export const fandomProducts = [
     name: "aespa Synk Dive Lightstick",
     price: "55.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/bc467203-917b-4f4c-ae01-6a5bf06f189b",
+      "/placeholder.jpg",
   },
   {
     fandom: "TWICE",
@@ -282,7 +282,7 @@ export const fandomProducts = [
     name: "TWICE Candybong ++",
     price: "52.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/5fffa136-f8d4-4436-bb78-33ec4048a320",
+      "/placeholder.jpg",
   },
   {
     fandom: "EXO",
@@ -290,7 +290,7 @@ export const fandomProducts = [
     name: "EXO EXObang Vol.3",
     price: "48.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/8ebd7d06-ae8a-4953-9ec0-e99078d5de0a",
+      "/placeholder.jpg",
   },
   {
     fandom: "Newjeans",
@@ -298,6 +298,6 @@ export const fandomProducts = [
     name: "NewJeans Got Up Album",
     price: "22.99 VNĐ",
     image:
-      "https://www.figma.com/api/mcp/asset/2496d53d-d5ae-453f-808c-5fb137c8bb9a",
+      "/placeholder.jpg",
   },
 ];

@@ -144,7 +144,7 @@ function ListingRow({ listing, onEdit, onDelete, onBoost, boostingId }) {
   return (
     <div className="flex items-center gap-4 rounded-xl border border-[#e6e6e6] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-shadow hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
       <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-[#f0f0f0] bg-[#f7f6fb]">
-        <img src={listing.image} alt={listing.name} className="h-full w-full object-cover" />
+        <img src={listing.image} alt={listing.name} className="h-full w-full object-cover" loading="lazy" decoding="async" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="mb-0.5 flex flex-wrap items-center gap-2">
@@ -194,7 +194,7 @@ function SoldItemRow({ item }) {
     <div className="flex items-center gap-4 rounded-xl border border-[#e6e6e6] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
       <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-[#f0f0f0] bg-[#f7f6fb] flex items-center justify-center">
         {item.image
-          ? <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+          ? <img src={item.image} alt={item.name} className="h-full w-full object-cover" loading="lazy" decoding="async" />
           : <svg className="h-6 w-6 text-[#d4d4d4]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5" /></svg>
         }
       </div>
@@ -440,7 +440,7 @@ function SellerOrderCard({ order, onShip }) {
         <div className="flex items-center gap-3">
           <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-[#e6e6e6] bg-[#f4f3f7] flex items-center justify-center">
             {first?.image
-              ? <img src={first.image} alt={first.name} className="h-full w-full object-contain p-1" />
+              ? <img src={first.image} alt={first.name} className="h-full w-full object-contain p-1" loading="lazy" decoding="async" />
               : <svg className="h-6 w-6 text-[#d4d4d4]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909" /></svg>
             }
           </div>

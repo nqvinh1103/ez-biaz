@@ -248,6 +248,8 @@ function ListingRow({ listing, onEdit, onDelete, onBoost, boostingId }) {
           src={listing.image}
           alt={listing.name}
           className="h-full w-full object-cover"
+          loading="lazy"
+          decoding="async"
         />
       </div>
 
@@ -377,6 +379,8 @@ function SoldItemRow({ item }) {
             src={item.image}
             alt={item.name}
             className="h-full w-full object-cover"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <svg

@@ -292,9 +292,14 @@ function AuctionDetailPage() {
     const amount = Number(bidInput);
     if (!amount || Number.isNaN(amount)) return;
 
+    if (!user?.id) {
+      openLoginModal();
+      return;
+    }
+
     setPlacing(true);
     setError(null);
-    const res = await placeBid(user?.id ?? "u1", auction.id, amount);
+    const res = await placeBid(user.id, auction.id, amount);
     setPlacing(false);
 
     if (!res.success) {
@@ -327,6 +332,11 @@ function AuctionDetailPage() {
                   src={auction.image}
                   alt={auction.name}
                   className="h-full w-full object-contain"
+                  loading="eager"
+                  fetchpriority="high"
+                  decoding="async"
+                  width="320"
+                  height="288"
                 />
               </div>
 

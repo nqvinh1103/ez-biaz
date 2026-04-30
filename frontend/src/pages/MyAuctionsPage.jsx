@@ -125,7 +125,7 @@ export default function MyAuctionsPage() {
             {rows.map((a) => (
               <div key={a.id} className="flex items-center gap-4 rounded-xl border border-[#e6e6e6] bg-white p-4">
                 <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-[#f0f0f0] bg-[#f7f6fb]">
-                  <img src={a.image} alt={a.name} className="h-full w-full object-cover" />
+                  <img src={a.image} alt={a.name} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                 </div>
 
                 <div className="min-w-0 flex-1">

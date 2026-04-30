@@ -137,7 +137,7 @@ export default function AuctionWonModal({ auction, onClose }) {
         <div className="flex items-center gap-4 border-b border-[#f0f0f0] px-6 py-4">
           {auction.image && (
             <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-[#f0f0f0] bg-[#f7f6fb]">
-              <img src={auction.image} alt={auction.name} className="h-full w-full object-cover" />
+              <img src={auction.image} alt={auction.name} className="h-full w-full object-cover" loading="lazy" decoding="async" />
             </div>
           )}
           <div className="min-w-0 flex-1">

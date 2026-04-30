@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import OrderSummary from "../components/checkout/OrderSummary";
 import PaymentSelector from "../components/checkout/PaymentSelector";
 import PageLayout from "../components/layout/PageLayout";
-import { formatCurrency } from "../utils/formatters";
 import BackLink from "../components/ui/BackLink";
 import Button from "../components/ui/Button";
 import FormField from "../components/ui/FormField";
+import { useToast } from "../context/ToastContext";
 import { useAuth } from "../hooks/useAuth";
 import { useCart } from "../hooks/useCart";
 import { useForm } from "../hooks/useForm";
@@ -21,85 +21,15 @@ const INITIAL_SHIPPING = {
   phone: "",
 };
 
-const PAYMENT_LABELS = {
-  cod: "Cash on Delivery",
-  bank: "Bank Transfer",
-  card: "Credit Card",
-};
-
-/* ── Order success screen ───────────────────────────────────────────────── */
-function OrderSuccess({ order, onContinue }) {
-  return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 px-4 py-16 text-center">
-      {/* Checkmark */}
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[rgba(34,197,94,0.12)]">
-        <svg className="h-10 w-10 text-[#22c55e]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-        </svg>
-      </div>
-
-      <div>
-        <h2 className="text-2xl font-bold text-[#121212]">Order Placed!</h2>
-        <p className="mt-1 text-sm text-[#737373]">
-          Thank you for your purchase. Your orders are being processed.
-        </p>
-      </div>
-
-      {/* Order details card */}
-      <div className="w-full max-w-sm rounded-2xl border border-[#e6e6e6] bg-white p-5 text-left shadow-sm">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#737373]">Order Details</p>
-        <div className="flex flex-col gap-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-[#737373]">Order ID</span>
-            <span className="font-semibold text-[#121212]">#{order.id}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[#737373]">Items</span>
-            <span className="font-semibold text-[#121212]">{order.items.length}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[#737373]">Payment</span>
-            <span className="font-semibold text-[#121212]">{PAYMENT_LABELS[order.payment]}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[#737373]">Ship to</span>
-            <span className="max-w-[180px] text-right font-semibold text-[#121212]">{order.address}</span>
-          </div>
-          <div className="mt-2 flex justify-between border-t border-[#e6e6e6] pt-2">
-            <span className="font-bold text-[#121212]">Total</span>
-            <span className="font-bold text-[#ad93e6]">{formatCurrency(order.total)}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Link
-          to="/fandoms"
-          className="inline-flex h-10 items-center justify-center rounded-lg border border-[#e6e6e6] px-6 text-sm font-medium text-[#737373] transition-colors hover:border-[#ad93e6] hover:text-[#ad93e6]"
-        >
-          Continue Shopping
-        </Link>
-        <button
-          onClick={onContinue}
-          className="inline-flex h-10 items-center justify-center rounded-lg bg-[#ad93e6] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#9d7ed9]"
-        >
-          Back to Home
-        </button>
-      </div>
-    </div>
-  );
-}
-
 /* ── Main page ──────────────────────────────────────────────────────────── */
 function CheckoutPage() {
-  const navigate = useNavigate();
   const { user } = useAuth();
-  const { items, clearCart } = useCart();
+  const { items } = useCart();
+  const { showToast } = useToast();
   const { values, handleChange } = useForm(INITIAL_SHIPPING);
-  const [payment, setPayment]     = useState("");
-  const [placing, setPlacing]     = useState(false);
-  const [error,   setError]       = useState(null);
-  const [order,   setOrder]       = useState(null); // set on success
+  const [payment, setPayment] = useState("");
+  const [placing, setPlacing] = useState(false);
+  const [error,   setError]   = useState(null);
 
   const itemCount = items.length;
   const isShippingComplete = Object.values(values).every((v) => v.trim());
@@ -107,34 +37,31 @@ function CheckoutPage() {
 
   const handlePlaceOrder = async () => {
     if (!isValid || placing) return;
+    if (!user?.id) {
+      setError("You must be signed in to place an order.");
+      return;
+    }
     setPlacing(true);
     setError(null);
     try {
-      const res = await checkout(user?.id ?? "u1", values, payment, items);
-      if (res.success) {
-        const payUrl = res.data?.payUrl;
-        if (payUrl) {
-          window.location.href = payUrl;
-          return;
-        }
-        showToast("Missing MoMo payUrl.", "error");
-      } else {
+      const res = await checkout(user.id, values, payment, items);
+      if (!res.success) {
         setError(res.message);
+        return;
       }
+      const payUrl = res.data?.payUrl;
+      if (payUrl) {
+        window.location.href = payUrl;
+        return;
+      }
+      showToast("Payment provider did not return a redirect URL.", "error");
+      setError("Unable to start payment. Please try again or pick another method.");
     } catch (err) {
       setError(err.message ?? "Something went wrong. Please try again.");
     } finally {
       setPlacing(false);
     }
   };
-
-  if (order) {
-    return (
-      <PageLayout>
-        <OrderSuccess order={order} onContinue={() => navigate("/")} />
-      </PageLayout>
-    );
-  }
 
   return (
     <PageLayout>

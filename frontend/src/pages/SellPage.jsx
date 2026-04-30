@@ -81,11 +81,15 @@ function SellPage() {
 
   const handleSubmit = async () => {
     if (!isValid || submitting) return;
+    if (!user?.id) {
+      setError("You must be signed in to create a listing.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     const normalizedFandom = values.fandom.trim().toUpperCase();
     const res = await createListing(
-      user?.id ?? "u1",
+      user.id,
       {
         name: values.name,
         description: values.description,

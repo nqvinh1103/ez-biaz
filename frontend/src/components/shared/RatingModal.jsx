@@ -76,7 +76,7 @@ export default function RatingModal({ order, onClose, onSubmitted }) {
           <div className="flex items-center gap-3 rounded-xl border border-[#f0f0f0] bg-[#fafafa] px-4 py-3">
             <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-[#e6e6e6] bg-white flex items-center justify-center">
               {first?.image ? (
-                <img src={first.image} alt={first.name} className="h-full w-full object-contain p-1" />
+                <img src={first.image} alt={first.name} className="h-full w-full object-contain p-1" loading="lazy" decoding="async" />
               ) : (
                 <svg className="h-5 w-5 text-[#d4d4d4]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909" />

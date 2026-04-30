@@ -40,7 +40,7 @@ const OrderSummary = memo(function OrderSummary() {
               <li key={item.id} className="flex items-start gap-3">
                 {/* Thumbnail */}
                 <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-[#e6e6e6] bg-[#f4f3f7]">
-                  <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                  <img src={item.image} alt={item.name} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                 </div>
 
                 {/* Name + qty stepper */}

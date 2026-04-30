@@ -1,14 +1,5 @@
-/**
- * axiosInstance.js
- * Configured Axios instance for EzBias API.
- * - Base URL from env
- * - 30s timeout
- * - Auto-attach Authorization header from localStorage
- * - Response transformer: always returns { success, data, message }
- * - Global 401 redirect to login
- */
-
 import axios from "axios";
+import { authEvents } from "./authEvents";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5171";
 const TOKEN_KEY = "ezbias_user";
@@ -82,14 +73,11 @@ instance.interceptors.response.use(
     const { status, data } = error.response;
 
     if (status === 401) {
-      // Auth endpoints returning 401 mean wrong credentials — don't redirect,
-      // just return the server's message so the form can display it.
       const isAuthEndpoint = error.config?.url?.startsWith("/api/auth/");
       if (!isAuthEndpoint) {
         localStorage.removeItem(TOKEN_KEY);
-        if (typeof window !== "undefined" && window.location.pathname !== "/") {
-          window.location.href = "/";
-        }
+        // Notify React; AuthProvider listens and uses react-router to navigate.
+        authEvents.emit("expired");
       }
       const msg = data?.message ?? "Session expired. Please log in again.";
       return Promise.resolve(fail(msg));
